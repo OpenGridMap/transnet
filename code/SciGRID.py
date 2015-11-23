@@ -112,8 +112,7 @@ if __name__ == '__main__':
     dbhost = options.dbhost if options.dbhost else '127.0.0.1'
     dbport = options.dbport if options.dbport else '5432'
     dbuser = options.dbuser if options.dbuser else 'postgres' 
-    dbpwrd = options.dbpwrd if options.dbpwrd else '' 
-    
+    dbpwrd = options.dbpwrd if options.dbpwrd else 'open50arms'
  
     # Connect to DB 
     try:

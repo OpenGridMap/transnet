@@ -170,6 +170,22 @@ def ct_links(cur,conn):
     cur.execute(sql)
     conn.commit()
 
+def ct_poles(cur,conn):
+    # Create poles table.
+    sql = "DROP TABLE IF EXISTS poles;"
+    cur.execute(sql)
+    conn.commit()
+    sql = """
+        CREATE TABLE poles (
+        p_id             bigint PRIMARY KEY NOT NULL,
+        lon              float,
+        lat              float,
+        typ              text,
+        voltage          text,
+        geom             geometry);
+         """
+    cur.execute(sql)
+    conn.commit()
  
 def create_tables(cur,conn):
     # Create all tables
@@ -180,6 +196,7 @@ def create_tables(cur,conn):
     ct_vertices_ref_id(cur,conn)
     ct_vertices(cur,conn)
     ct_links(cur,conn)
+    ct_poles(cur,conn)
     
     
 if __name__ == '__main__':

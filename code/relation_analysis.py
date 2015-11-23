@@ -193,6 +193,54 @@ def analyze_rels(cur,conn):
     cur.execute(sql)
     conn.commit()
 
+    # function 4 : Create function that lists the poles of ways
+    sql =   """
+            CREATE OR REPLACE FUNCTION get_way_nodes_with_power_vals (way_id bigint, vals text[])
+            RETURNS TABLE (osm_id bigint)
+            AS $$
+            BEGIN
+            FOR osm_id IN
+                	SELECT id as osm_id FROM planet_osm_nodes
+                		WHERE id IN
+                		(SELECT node::bigint
+                       FROM (SELECT unnest(nodes) as node
+                             FROM planet_osm_ways
+                             WHERE id = way_id)t)
+                       AND hstore(tags)->'power' = ANY (vals)
+            LOOP
+                	RETURN NEXT;
+            END LOOP;
+            RETURN;
+            END;
+            $$ LANGUAGE plpgsql;
+            """
+    cur.execute(sql)
+    conn.commit()
+
+    # function 5 : Create function that lists the poles of rels
+    sql =   """
+            CREATE OR REPLACE FUNCTION get_rel_way_nodes_with_power_vals (rel_id bigint, vals text[])
+            RETURNS TABLE (osm_id bigint)
+            AS $$
+            BEGIN
+            FOR osm_id IN
+                	SELECT get_way_nodes_with_power_vals(id, vals) FROM planet_osm_ways
+                		WHERE id IN
+                		(SELECT trim(leading 'w' from member)::bigint
+                       FROM (SELECT unnest(members) as member
+                             FROM planet_osm_rels
+                             WHERE id = rel_id)t
+                       WHERE member ~  E'^w[0,1,2,3,4,5,6,7,8,9]+$')
+            LOOP
+                	RETURN NEXT;
+            END LOOP;
+            RETURN;
+            END;
+            $$ LANGUAGE plpgsql;
+            """
+    cur.execute(sql)
+    conn.commit()
+
     # Relation analysis querry
     sql =   """
             SELECT analysis_rel(id) 

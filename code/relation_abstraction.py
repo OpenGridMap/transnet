@@ -61,6 +61,10 @@ def abstract_2subs(cur,conn):
                 id_1                    bigint;
                 id_2                    bigint;
                 rel_wires_nb            integer;
+                pole_id                 bigint;
+                pole_lon                float;
+                pole_lat                float;
+                pole_center             geometry;
             BEGIN	
             	sub1_id = (SELECT osm_id FROM get_rel_parts_with_power_vals(rel_id,'{station,substation,sub_station,plant,generator}'::text[]) ORDER BY osm_id ASC LIMIT 1);
             	sub2_id = (SELECT osm_id FROM get_rel_parts_with_power_vals(rel_id,'{station,substation,sub_station,plant,generator}'::text[]) ORDER BY osm_id ASC LIMIT 1 OFFSET 1);
@@ -141,7 +145,16 @@ def abstract_2subs(cur,conn):
             	INSERT INTO links (v_id_1,v_id_2,voltage,cables,wires,frequency,length_m,geom) VALUES(id_1,id_2,rel_volt, rel_cables, rel_wires_nb, rel_frequency,link_length,link_way);
             	
             UPDATE _analysis_rels SET abstracted = 1 WHERE osm_id = rel_id;
-            
+
+            FOR pole_id in select get_rel_way_nodes_with_power_vals(rel_id, '{pole,tower}'::text[]) LOOP
+                IF not (SELECT exists(SELECT 1 FROM poles WHERE p_id=pole_id)) THEN
+                    pole_center = (SELECT ST_SetSRID(ST_MakePoint(lon/100.0,lat/100.0),900913) FROM planet_osm_nodes WHERE id = pole_id);
+                    pole_lon = (SELECT lon FROM planet_osm_nodes WHERE id = pole_id);
+                    pole_lat = (SELECT lat FROM planet_osm_nodes WHERE id = pole_id);
+                    INSERT INTO poles (p_id,lon,lat,typ,voltage,geom) VALUES(pole_id,ST_X(ST_Transform(pole_center,4326)), ST_Y(ST_Transform(pole_center,4326)),'tower',sub2_volt,pole_center);
+                END IF;
+            END LOOP;
+
             RETURN 'Done. Abstraction of relation with 2 substations: relation(' || rel_id || ');';
             END;
             $$ LANGUAGE plpgsql;
@@ -307,6 +320,10 @@ def abstract_3subs_T_node(cur,conn):
                                  id_2               bigint; 
                                  id_3               bigint;
                                  id_4               bigint;
+                                 pole_id                 bigint;
+                                 pole_lon                float;
+                                 pole_lat                float;
+                                 pole_center             geometry;
             BEGIN                	             
             T_node_loc = (SELECT ST_SetSRID(ST_MakePoint(lon/100.0,lat/100.0),900913) FROM planet_osm_nodes WHERE id = T_node_id);
             sub1_id = ordered_station_ids[1]; 
@@ -427,6 +444,15 @@ def abstract_3subs_T_node(cur,conn):
             INSERT INTO links (v_id_1,v_id_2,voltage,cables,wires,frequency,length_m,geom) VALUES(id_1,id_4,rel_volt, rel_cables, rel_wires_nb, rel_frequency,link1_len,link1_way);
             INSERT INTO links (v_id_1,v_id_2,voltage,cables,wires,frequency,length_m,geom) VALUES(id_2,id_4,rel_volt, rel_cables, rel_wires_nb, rel_frequency,link2_len,link2_way);
             INSERT INTO links (v_id_1,v_id_2,voltage,cables,wires,frequency,length_m,geom) VALUES(id_3,id_4,rel_volt, rel_cables, rel_wires_nb, rel_frequency,link3_len,link3_way);
+
+            FOR pole_id in select get_rel_way_nodes_with_power_vals(rel_id, '{pole,tower}'::text[]) LOOP
+                IF not (SELECT exists(SELECT 1 FROM poles WHERE p_id=pole_id)) THEN
+                    pole_center = (SELECT ST_SetSRID(ST_MakePoint(lon/100.0,lat/100.0),900913) FROM planet_osm_nodes WHERE id = pole_id);
+                    pole_lon = (SELECT lon FROM planet_osm_nodes WHERE id = pole_id);
+                    pole_lat = (SELECT lat FROM planet_osm_nodes WHERE id = pole_id);
+                    INSERT INTO poles (p_id,lon,lat,typ,voltage,geom) VALUES(pole_id,ST_X(ST_Transform(pole_center,4326)), ST_Y(ST_Transform(pole_center,4326)),'tower',sub2_volt,pole_center);
+                END IF;
+            END LOOP;
                         	
                         UPDATE _analysis_rels SET abstracted = 1, t_node_ids = array[T_node_id]::bigint[] WHERE osm_id = rel_id;
                         
