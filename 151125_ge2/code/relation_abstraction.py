@@ -97,8 +97,7 @@ def abstract_2subs(cur,conn):
             		END IF;
             	END IF;
             	IF sub2_id_typ = 'n' THEN 
-            		sub2_center = (SELECT
-            		 FROM planet_osm_nodes WHERE id = sub2_id);
+            		sub2_center = (SELECT ST_SetSRID(ST_MakePoint(lon/100.0,lat/100.0),900913) FROM planet_osm_nodes WHERE id = sub2_id);
             	ELSE IF sub2_id_typ = 'w' THEN
             			sub2_center = (SELECT ST_centroid(way) FROM planet_osm_polygon WHERE osm_id = sub2_id);
             		ELSE IF sub2_id_typ = 'r' THEN
