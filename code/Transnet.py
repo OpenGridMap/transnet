@@ -18,6 +18,7 @@ import psycopg2
 from optparse import OptionParser
 from Line import Line
 from Station import Station
+from shapely import wkb
 
 class Transnet:
 
@@ -47,93 +48,119 @@ class Transnet:
 
     def create_relations(self):
         stations = dict()
-        sql = "select id,hstore(tags)->'name' as name, hstore(tags)->'power' as type, nodes,tags from planet_osm_ways where hstore(tags)->'power'~'station|substation|sub_station|plant|generator' and array_length(nodes, 1) >= 4 and st_isclosed(create_line(id))"
+        sql = "select id,create_polygon(id) as geom,hstore(tags)->'name' as name, hstore(tags)->'power' as type, nodes,tags from planet_osm_ways where hstore(tags)->'power'~'station|substation|sub_station|plant|generator' and array_length(nodes, 1) >= 4 and st_isclosed(create_line(id))"
         self.cur.execute(sql)
         result = self.cur.fetchall()
-        for (id,name,type,nodes,tags) in result:
-            stations[id] = Station(id,type,name,nodes,tags)
-            # print(str(stations[id]) + '\n')
+        for (id,geom,name,type,nodes,tags) in result:
+            polygon = wkb.loads(geom, hex=True)
+            stations[id] = Station(id,polygon,type,name,nodes,tags)
+        print('Found ' + str(len(stations)) + ' stations')
+
+        lines = dict()
+        sql =   """
+                select id, create_line(id) as geom, hstore(tags)->'voltage' as voltage, hstore(tags)->'power' as type, hstore(tags)->'cables' as cables, hstore(tags)->'name' as name, hstore(tags)->'ref' as ref, nodes, tags
+                from planet_osm_ways where hstore(tags)->'power'~'line|cable|minor_line' and exist(hstore(tags),'voltage');
+                """
+        self.cur.execute(sql)
+        result = self.cur.fetchall()
+        for (id,geom,voltage,type,cables,name,ref,nodes,tags) in result:
+            line = wkb.loads(geom, hex=True)
+            lines[id] = Line(id,line,type,voltage,cables,name,ref,nodes,tags)
+        print('Found ' + str(len(lines)) + ' lines')
+        print('')
 
         #for id in stations:
-        close_stations = self.get_close_stations(137197826, stations)
+        #close_stations = self.get_close_stations(137197826, stations)
         circuits = []
-        circuits.extend(self.infer_circuits(stations[137197826],close_stations))
+        circuits.extend(self.infer_circuits(stations[137197826],stations,lines))
 
         i = 1
         for circuit in circuits:
             print('Circuit ' + str(i))
-            print(self.print_circuit(circuit))
+            self.print_circuit(circuit)
             i+=1
         return
 
-    def infer_circuits(self, station, stations):
+    def infer_circuits(self, station, stations, lines):
         circuits = []
-        sql =   """
-                select id, hstore(tags)->'voltage' as voltage, hstore(tags)->'power' as type, hstore(tags)->'cables' as cables, hstore(tags)->'name' as name, hstore(tags)->'ref' as ref, nodes, tags
-                from planet_osm_ways where hstore(tags)->'power'~'line|cable|minor_line' and exist(hstore(tags),'voltage')
-	                    and id in (select osm_id from planet_osm_line where st_intersects(create_polygon(""" + str(station.id) + """), way));
-                """
-        self.cur.execute(sql)
-        result = self.cur.fetchall()
-        for (id,voltage,type,cables,name,ref,nodes,tags) in result:
-            line = Line(id,type,voltage,cables,name,ref,nodes,tags)
-            print(str(line) + '\n')
+        intersecting_lines = []
+        for line_id in lines:
+            if lines[line_id].geom.crosses(station.geom):
+                intersecting_lines.append(lines[line_id])
+
+        print(str(station))
+        for line in intersecting_lines:
+            print(str(line))
             circuit = [station, line]
-            node_to_continue = line.first_node()
+
             temp_stations = dict()
             temp_stations[station.id] = station
             if self.node_in_station(line.first_node(), temp_stations):
                 node_to_continue = line.last_node()
-            circuits.append(self.infer_circuit(circuit,node_to_continue,line,voltage,ref,cables,stations))
+                covered_nodes = [line.first_node()]
+            else:
+                node_to_continue = line.first_node()
+                covered_nodes = [line.last_node()]
+            circuits.append(self.infer_circuit(circuit,node_to_continue,line,line.voltage,line.ref,line.cables,stations,lines,covered_nodes))
         return circuits
 
     # recursive function that infers electricity circuits
     # circuit - sorted member array
     # line - line of circuit
     # stations - all known stations
-    def infer_circuit(self, circuit, node_id, from_line, circuit_voltage, circuit_ref, prev_cables, stations):
+    def infer_circuit(self, circuit, node_id, from_line, circuit_voltage, circuit_ref, prev_cables, stations, lines, covered_nodes):
         station_id = self.node_in_station(node_id, stations)
         if station_id and station_id != circuit[0].id:
+            print(str(stations[station_id]))
             circuit.append(stations[station_id])
+            print('Could obtain circuit')
+            self.print_circuit(circuit)
             return circuit
 
-        sql =   """
-                select id, hstore(tags)->'voltage' as voltage, hstore(tags)->'power' as type, hstore(tags)->'cables' as cables,hstore(tags)->'name' as name, hstore(tags)->'ref' as ref, nodes, tags
-                from planet_osm_ways where hstore(tags)->'power'~'line|cable|minor_line' and exist(hstore(tags),'voltage')
-	                    and nodes::bigint[] @> ARRAY[""" + str(node_id) + """]::bigint[];
-                """
-        self.cur.execute(sql)
-        result = self.cur.fetchall()
-        for (id,voltage,type,cables,name,ref,nodes,tags) in result:
-            line = Line(id,type,voltage,cables,name,ref,nodes,tags)
+        node_covering_lines = []
+        for line_id in lines:
+            if node_id in lines[line_id].nodes:
+                node_covering_lines.append(lines[line_id])
+
+        for line in node_covering_lines:
             if line.id == from_line.id:
                 continue
-            if circuit_voltage not in voltage:
+            if circuit_voltage not in line.voltage:
                 continue
-            if not self.ref_matches(circuit_ref, ref):
+            if not self.ref_matches(circuit_ref, line.ref):
                 continue
+            if node_id in covered_nodes:
+                print('Encountered loop at - stopping inference for this line')
+                self.print_circuit(circuit)
+                return circuit
+            print(str(line))
             circuit.append(line)
-            node_to_continue = line.first_node()
             if line.first_node() == node_id:
                 node_to_continue = line.last_node()
-            return self.infer_circuit(circuit, node_to_continue, line, circuit_voltage, circuit_ref, cables, stations)
+            else:
+                node_to_continue = line.first_node()
+            covered_nodes.append(node_id)
+            return self.infer_circuit(circuit, node_to_continue, line, circuit_voltage, circuit_ref, line.cables, stations, lines, covered_nodes)
 
-        print('Could not obtain circuit ' + self.print_circuit(circuit))
+        print('Error - could not obtain circuit')
+        self.print_circuit(circuit)
         return circuit
 
     # returns if node is in station
     def node_in_station(self, node_id, stations):
-        for id in stations:
-            station = stations[id]
-            if node_id in station.nodes:
+        for station_id in stations:
+            if node_id in stations[station_id].nodes:
                 # node is a part of a substation
-                return station.id
-            sql = " select true from planet_osm_ways where id = " + str(station.id) + " and st_intersects(create_polygon(id), create_point(" + str(node_id) + "));"
-            self.cur.execute(sql)
-            result = self.cur.fetchall()
-            if result:
-                # node is within a substation
-                return station.id
+                return station_id
+        sql = " select create_point(id) as point from planet_osm_nodes where id = " + str(node_id) + ";"
+        self.cur.execute(sql)
+
+        result = self.cur.fetchall()
+        for(point,) in result:
+            node = wkb.loads(point, hex=True)
+        for station_id in stations:
+            if node.within(stations[station_id].geom):
+                return station_id
         return None
 
     def num_subs_in_circuit(self, circuit):
@@ -149,7 +176,9 @@ class Transnet:
         for way in circuit:
             string += str(way) + ','
             overpass += 'way(' + str(way.id) + ');'
-        return string + overpass
+        print(string)
+        print(overpass)
+        print('')
 
     # compares the ref/name tokens like 303;304 in the power line tags
     def ref_matches(self, ref1, ref2):
@@ -170,17 +199,10 @@ class Transnet:
 
     def get_close_stations(self, station_id, stations):
         close_stations = dict()
-        stations_clause = 'ARRAY['
-        for station_id in stations:
-            stations_clause += str(station_id)
-            stations_clause += ','
-        sql = "select id from planet_osm_ways where ARRAY[id]::bigint[] <@ " + stations_clause[:len(stations_clause)-1] + "]::bigint[] and st_distance(st_centroid(create_polygon(id)), st_centroid(create_polygon(" + str(station_id) + "))) <= 300000"
-        print(sql)
-        self.cur.execute(sql)
-        result = self.cur.fetchall()
-        for id, in result:
-            print(id)
-            close_stations[id] = stations[id]
+        for id in stations:
+            distance = stations[station_id].geom.centroid.distance(stations[id].geom.centroid)
+            if distance > 300000:
+                close_stations[id] = stations[id]
         return close_stations
     
 if __name__ == '__main__':

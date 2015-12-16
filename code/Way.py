@@ -4,14 +4,16 @@ class Way:
     nodes = None
     tags = None
     name = None
+    geom = None
 
 
-    def __init__(self, id, type, name, nodes, tags):
+    def __init__(self, id, geom, type, name, nodes, tags):
         self.id = id
         self.type = type
         self.nodes = nodes
         self.tags = tags
         self.name = name
+        self.geom = geom
 
     def __str__(self):
         return 'ID: ' + str(self.id) + ' Type: ' + self.type

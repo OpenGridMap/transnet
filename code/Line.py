@@ -5,8 +5,8 @@ class Line(Way):
     cables = None
     ref = None
 
-    def __init__(self, id, type, voltage, cables, name, ref, nodes, tags):
-        Way.__init__(self, id, type, name, nodes,  tags)
+    def __init__(self, id, geom, type, voltage, cables, name, ref, nodes, tags):
+        Way.__init__(self, id, geom, type, name, nodes,  tags)
         self.voltage = voltage
         self.cables = cables
         self.ref = ref
