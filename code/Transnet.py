@@ -82,7 +82,7 @@ class Transnet:
             node_to_continue = line.first_node()
             temp_stations = dict()
             temp_stations[station.id] = station
-            if self.node_in_substation(line.first_node(), temp_stations):
+            if self.node_in_station(line.first_node(), temp_stations):
                 node_to_continue = line.last_node()
             circuits.append(self.infer_circuit(circuit,node_to_continue,line,voltage,ref,cables,stations))
         return circuits
@@ -92,7 +92,7 @@ class Transnet:
     # line - line of circuit
     # stations - all known stations
     def infer_circuit(self, circuit, node_id, from_line, circuit_voltage, circuit_ref, prev_cables, stations):
-        station_id = self.node_in_substation(node_id, stations)
+        station_id = self.node_in_station(node_id, stations)
         if station_id and station_id != circuit[0].id:
             circuit.append(stations[station_id])
             return circuit
@@ -122,7 +122,7 @@ class Transnet:
         return circuit
 
     # returns if node is in station
-    def node_in_substation(self, node_id, stations):
+    def node_in_station(self, node_id, stations):
         for id in stations:
             station = stations[id]
             if node_id in station.nodes:
@@ -170,18 +170,18 @@ class Transnet:
 
     def get_close_stations(self, station_id, stations):
         close_stations = dict()
-        stations_clause = list('ARRAY[')
+        stations_clause = 'ARRAY['
         for station_id in stations:
-            stations_clause.extend(str(station_id))
-            stations_clause.append(',')
-        stations_clause[len(stations_clause) - 1] = ']'
-        sql = "select id from planet_osm_ways where ARRAY[id]::bigint[] <@ " + "".join(stations_clause) + "::bigint[] and st_distance(st_centroid(create_polygon(id)), st_centroid(create_polygon(" + str(station_id) + "))) <= 300000"
+            stations_clause += str(station_id)
+            stations_clause += ','
+        sql = "select id from planet_osm_ways where ARRAY[id]::bigint[] <@ " + stations_clause[:len(stations_clause)-1] + "]::bigint[] and st_distance(st_centroid(create_polygon(id)), st_centroid(create_polygon(" + str(station_id) + "))) <= 300000"
+        print(sql)
         self.cur.execute(sql)
         result = self.cur.fetchall()
         for id, in result:
             print(id)
             close_stations[id] = stations[id]
-        return stations
+        return close_stations
     
 if __name__ == '__main__':
     
