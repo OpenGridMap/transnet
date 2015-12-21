@@ -19,6 +19,7 @@ from optparse import OptionParser
 from Line import Line
 from Station import Station
 from shapely import wkb
+from datetime import datetime
 
 class Transnet:
 
@@ -34,7 +35,7 @@ class Transnet:
 	# Obtain the database connection parameters. 
         return self.connection
     
-    def connect_to_DB(self, password):   
+    def connect_to_DB(self, password):
 	# Establish the database connection. 
         self.conn = psycopg2.connect(password=password, **self.connection)
         self.cur = self.conn.cursor()
@@ -70,29 +71,42 @@ class Transnet:
         print('')
 
         #for id in stations:
-        #close_stations = self.get_close_stations(137197826, stations)
         circuits = []
         circuits.extend(self.infer_circuits(stations[137197826],stations,lines))
 
+        corrupt_circuits = []
         i = 1
         for circuit in circuits:
+            if self.num_subs_in_circuit(circuit) < 2:
+                corrupt_circuits.append(circuit)
+            else:
+                print('Circuit ' + str(i))
+                self.print_circuit(circuit)
+                i+=1
+
+        print('##### Corrupt circuits #####')
+        i = 1
+        for circuit in corrupt_circuits:
             print('Circuit ' + str(i))
             self.print_circuit(circuit)
             i+=1
         return
 
     def infer_circuits(self, station, stations, lines):
+        close_stations = self.get_close_stations(station.id, stations)
+
         circuits = []
-        intersecting_lines = []
+        crossing_not_covered_lines = []
         for line_id in lines:
             if lines[line_id].geom.crosses(station.geom):
-                intersecting_lines.append(lines[line_id])
+                if line_id not in station.covered_line_ids:
+                    crossing_not_covered_lines.append(lines[line_id])
 
-        print(str(station))
-        for line in intersecting_lines:
+        for line in crossing_not_covered_lines:
+            print(str(station))
             print(str(line))
+            station.covered_line_ids.append(line.id)
             circuit = [station, line]
-
             temp_stations = dict()
             temp_stations[station.id] = station
             if self.node_in_station(line.first_node(), temp_stations):
@@ -101,18 +115,30 @@ class Transnet:
             else:
                 node_to_continue = line.first_node()
                 covered_nodes = [line.last_node()]
-            circuits.append(self.infer_circuit(circuit,node_to_continue,line,line.voltage,line.ref,line.cables,stations,lines,covered_nodes))
+            circuit = self.infer_circuit(circuit,node_to_continue,line,line,stations,close_stations,lines,covered_nodes)
+            if circuit is not None:
+                circuits.append(circuit)
         return circuits
 
     # recursive function that infers electricity circuits
     # circuit - sorted member array
     # line - line of circuit
     # stations - all known stations
-    def infer_circuit(self, circuit, node_id, from_line, circuit_voltage, circuit_ref, prev_cables, stations, lines, covered_nodes):
-        station_id = self.node_in_station(node_id, stations)
-        if station_id and station_id != circuit[0].id:
-            print(str(stations[station_id]))
-            circuit.append(stations[station_id])
+    def infer_circuit(self, circuit, node_id, starting_line, from_line, stations, close_stations, lines, covered_nodes):
+        station_id = self.node_in_station(node_id, close_stations)
+        if station_id and station_id == circuit[0].id:
+            print('Encountered loop')
+            self.print_circuit(circuit)
+            return circuit
+        elif station_id and station_id != circuit[0].id:
+            station = stations[station_id]
+            print(str(station))
+            if from_line.id in station.covered_line_ids:
+                print('Circuit with ' + str(from_line) + ' at ' + str(station) + ' already covered')
+                print('')
+                return None
+            station.covered_line_ids.append(from_line.id)
+            circuit.append(station)
             print('Could obtain circuit')
             self.print_circuit(circuit)
             return circuit
@@ -125,12 +151,12 @@ class Transnet:
         for line in node_covering_lines:
             if line.id == from_line.id:
                 continue
-            if circuit_voltage not in line.voltage:
+            if starting_line.voltage not in line.voltage:
                 continue
-            if not self.ref_matches(circuit_ref, line.ref):
+            if not self.ref_matches(starting_line, line):
                 continue
             if node_id in covered_nodes:
-                print('Encountered loop at - stopping inference for this line')
+                print('Encountered loop - stopping inference for this line')
                 self.print_circuit(circuit)
                 return circuit
             print(str(line))
@@ -140,7 +166,7 @@ class Transnet:
             else:
                 node_to_continue = line.first_node()
             covered_nodes.append(node_id)
-            return self.infer_circuit(circuit, node_to_continue, line, circuit_voltage, circuit_ref, line.cables, stations, lines, covered_nodes)
+            return self.infer_circuit(circuit, node_to_continue, starting_line, line, stations, close_stations, lines, covered_nodes)
 
         print('Error - could not obtain circuit')
         self.print_circuit(circuit)
@@ -181,10 +207,24 @@ class Transnet:
         print('')
 
     # compares the ref/name tokens like 303;304 in the power line tags
-    def ref_matches(self, ref1, ref2):
-        if ref1 is None or ref2 is None:
-            # this should not be a necessary criteria - only use it when specified
+    def ref_matches(self, starting_line, current_line):
+        result = [self.compare_refs(starting_line.ref, current_line.ref),
+                      self.compare_refs(starting_line.ref, current_line.name),
+                      self.compare_refs(starting_line.name, current_line.ref),
+                      self.compare_refs(starting_line.name, current_line.name)]
+        lists = map(list, zip(*result))
+        both_had_numeric_tokens = reduce(lambda x,y: x or y, lists[0], False)
+        refs_matched = reduce(lambda x,y: x or y, lists[1], False)
+        if not both_had_numeric_tokens:
             return True
+        return refs_matched
+
+    def compare_refs(self, ref1, ref2):
+        ref1_has_digit_token = False
+        ref2_has_digit_token = False
+        tokens_match = False
+        if ref1 is None or ref2 is None:
+            return False, False
         split_char_1 = ';'
         if ',' in ref1:
             split_char_1 = ','
@@ -192,16 +232,21 @@ class Transnet:
         if ',' in ref2:
             split_char_2 = ','
         for token1 in ref1.split(split_char_1):
+            if token1.isdigit():
+                ref1_has_digit_token = True
             for token2 in ref2.split(split_char_2):
-                if token1.strip() == token2.strip():
-                    return True
-        return False
+                if token2.isdigit():
+                    ref2_has_digit_token = True
+                if token1.isdigit() and token2.isdigit() and token1.strip() == token2.strip():
+                    tokens_match = True
+                    break
+        return ref1_has_digit_token and ref2_has_digit_token, tokens_match
 
     def get_close_stations(self, station_id, stations):
         close_stations = dict()
         for id in stations:
             distance = stations[station_id].geom.centroid.distance(stations[id].geom.centroid)
-            if distance > 300000:
+            if distance <= 300000:
                 close_stations[id] = stations[id]
         return close_stations
     
@@ -233,10 +278,11 @@ if __name__ == '__main__':
     except:
         print "Could not connect to database. Please check the values of host,port,user,password, and database name."
         parser.print_help()
-        exit() 
+        exit()
 
+    time = datetime.now()
     transnet_instance.create_relations()
-
+    print('Took ' + str(datetime.now() - time) + ' millies')
 
     
     
