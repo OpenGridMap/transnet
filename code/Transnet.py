@@ -89,6 +89,7 @@ class Transnet:
                 circuit = Circuit(relation, first_line.voltage, first_line.name, first_line.ref)
                 print('Circuit ' + str(i))
                 circuit.print_circuit()
+                circuit.validate(self.cur)
                 print('')
                 i+=1
             else:
@@ -247,8 +248,8 @@ class Transnet:
         # extend valid relations with busbars
         first_station = relation[0]
         first_line = relation[1]
-        second_station = relation[len(relation) - 1]
-        second_line = relation[len(relation) - 2]
+        last_station = relation[len(relation) - 1]
+        last_line = relation[len(relation) - 2]
 
         if self.node_in_any_station(first_line.first_node(), [first_station], first_line.voltage):
             node_to_continue_id = first_line.first_node()
@@ -259,12 +260,12 @@ class Transnet:
         if busbars:
             relation.insert(0, busbars)
 
-        if self.node_in_any_station(second_line.first_node(), [second_station], second_line.voltage):
-            node_to_continue_id = second_line.first_node()
+        if self.node_in_any_station(last_line.first_node(), [last_station], last_line.voltage):
+            node_to_continue_id = last_line.first_node()
         else:
-            node_to_continue_id = second_line.last_node()
+            node_to_continue_id = last_line.last_node()
 
-        busbars = self.extend_relation_endpoint(node_to_continue_id, second_line, 1)
+        busbars = self.extend_relation_endpoint(node_to_continue_id, last_line, 1)
         if busbars:
             relation.append(busbars)
         return relation

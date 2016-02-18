@@ -31,6 +31,37 @@ class Circuit:
         print(''.join(s))
         print('')
 
+    def validate(self, cur):
+        first_station = self.members[0]
+        last_station = self.members[len(self.members) - 1]
+        sql = "select id, parts from planet_osm_rels where ARRAY[ " + str(first_station.id) + ", " + str(last_station.id) + "]::bigint[] <@ parts::bigint[]"
+        cur.execute(sql)
+        result = cur.fetchall()
+        most_similar_relation = None
+        max = 0
+        for (id, parts) in result:
+            print("Found substation-covering relation (Id=" + str(id) + "; Parts=" + str(parts))
+            covered_parts = 0
+            for part in parts:
+                for member in self.members:
+                    if part == member.id:
+                        covered_parts += 1
+                        break
+            if covered_parts > max:
+                max = covered_parts
+                most_similar_relation = (id, parts)
+        if most_similar_relation:
+            accuracy = max * 1.0/len(self.members)*100
+            print("Most similar relation is " + str(most_similar_relation[0]) + " with " + str(accuracy) + "% coverage")
+            if accuracy < 100:
+                print(str(most_similar_relation[1]) + " (Existing relation)")
+                print(str(self.to_member_id_list()) + " (Estimated relation)")
+
+    def to_member_id_list(self):
+        id_list = []
+        for member in self.members:
+            id_list.append(member.id)
+        return id_list
 
 
 
