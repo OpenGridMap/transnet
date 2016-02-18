@@ -16,12 +16,15 @@ limitations under the License.
 
 import psycopg2
 from optparse import OptionParser
+from Circuit import Circuit
 from Line import Line
 from Station import Station
 from shapely import wkb
 from datetime import datetime
 
 class Transnet:
+    stations = dict()
+    lines = dict()
 
     def __init__(self, database, user, host, port, password):
         # Initializes the SciGRID class with the database connection parameters.
@@ -48,163 +51,183 @@ class Transnet:
         self.connect_to_DB(self, password)
 
     def create_relations(self):
-        stations = dict()
-        sql = "select id,create_polygon(id) as geom,hstore(tags)->'name' as name, hstore(tags)->'power' as type, nodes,tags from planet_osm_ways where hstore(tags)->'power'~'station|substation|sub_station|plant|generator' and array_length(nodes, 1) >= 4 and st_isclosed(create_line(id))"
+        # create station dictionary
+        sql = "select id,create_polygon(id) as geom, hstore(tags)->'power' as type, hstore(tags)->'name' as name, hstore(tags)->'ref' as ref, hstore(tags)->'voltage' as voltage, nodes,tags from planet_osm_ways where hstore(tags)->'power'~'station|substation|sub_station|plant|generator' and array_length(nodes, 1) >= 4 and st_isclosed(create_line(id)) and hstore(tags)->'voltage' ~ '110000|220000|380000'"
         self.cur.execute(sql)
         result = self.cur.fetchall()
-        for (id,geom,name,type,nodes,tags) in result:
+        for (id, geom, type, name, ref, voltage, nodes, tags) in result:
             polygon = wkb.loads(geom, hex=True)
-            stations[id] = Station(id,polygon,type,name,nodes,tags)
-        print('Found ' + str(len(stations)) + ' stations')
+            self.stations[id] = Station(id, polygon, type, name, ref, voltage, nodes, tags)
+        print('Found ' + str(len(self.stations)) + ' stations')
 
-        lines = dict()
+        # create lines dictionary
         sql =   """
-                select id, create_line(id) as geom, hstore(tags)->'voltage' as voltage, hstore(tags)->'power' as type, hstore(tags)->'cables' as cables, hstore(tags)->'name' as name, hstore(tags)->'ref' as ref, nodes, tags
-                from planet_osm_ways where hstore(tags)->'power'~'line|cable|minor_line' and exist(hstore(tags),'voltage');
+                select id, create_line(id) as geom, hstore(tags)->'power' as type, hstore(tags)->'name' as name, hstore(tags)->'ref' as ref, hstore(tags)->'voltage' as voltage, hstore(tags)->'cables' as cables, nodes, tags
+                from planet_osm_ways where hstore(tags)->'power'~'line|cable|minor_line' and exist(hstore(tags),'voltage') and hstore(tags)->'voltage' ~ '110000|220000|380000';
                 """
         self.cur.execute(sql)
         result = self.cur.fetchall()
-        for (id,geom,voltage,type,cables,name,ref,nodes,tags) in result:
+        for (id, geom, type, name, ref, voltage, cables, nodes,tags) in result:
             line = wkb.loads(geom, hex=True)
-            lines[id] = Line(id,line,type,voltage,cables,name,ref,nodes,tags)
-        print('Found ' + str(len(lines)) + ' lines')
+            self.lines[id] = Line(id, line, type, name, ref, voltage, cables, nodes, tags)
+        print('Found ' + str(len(self.lines)) + ' lines')
         print('')
 
         #for id in stations:
-        circuits = []
-        circuits.extend(self.infer_circuits(stations[137197826],stations,lines))
+        relations = []
+        relations.extend(self.infer_relations(self.stations[137197826]))
 
-        corrupt_circuits = []
+        # post-process circuits and identify corrupt circuits
+        corrupt_relations = []
         i = 1
-        for circuit in circuits:
-            if self.num_subs_in_circuit(circuit) < 2:
-                corrupt_circuits.append(circuit)
-            else:
+        for relation in relations:
+            if self.num_subs_in_relation(relation) == 2 and len(relation) >= 3: # at least two end points + one line
+
+                # extend valid relations with busbars
+                first_station = relation[0]
+                first_line = relation[1]
+                second_station = relation[len(relation) - 1]
+                second_line = relation[len(relation) - 2]
+                
+                if self.node_in_any_station(first_line.first_node(), [first_station], first_line.voltage):
+                    node_to_continue_id = first_line.first_node()
+                else:
+                    node_to_continue_id = first_line.last_node()
+
+                busbars = self.extend_relation_endpoint(node_to_continue_id, first_line, 0)
+                if busbars:
+                    relation.insert(0, busbars)
+
+                if self.node_in_any_station(second_line.first_node(), [second_station], second_line.voltage):
+                    node_to_continue_id = second_line.first_node()
+                else:
+                    node_to_continue_id = second_line.last_node()
+
+                busbars = self.extend_relation_endpoint(node_to_continue_id, second_line, 1)
+                if busbars:
+                    relation.append(busbars)
+
+                circuit = Circuit(relation, first_line.voltage, first_line.name, first_line.ref)
                 print('Circuit ' + str(i))
-                self.print_circuit(circuit)
+                circuit.print_circuit()
+                print('')
                 i+=1
+            else:
+                corrupt_relations.append(relation)
 
         print('##### Corrupt circuits #####')
         i = 1
-        for circuit in corrupt_circuits:
+        for relation in corrupt_relations:
             print('Circuit ' + str(i))
-            self.print_circuit(circuit)
+            Circuit.print_relation(relation)
+            print('')
             i+=1
         return
 
-    def infer_circuits(self, station, stations, lines):
-        close_stations = self.get_close_stations(station.id, stations)
+    # inferences circuits around a given station
+    # station - represents the station to infer circuits for
+    # stations - dict of all possibly connected stations
+    # lines - list of all lines that could connect stations
+    def infer_relations(self, station):
+        close_stations = self.get_close_stations(station.id)
 
-        circuits = []
-        crossing_not_covered_lines = []
-        for line_id in lines:
-            if lines[line_id].geom.crosses(station.geom):
-                if line_id not in station.covered_line_ids:
-                    crossing_not_covered_lines.append(lines[line_id])
-
-        for line in crossing_not_covered_lines:
-            print(str(station))
-            print(str(line))
-            station.covered_line_ids.append(line.id)
-            circuit = [station, line]
-            temp_stations = dict()
-            temp_stations[station.id] = station
-            if self.node_in_station(line.first_node(), temp_stations):
-                node_to_continue = line.last_node()
-                covered_nodes = [line.first_node()]
-            else:
-                node_to_continue = line.first_node()
-                covered_nodes = [line.last_node()]
-            circuit = self.infer_circuit(circuit,node_to_continue,line,line,stations,close_stations,lines,covered_nodes)
-            if circuit is not None:
-                circuits.append(circuit)
-        return circuits
+        # find lines that cross the station's area - note that the end point of the line has to be within the substation for valid crossing
+        relations = []
+        for line in self.lines.values():
+            line_crosses_station = station.geom.crosses(line.geom)
+            first_node_in_station = self.node_in_any_station(line.first_node(), [station], line.voltage)
+            last_node_in_station = self.node_in_any_station(line.last_node(), [station], line.voltage)
+            if line_crosses_station and (first_node_in_station or last_node_in_station):
+                if line.id not in station.covered_line_ids:
+                    print(str(station))
+                    print(str(line))
+                    station.covered_line_ids.append(line.id)
+                    # init new circuit
+                    relation = [station, line]
+                    if first_node_in_station:
+                        node_to_continue = line.last_node()
+                        covered_nodes = [line.first_node()]
+                    else:
+                        node_to_continue = line.first_node()
+                        covered_nodes = [line.last_node()]
+                    relation = self.infer_relation(relation, node_to_continue, line, line, close_stations, covered_nodes)
+                    if relation is not None:
+                        relations.append(relation)
+        return relations
 
     # recursive function that infers electricity circuits
     # circuit - sorted member array
     # line - line of circuit
     # stations - all known stations
-    def infer_circuit(self, circuit, node_id, starting_line, from_line, stations, close_stations, lines, covered_nodes):
-        station_id = self.node_in_station(node_id, close_stations)
-        if station_id and station_id == circuit[0].id:
+    def infer_relation(self, relation, node_to_continue_id, starting_line, from_line, close_stations, covered_nodes):
+        station_id = self.node_in_any_station(node_to_continue_id, close_stations, starting_line.voltage)
+        if station_id and station_id == relation[0].id: # if node to continue is at the starting station --> LOOP
             print('Encountered loop')
-            self.print_circuit(circuit)
-            return circuit
-        elif station_id and station_id != circuit[0].id:
-            station = stations[station_id]
+            print('')
+            return relation
+        elif station_id and station_id != relation[0].id: # if a node is within another station --> FOUND THE 2nd ENDPOINT
+            station = self.stations[station_id]
             print(str(station))
             if from_line.id in station.covered_line_ids:
-                print('Circuit with ' + str(from_line) + ' at ' + str(station) + ' already covered')
+                print('Relation with ' + str(from_line) + ' at ' + str(station) + ' already covered')
                 print('')
                 return None
             station.covered_line_ids.append(from_line.id)
-            circuit.append(station)
-            print('Could obtain circuit')
-            self.print_circuit(circuit)
-            return circuit
+            relation.append(station)
+            print('Could obtain relation')
+            print('')
+            return relation
 
+        # no endpoints encountered - handle line subsection
+        # at first find all lines that cover the node to continue
         node_covering_lines = []
-        for line_id in lines:
-            if node_id in lines[line_id].nodes:
-                node_covering_lines.append(lines[line_id])
+        for line in self.lines.values():
+            if node_to_continue_id in line.nodes:
+                node_covering_lines.append(line)
 
         for line in node_covering_lines:
             if line.id == from_line.id:
                 continue
-            if starting_line.voltage not in line.voltage:
+            if not Transnet.have_common_voltage(starting_line.voltage, line.voltage):
                 continue
             if not self.ref_matches(starting_line, line):
                 continue
-            if node_id in covered_nodes:
+            if node_to_continue_id in covered_nodes:
                 print('Encountered loop - stopping inference for this line')
-                self.print_circuit(circuit)
-                return circuit
+                print('')
+                return relation
             print(str(line))
-            circuit.append(line)
-            if line.first_node() == node_id:
+            relation.append(line)
+            if line.first_node() == node_to_continue_id:
                 node_to_continue = line.last_node()
             else:
                 node_to_continue = line.first_node()
-            covered_nodes.append(node_id)
-            return self.infer_circuit(circuit, node_to_continue, starting_line, line, stations, close_stations, lines, covered_nodes)
+            covered_nodes.append(node_to_continue_id)
+            return self.infer_relation(relation, node_to_continue, starting_line, line, close_stations, covered_nodes)
 
         print('Error - could not obtain circuit')
-        self.print_circuit(circuit)
-        return circuit
+        print('')
+        return relation
 
     # returns if node is in station
-    def node_in_station(self, node_id, stations):
-        for station_id in stations:
-            if node_id in stations[station_id].nodes:
-                # node is a part of a substation
-                return station_id
+    def node_in_any_station(self, node_id, stations, voltage):
         sql = " select create_point(id) as point from planet_osm_nodes where id = " + str(node_id) + ";"
         self.cur.execute(sql)
 
         result = self.cur.fetchall()
         for(point,) in result:
             node = wkb.loads(point, hex=True)
-        for station_id in stations:
-            if node.within(stations[station_id].geom):
-                return station_id
+        for station in stations:
+            if node.within(station.geom) and Transnet.have_common_voltage(voltage, station.voltage):
+                return station.id
         return None
 
-    def num_subs_in_circuit(self, circuit):
+    def num_subs_in_relation(self, relation):
         num_stations = 0
-        for way in circuit:
+        for way in relation:
             if isinstance(way, Station):
                 num_stations+=1
         return num_stations
-
-    def print_circuit(self, circuit):
-        string = ''
-        overpass = ''
-        for way in circuit:
-            string += str(way) + ','
-            overpass += 'way(' + str(way.id) + ');'
-        print(string)
-        print(overpass)
-        print('')
 
     # compares the ref/name tokens like 303;304 in the power line tags
     def ref_matches(self, starting_line, current_line):
@@ -219,7 +242,8 @@ class Transnet:
             return True
         return refs_matched
 
-    def compare_refs(self, ref1, ref2):
+    @staticmethod
+    def compare_refs(ref1, ref2):
         ref1_has_digit_token = False
         ref2_has_digit_token = False
         tokens_match = False
@@ -242,14 +266,42 @@ class Transnet:
                     break
         return ref1_has_digit_token and ref2_has_digit_token, tokens_match
 
-    def get_close_stations(self, station_id, stations):
-        close_stations = dict()
-        for id in stations:
-            distance = stations[station_id].geom.centroid.distance(stations[id].geom.centroid)
+    @staticmethod
+    def have_common_voltage(vstring1, vstring2):
+        for v1 in vstring1.split(';'):
+            for v2 in vstring2.split(';'):
+                if v1.strip() == v2.strip():
+                    return True
+        return False
+
+    def get_close_stations(self, station_id):
+        close_stations = []
+        for station in self.stations.values():
+            distance = station.geom.centroid.distance(station.geom.centroid)
             if distance <= 300000:
-                close_stations[id] = stations[id]
+                close_stations.append(station)
         return close_stations
-    
+
+    # extend relations with busbars
+    def extend_relation_endpoint(self, node_to_continue_id, from_line, append=1):
+        node_covering_lines = []
+        for line in self.lines.values():
+            if node_to_continue_id in line.nodes:
+                node_covering_lines.append(line)
+
+        for line in node_covering_lines:
+            if line.id == from_line.id:
+                continue
+            if node_to_continue_id == line.first_node():
+                node_to_continue_id = line.last_node()
+            else:
+                node_to_continue_id = line.first_node()
+            if append:
+                return [line].append(self.extend_relation_endpoint(node_to_continue_id, line, append))
+            else:
+                return [line].insert(0, self.extend_relation_endpoint(node_to_continue_id, line, append))
+        return []
+        
 if __name__ == '__main__':
     
     parser=OptionParser()
