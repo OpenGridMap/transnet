@@ -52,7 +52,7 @@ class Transnet:
 
     def create_relations(self):
         # create station dictionary
-        sql = "select id,create_polygon(id) as geom, hstore(tags)->'power' as type, hstore(tags)->'name' as name, hstore(tags)->'ref' as ref, hstore(tags)->'voltage' as voltage, nodes,tags from planet_osm_ways where hstore(tags)->'power'~'station|substation|sub_station|plant|generator' and array_length(nodes, 1) >= 4 and st_isclosed(create_line(id)) and hstore(tags)->'voltage' ~ '110000|220000|380000'"
+        sql = "select id,create_polygon(id) as geom, hstore(tags)->'power' as type, hstore(tags)->'name' as name, hstore(tags)->'ref' as ref, hstore(tags)->'voltage' as voltage, nodes,tags from planet_osm_ways where hstore(tags)->'power'~'station|substation|sub_station|plant|generator' and array_length(nodes, 1) >= 4 and st_isclosed(create_line(id)) and hstore(tags)->'voltage' ~ '220000|380000'"
         self.cur.execute(sql)
         result = self.cur.fetchall()
         for (id, geom, type, name, ref, voltage, nodes, tags) in result:
@@ -63,7 +63,7 @@ class Transnet:
         # create lines dictionary
         sql =   """
                 select id, create_line(id) as geom, hstore(tags)->'power' as type, hstore(tags)->'name' as name, hstore(tags)->'ref' as ref, hstore(tags)->'voltage' as voltage, hstore(tags)->'cables' as cables, nodes, tags
-                from planet_osm_ways where hstore(tags)->'power'~'line|cable|minor_line' and exist(hstore(tags),'voltage') and hstore(tags)->'voltage' ~ '110000|220000|380000';
+                from planet_osm_ways where hstore(tags)->'power'~'line|cable|minor_line' and exist(hstore(tags),'voltage') and hstore(tags)->'voltage' ~ '220000|380000';
                 """
         self.cur.execute(sql)
         result = self.cur.fetchall()
@@ -82,31 +82,10 @@ class Transnet:
         i = 1
         for relation in relations:
             if self.num_subs_in_relation(relation) == 2 and len(relation) >= 3: # at least two end points + one line
+                # extend relation end points with busbars
+                # relation = self.extend_relation_endpoints(relation)
 
-                # extend valid relations with busbars
-                first_station = relation[0]
                 first_line = relation[1]
-                second_station = relation[len(relation) - 1]
-                second_line = relation[len(relation) - 2]
-                
-                if self.node_in_any_station(first_line.first_node(), [first_station], first_line.voltage):
-                    node_to_continue_id = first_line.first_node()
-                else:
-                    node_to_continue_id = first_line.last_node()
-
-                busbars = self.extend_relation_endpoint(node_to_continue_id, first_line, 0)
-                if busbars:
-                    relation.insert(0, busbars)
-
-                if self.node_in_any_station(second_line.first_node(), [second_station], second_line.voltage):
-                    node_to_continue_id = second_line.first_node()
-                else:
-                    node_to_continue_id = second_line.last_node()
-
-                busbars = self.extend_relation_endpoint(node_to_continue_id, second_line, 1)
-                if busbars:
-                    relation.append(busbars)
-
                 circuit = Circuit(relation, first_line.voltage, first_line.name, first_line.ref)
                 print('Circuit ' + str(i))
                 circuit.print_circuit()
@@ -150,7 +129,7 @@ class Transnet:
                     else:
                         node_to_continue = line.first_node()
                         covered_nodes = [line.last_node()]
-                    relation = self.infer_relation(relation, node_to_continue, line, line, close_stations, covered_nodes)
+                    relation, successful = self.infer_relation(relation, node_to_continue, line, line, close_stations, covered_nodes)
                     if relation is not None:
                         relations.append(relation)
         return relations
@@ -164,50 +143,52 @@ class Transnet:
         if station_id and station_id == relation[0].id: # if node to continue is at the starting station --> LOOP
             print('Encountered loop')
             print('')
-            return relation
+            return relation, False
         elif station_id and station_id != relation[0].id: # if a node is within another station --> FOUND THE 2nd ENDPOINT
             station = self.stations[station_id]
             print(str(station))
             if from_line.id in station.covered_line_ids:
                 print('Relation with ' + str(from_line) + ' at ' + str(station) + ' already covered')
                 print('')
-                return None
+                return None, False
             station.covered_line_ids.append(from_line.id)
             relation.append(station)
             print('Could obtain relation')
             print('')
-            return relation
+            return relation, True
 
         # no endpoints encountered - handle line subsection
         # at first find all lines that cover the node to continue
-        node_covering_lines = []
         for line in self.lines.values():
             if node_to_continue_id in line.nodes:
-                node_covering_lines.append(line)
-
-        for line in node_covering_lines:
-            if line.id == from_line.id:
-                continue
-            if not Transnet.have_common_voltage(starting_line.voltage, line.voltage):
-                continue
-            if not self.ref_matches(starting_line, line):
-                continue
-            if node_to_continue_id in covered_nodes:
-                print('Encountered loop - stopping inference for this line')
-                print('')
-                return relation
-            print(str(line))
-            relation.append(line)
-            if line.first_node() == node_to_continue_id:
-                node_to_continue = line.last_node()
-            else:
-                node_to_continue = line.first_node()
-            covered_nodes.append(node_to_continue_id)
-            return self.infer_relation(relation, node_to_continue, starting_line, line, close_stations, covered_nodes)
+                if line.id == from_line.id:
+                    continue
+                if not Transnet.have_common_voltage(starting_line.voltage, line.voltage):
+                    continue
+                if not (Transnet.ref_matches(starting_line.ref, line.ref) or
+                            Transnet.ref_matches(starting_line.name, line.name) or
+                            Transnet.ref_matches(starting_line.name, line.ref) or
+                            Transnet.ref_matches(starting_line.ref, line.name)):
+                    continue
+                if node_to_continue_id in covered_nodes:
+                    print('Encountered loop - stopping inference for this line')
+                    print('')
+                    return relation, False
+                print(str(line))
+                relation.append(line)
+                if line.first_node() == node_to_continue_id:
+                    node_to_continue = line.last_node()
+                else:
+                    node_to_continue = line.first_node()
+                relation, successful = self.infer_relation(relation, node_to_continue, starting_line, line, close_stations, covered_nodes)
+                if not successful:
+                    continue
+                covered_nodes.append(node_to_continue_id)
+                return relation, successful
 
         print('Error - could not obtain circuit')
         print('')
-        return relation
+        return relation, False
 
     # returns if node is in station
     def node_in_any_station(self, node_id, stations, voltage):
@@ -230,41 +211,21 @@ class Transnet:
         return num_stations
 
     # compares the ref/name tokens like 303;304 in the power line tags
-    def ref_matches(self, starting_line, current_line):
-        result = [self.compare_refs(starting_line.ref, current_line.ref),
-                      self.compare_refs(starting_line.ref, current_line.name),
-                      self.compare_refs(starting_line.name, current_line.ref),
-                      self.compare_refs(starting_line.name, current_line.name)]
-        lists = map(list, zip(*result))
-        both_had_numeric_tokens = reduce(lambda x,y: x or y, lists[0], False)
-        refs_matched = reduce(lambda x,y: x or y, lists[1], False)
-        if not both_had_numeric_tokens:
-            return True
-        return refs_matched
-
     @staticmethod
-    def compare_refs(ref1, ref2):
-        ref1_has_digit_token = False
-        ref2_has_digit_token = False
-        tokens_match = False
+    def ref_matches(ref1, ref2):
         if ref1 is None or ref2 is None:
-            return False, False
+            return False
         split_char_1 = ';'
         if ',' in ref1:
             split_char_1 = ','
         split_char_2 = ';'
         if ',' in ref2:
             split_char_2 = ','
-        for token1 in ref1.split(split_char_1):
-            if token1.isdigit():
-                ref1_has_digit_token = True
-            for token2 in ref2.split(split_char_2):
-                if token2.isdigit():
-                    ref2_has_digit_token = True
-                if token1.isdigit() and token2.isdigit() and token1.strip() == token2.strip():
-                    tokens_match = True
-                    break
-        return ref1_has_digit_token and ref2_has_digit_token, tokens_match
+        for r1 in ref1.split(split_char_1):
+            for r2 in ref2.split(split_char_2):
+                if r1.strip() == r2.strip():
+                    return True
+        return False
 
     @staticmethod
     def have_common_voltage(vstring1, vstring2):
@@ -282,24 +243,50 @@ class Transnet:
                 close_stations.append(station)
         return close_stations
 
+    def extend_relation_endpoints(self, relation):
+        # extend valid relations with busbars
+        first_station = relation[0]
+        first_line = relation[1]
+        second_station = relation[len(relation) - 1]
+        second_line = relation[len(relation) - 2]
+
+        if self.node_in_any_station(first_line.first_node(), [first_station], first_line.voltage):
+            node_to_continue_id = first_line.first_node()
+        else:
+            node_to_continue_id = first_line.last_node()
+
+        busbars = self.extend_relation_endpoint(node_to_continue_id, first_line, 0)
+        if busbars:
+            relation.insert(0, busbars)
+
+        if self.node_in_any_station(second_line.first_node(), [second_station], second_line.voltage):
+            node_to_continue_id = second_line.first_node()
+        else:
+            node_to_continue_id = second_line.last_node()
+
+        busbars = self.extend_relation_endpoint(node_to_continue_id, second_line, 1)
+        if busbars:
+            relation.append(busbars)
+        return relation
+
+
+
     # extend relations with busbars
     def extend_relation_endpoint(self, node_to_continue_id, from_line, append=1):
-        node_covering_lines = []
         for line in self.lines.values():
             if node_to_continue_id in line.nodes:
-                node_covering_lines.append(line)
-
-        for line in node_covering_lines:
-            if line.id == from_line.id:
-                continue
-            if node_to_continue_id == line.first_node():
-                node_to_continue_id = line.last_node()
-            else:
-                node_to_continue_id = line.first_node()
-            if append:
-                return [line].append(self.extend_relation_endpoint(node_to_continue_id, line, append))
-            else:
-                return [line].insert(0, self.extend_relation_endpoint(node_to_continue_id, line, append))
+                if line.id == from_line.id:
+                    continue
+                if not Transnet.have_common_voltage(from_line.voltage, line.voltage):
+                    continue
+                if node_to_continue_id == line.first_node():
+                    node_to_continue_id = line.last_node()
+                else:
+                    node_to_continue_id = line.first_node()
+                if append:
+                    return [line].append(self.extend_relation_endpoint(node_to_continue_id, line, append))
+                else:
+                    return [line].insert(0, self.extend_relation_endpoint(node_to_continue_id, line, append))
         return []
         
 if __name__ == '__main__':
