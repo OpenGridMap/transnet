@@ -1,3 +1,5 @@
+import sys
+
 class Circuit:
     members = None
     voltage = None
@@ -31,7 +33,7 @@ class Circuit:
         print(''.join(s))
         print('')
 
-    def validate(self, cur):
+    def validate(self, cur, circuit_no):
         first_station = self.members[0]
         last_station = self.members[len(self.members) - 1]
         sql = "select id, parts from planet_osm_rels where ARRAY[ " + str(first_station.id) + ", " + str(last_station.id) + "]::bigint[] <@ parts::bigint[]"
@@ -51,11 +53,16 @@ class Circuit:
                 max = covered_parts
                 most_similar_relation = (id, parts)
         if most_similar_relation:
-            accuracy = max * 1.0/len(self.members)*100
-            print("Most similar relation is " + str(most_similar_relation[0]) + " with " + str(accuracy) + "% coverage")
-            if accuracy < 100:
+            accuracy = max * 1.0/len(self.members)
+            print("Most similar relation is " + str(most_similar_relation[0]) + " with " + str(accuracy*100) + "% coverage")
+            if accuracy < 1:
                 print(str(most_similar_relation[1]) + " (Existing relation)")
                 print(str(self.to_member_id_list()) + " (Estimated relation)")
+            if len(most_similar_relation[1]) < len(self.members):
+                sys.stderr.write("Warning at circuit " + str(circuit_no) + ": #existing < #estimated parts\n")
+            return (most_similar_relation[0], accuracy)
+        return 0
+
 
     def to_member_id_list(self):
         id_list = []

@@ -74,12 +74,16 @@ class Transnet:
         print('')
 
         #for id in stations:
+        station_id = 18629425
         relations = []
-        relations.extend(self.infer_relations(self.stations[137197826]))
+        #relations.extend(self.infer_relations(self.stations[137197826]))
+        relations.extend(self.infer_relations(self.stations[station_id]))
 
         # post-process circuits and identify corrupt circuits
+        estimated_relations = set()
         corrupt_relations = []
         i = 1
+        total_accuracy = 0
         for relation in relations:
             if self.num_subs_in_relation(relation) == 2 and len(relation) >= 3: # at least two end points + one line
                 # extend relation end points with busbars
@@ -89,11 +93,20 @@ class Transnet:
                 circuit = Circuit(relation, first_line.voltage, first_line.name, first_line.ref)
                 print('Circuit ' + str(i))
                 circuit.print_circuit()
-                circuit.validate(self.cur)
+                (estimated_rel_id, accuracy) = circuit.validate(self.cur, i)
+                estimated_relations.add(estimated_rel_id)
+                total_accuracy += accuracy
                 print('')
                 i+=1
             else:
                 corrupt_relations.append(relation)
+        average_accuracy = total_accuracy / (len(relations) - len(corrupt_relations))
+        print('Average accuracy: ' + str(average_accuracy * 100) + '%')
+        existing_relations = self.existing_relations(station_id)
+        print(str(len(estimated_relations)) + ' existing relations covered of ' + str(len(existing_relations)))
+        print(str(sorted(estimated_relations)) + ' (Estimated)')
+        print(str(sorted(list(existing_relations))) + ' (Existing)')
+        print('')
 
         print('##### Corrupt circuits #####')
         i = 1
@@ -123,24 +136,28 @@ class Transnet:
                     print(str(line))
                     station.covered_line_ids.append(line.id)
                     # init new circuit
-                    relation = [station, line]
-                    if first_node_in_station:
-                        node_to_continue = line.last_node()
-                        covered_nodes = [line.first_node()]
-                    else:
-                        node_to_continue = line.first_node()
-                        covered_nodes = [line.last_node()]
-                    relation, successful = self.infer_relation(relation, node_to_continue, line, line, close_stations, covered_nodes)
-                    if relation is not None:
-                        relations.append(relation)
+                    split_char = ';'
+                    if ',' in line.ref:
+                        split_char = ','
+                    for r in line.ref.split(split_char):
+                        relation = [station, line]
+                        if first_node_in_station:
+                            node_to_continue = line.last_node()
+                            covered_nodes = [line.first_node()]
+                        else:
+                            node_to_continue = line.first_node()
+                            covered_nodes = [line.last_node()]
+                        relation, successful = self.infer_relation(relation, node_to_continue, line.voltage, r, line.name, line, close_stations, covered_nodes)
+                        if relation is not None:
+                            relations.append(relation)
         return relations
 
     # recursive function that infers electricity circuits
     # circuit - sorted member array
     # line - line of circuit
     # stations - all known stations
-    def infer_relation(self, relation, node_to_continue_id, starting_line, from_line, close_stations, covered_nodes):
-        station_id = self.node_in_any_station(node_to_continue_id, close_stations, starting_line.voltage)
+    def infer_relation(self, relation, node_to_continue_id, voltage, ref, name, from_line, close_stations, covered_nodes):
+        station_id = self.node_in_any_station(node_to_continue_id, close_stations, voltage)
         if station_id and station_id == relation[0].id: # if node to continue is at the starting station --> LOOP
             print('Encountered loop')
             print('')
@@ -151,7 +168,7 @@ class Transnet:
             if from_line.id in station.covered_line_ids:
                 print('Relation with ' + str(from_line) + ' at ' + str(station) + ' already covered')
                 print('')
-                return None, False
+                return relation, False
             station.covered_line_ids.append(from_line.id)
             relation.append(station)
             print('Could obtain relation')
@@ -164,12 +181,12 @@ class Transnet:
             if node_to_continue_id in line.nodes:
                 if line.id == from_line.id:
                     continue
-                if not Transnet.have_common_voltage(starting_line.voltage, line.voltage):
+                if not Transnet.have_common_voltage(voltage, line.voltage):
                     continue
-                if not (Transnet.ref_matches(starting_line.ref, line.ref) or
-                            Transnet.ref_matches(starting_line.name, line.name) or
-                            Transnet.ref_matches(starting_line.name, line.ref) or
-                            Transnet.ref_matches(starting_line.ref, line.name)):
+                if not (Transnet.ref_matches(ref, line.ref) or
+                            Transnet.ref_matches(name, line.name) or
+                            Transnet.ref_matches(name, line.ref) or
+                            Transnet.ref_matches(ref, line.name)):
                     continue
                 if node_to_continue_id in covered_nodes:
                     print('Encountered loop - stopping inference for this line')
@@ -181,7 +198,7 @@ class Transnet:
                     node_to_continue = line.last_node()
                 else:
                     node_to_continue = line.first_node()
-                relation, successful = self.infer_relation(relation, node_to_continue, starting_line, line, close_stations, covered_nodes)
+                relation, successful = self.infer_relation(relation, node_to_continue, voltage, ref, name, line, close_stations, covered_nodes)
                 if not successful:
                     continue
                 covered_nodes.append(node_to_continue_id)
@@ -203,6 +220,15 @@ class Transnet:
             if node.within(station.geom) and Transnet.have_common_voltage(voltage, station.voltage):
                 return station.id
         return None
+
+    # returns list of existing relation ids for substation
+    def existing_relations(self, station_id):
+        sql = "select array_agg(id) from planet_osm_rels where ARRAY[" + str(station_id) + "]::bigint[] <@ parts and hstore(tags)->'voltage' ~ '220000|380000'"
+        self.cur.execute(sql)
+
+        result = self.cur.fetchall()
+        for(ids,) in result:
+            return ids
 
     def num_subs_in_relation(self, relation):
         num_stations = 0
