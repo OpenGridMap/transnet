@@ -82,6 +82,7 @@ class Transnet:
         # post-process circuits and identify corrupt circuits
         estimated_relations = set()
         corrupt_relations = []
+        circuits = []
         i = 1
         total_accuracy = 0
         for relation in relations:
@@ -93,6 +94,7 @@ class Transnet:
                 circuit = Circuit(relation, first_line.voltage, first_line.name, first_line.ref)
                 print('Circuit ' + str(i))
                 circuit.print_circuit()
+                circuits.append(circuit)
                 (estimated_rel_id, accuracy) = circuit.validate(self.cur, i)
                 estimated_relations.add(estimated_rel_id)
                 total_accuracy += accuracy
@@ -108,13 +110,16 @@ class Transnet:
         print(str(sorted(list(existing_relations))) + ' (Existing)')
         print('')
 
-        print('##### Corrupt circuits #####')
-        i = 1
-        for relation in corrupt_relations:
-            print('Circuit ' + str(i))
-            Circuit.print_relation(relation)
-            print('')
-            i+=1
+        # print('##### Corrupt circuits #####')
+        #i = 1
+        #for relation in corrupt_relations:
+        #    print('Circuit ' + str(i))
+        #    Circuit.print_relation(relation)
+        #    print('')
+        #    i+=1
+
+        for circuit in circuits:
+            circuit.print_overpass()
         return
 
     # inferences circuits around a given station

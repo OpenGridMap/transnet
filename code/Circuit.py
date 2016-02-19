@@ -21,6 +21,12 @@ class Circuit:
             overpass += 'way(' + str(way.id) + ');'
         print(string + overpass)
 
+    def print_overpass(self):
+        overpass = ''
+        for way in self.members:
+            overpass += 'way(' + str(way.id) + ');'
+        print(overpass)
+
     def print_circuit(self):
         Circuit.print_relation(self.members)
         s = list('')
