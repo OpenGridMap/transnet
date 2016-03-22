@@ -21,6 +21,8 @@ from Line import Line
 from Station import Station
 from shapely import wkb
 from datetime import datetime
+from CimWriter import CimWriter
+
 
 class Transnet:
     stations = dict()
@@ -51,19 +53,39 @@ class Transnet:
         self.connect_to_DB(self, password)
 
     def create_relations(self):
-        # create station dictionary
-        sql = "select id,create_polygon(id) as geom, hstore(tags)->'power' as type, hstore(tags)->'name' as name, hstore(tags)->'ref' as ref, hstore(tags)->'voltage' as voltage, nodes,tags from planet_osm_ways where hstore(tags)->'power'~'station|substation|sub_station|plant|generator' and array_length(nodes, 1) >= 4 and st_isclosed(create_line(id)) and hstore(tags)->'voltage' ~ '220000|380000'"
+        # create station dictionary by quering only ways (there are almost no node substations for voltage level 110kV and higher)
+        sql = "select id,create_polygon(id) as geom, hstore(tags)->'power' as type, hstore(tags)->'name' as name, hstore(tags)->'ref' as ref, hstore(tags)->'voltage' as voltage, nodes,tags from planet_osm_ways where hstore(tags)->'power'~'station|substation|sub_station' and array_length(nodes, 1) >= 4 and st_isclosed(create_line(id)) and hstore(tags)->'voltage' ~ '110000|220000|380000'"
         self.cur.execute(sql)
         result = self.cur.fetchall()
         for (id, geom, type, name, ref, voltage, nodes, tags) in result:
             polygon = wkb.loads(geom, hex=True)
             self.stations[id] = Station(id, polygon, type, name, ref, voltage, nodes, tags)
-        print('Found ' + str(len(self.stations)) + ' stations')
+        print('Found ' + str(len(result)) + ' stations')
+
+        # add power plants with area
+        sql = "select id,create_polygon(id) as geom, hstore(tags)->'power' as type, hstore(tags)->'name' as name, hstore(tags)->'ref' as ref, hstore(tags)->'voltage' as voltage, hstore(tags)->'generator:output' as output, nodes,tags from planet_osm_ways where hstore(tags)->'power'~'plant|generator' and array_length(nodes, 1) >= 4 and st_isclosed(create_line(id))"
+        self.cur.execute(sql)
+        result = self.cur.fetchall()
+        for (id, geom, type, name, ref, voltage, output, nodes, tags) in result:
+            polygon = wkb.loads(geom, hex=True)
+            self.stations[id] = Station(id, polygon, type, name, ref, voltage, nodes, tags)
+            self.stations[id].nominal_power = output
+        print('Found ' + str(len(result)) + ' way generators')
+
+        # add power plants which are modeled as points
+        sql = "select id,create_point(id) as geom, hstore(tags)->'power' as type, hstore(tags)->'name' as name, hstore(tags)->'ref' as ref, hstore(tags)->'voltage' as voltage, hstore(tags)->'generator:output' as output, tags from planet_osm_nodes where hstore(tags)->'power'~'plant|generator'"
+        self.cur.execute(sql)
+        result = self.cur.fetchall()
+        for (id, geom, type, name, ref, voltage, output, tags) in result:
+            polygon = wkb.loads(geom, hex=True)
+            self.stations[id] = Station(id, polygon, type, name, ref, voltage, None, tags)
+            self.stations[id].nominal_power = output
+        print('Found ' + str(len(result)) + ' node generators')
 
         # create lines dictionary
         sql =   """
                 select id, create_line(id) as geom, hstore(tags)->'power' as type, hstore(tags)->'name' as name, hstore(tags)->'ref' as ref, hstore(tags)->'voltage' as voltage, hstore(tags)->'cables' as cables, nodes, tags
-                from planet_osm_ways where hstore(tags)->'power'~'line|cable|minor_line' and exist(hstore(tags),'voltage') and hstore(tags)->'voltage' ~ '220000|380000';
+                from planet_osm_ways where hstore(tags)->'power'~'line|cable|minor_line' and exist(hstore(tags),'voltage') and hstore(tags)->'voltage' ~ '110000|220000|380000';
                 """
         self.cur.execute(sql)
         result = self.cur.fetchall()
@@ -74,7 +96,9 @@ class Transnet:
         print('')
 
         #for id in stations:
-        station_id = 18629425
+        #station_id = 18629425
+        #station_id = 27124619
+        station_id = 29331499
         relations = []
         #relations.extend(self.infer_relations(self.stations[137197826]))
         relations.extend(self.infer_relations(self.stations[station_id]))
@@ -96,18 +120,23 @@ class Transnet:
                 circuit.print_circuit()
                 circuits.append(circuit)
                 (estimated_rel_id, accuracy) = circuit.validate(self.cur, i)
-                estimated_relations.add(estimated_rel_id)
+                if estimated_rel_id is not None:
+                    estimated_relations.add(estimated_rel_id)
                 total_accuracy += accuracy
                 print('')
                 i+=1
             else:
                 corrupt_relations.append(relation)
-        average_accuracy = total_accuracy / (len(relations) - len(corrupt_relations))
-        print('Average accuracy: ' + str(average_accuracy * 100) + '%')
-        existing_relations = self.existing_relations(station_id)
-        print(str(len(estimated_relations)) + ' existing relations covered of ' + str(len(existing_relations)))
-        print(str(sorted(estimated_relations)) + ' (Estimated)')
-        print(str(sorted(list(existing_relations))) + ' (Existing)')
+        num_valid_circuits = len(circuits)
+        if num_valid_circuits > 0:
+            average_accuracy = total_accuracy / num_valid_circuits
+            print('Average accuracy: ' + str(average_accuracy * 100) + '%')
+            existing_relations = self.existing_relations(station_id)
+            print(str(len(estimated_relations)) + ' existing relations covered of ' + str(len(existing_relations)))
+            print(str(sorted(estimated_relations)) + ' (Estimated)')
+            print(str(sorted(list(existing_relations))) + ' (Existing)')
+        else:
+            print('Could not obtain any circuit')
         print('')
 
         # print('##### Corrupt circuits #####')
@@ -120,6 +149,11 @@ class Transnet:
 
         for circuit in circuits:
             circuit.print_overpass()
+
+        print('CIM model generation started ...')
+        cim_writer = CimWriter(circuits)
+        cim_writer.publish('cim.xml')
+
         return
 
     # inferences circuits around a given station
@@ -141,6 +175,8 @@ class Transnet:
                     print(str(line))
                     station.covered_line_ids.append(line.id)
                     # init new circuit
+                    if line.ref is None:
+                        line.ref = ''
                     split_char = ';'
                     if ',' in line.ref:
                         split_char = ','
@@ -228,7 +264,7 @@ class Transnet:
 
     # returns list of existing relation ids for substation
     def existing_relations(self, station_id):
-        sql = "select array_agg(id) from planet_osm_rels where ARRAY[" + str(station_id) + "]::bigint[] <@ parts and hstore(tags)->'voltage' ~ '220000|380000'"
+        sql = "select array_agg(id) from planet_osm_rels where ARRAY[" + str(station_id) + "]::bigint[] <@ parts and hstore(tags)->'voltage' ~ '110000|220000|380000'"
         self.cur.execute(sql)
 
         result = self.cur.fetchall()
@@ -245,6 +281,8 @@ class Transnet:
     # compares the ref/name tokens like 303;304 in the power line tags
     @staticmethod
     def ref_matches(ref1, ref2):
+        if ref1 is None and ref2 is None:
+            return True
         if ref1 is None or ref2 is None:
             return False
         split_char_1 = ';'
@@ -261,6 +299,8 @@ class Transnet:
 
     @staticmethod
     def have_common_voltage(vstring1, vstring2):
+        if vstring1 is None or vstring2 is None:
+            return True
         for v1 in vstring1.split(';'):
             for v2 in vstring2.split(';'):
                 if v1.strip() == v2.strip():

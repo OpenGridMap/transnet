@@ -38,3 +38,6 @@ class Way:
         if self.nodes and len(self.nodes) > 0:
             return self.nodes[len(self.nodes) - 1]
         return None
+
+    def length(self):
+        return self.geom.length

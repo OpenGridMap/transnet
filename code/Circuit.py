@@ -67,7 +67,7 @@ class Circuit:
             if len(most_similar_relation[1]) < len(self.members):
                 sys.stderr.write("Warning at circuit " + str(circuit_no) + ": #existing < #estimated parts\n")
             return (most_similar_relation[0], accuracy)
-        return 0
+        return (None, 0)
 
 
     def to_member_id_list(self):
