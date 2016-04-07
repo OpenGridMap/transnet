@@ -92,7 +92,7 @@ class CimWriterTest:
 
         print('CIM model generation started ...')
         cim_writer = CimWriter(circuits)
-        cim_writer.publish('/home/lej/PycharmProjects/transnet/results/cim.xml')
+        cim_writer.publish('/home/lej/PycharmProjects/transnet/results/cim')
 
         return
 

@@ -7,11 +7,12 @@ from PyCIM import cimwrite
 from PyCIM.PrettyPrintXML import xmlpp
 
 import uuid
-import collections
-
+from xml.dom.minidom import parse
+from string import maketrans
 
 class CimWriter:
     circuits = None
+    id = 0
     winding_types = ['primary', 'secondary', 'tertiary']
 
     base_voltages_dict = dict()
@@ -62,10 +63,18 @@ class CimWriter:
         #d_keys= sorted(dictionary, key=dictionary.get)
         #dictionary = collections.OrderedDict(zip(d_keys, d_vals))
 
-        cimwrite(self.cimobject_by_uuid_dict, file_name)
+        cimwrite(self.cimobject_by_uuid_dict, file_name + '.xml')
+        cimwrite(self.cimobject_by_uuid_dict, file_name + '.rdf')
 
-        #print '\nWhat is in path:\n'
-        #print xmlpp(file_name)
+        print '\nWhat is in path:\n'
+        print xmlpp(file_name + '.xml')
+
+        # pretty write
+        xml = parse(file_name + '.xml')
+        pretty_xml_as_string = xml.toprettyxml()
+        pretty_file = open(file_name + '_pretty.xml', "w")
+        pretty_file.write(pretty_xml_as_string)
+        pretty_file.close()
 
     def substation_to_cim(self, osm_substation, circuit_voltage):
         transformer_winding = None
@@ -80,10 +89,10 @@ class CimWriter:
                     break
         else:
             print 'Create CIM Substation for OSMID ' + str(osm_substation.id)
-            cim_substation = Substation(name=osm_substation.name, Region=self.region)
-            transformer = PowerTransformer(name=cim_substation.name, EquipmentContainer=cim_substation)
-            cim_substation.UUID = str(uuid.uuid1())
-            transformer.UUID = str(uuid.uuid1())
+            cim_substation = Substation(name='SS_' + str(osm_substation.id), Region=self.region)
+            transformer = PowerTransformer(name='T_' + str(osm_substation.id), EquipmentContainer=cim_substation)
+            cim_substation.UUID = str(self.uuid())
+            transformer.UUID = str(self.uuid())
             self.cimobject_by_uuid_dict[cim_substation.UUID] = cim_substation
             self.cimobject_by_uuid_dict[transformer.UUID] = transformer
             self.uuid_by_osmid_dict[osm_substation.id] = cim_substation.UUID
@@ -93,14 +102,14 @@ class CimWriter:
                                                      ratedU=int(circuit_voltage), ratedS=5000000,
                                                      PowerTransformer=transformer,
                                                      BaseVoltage=self.base_voltages_dict[int(circuit_voltage)])
-            transformer_winding.UUID = str(uuid.uuid1())
+            transformer_winding.UUID = str(self.uuid())
             self.cimobject_by_uuid_dict[transformer_winding.UUID] = transformer_winding
-            connectivity_node = ConnectivityNode(name='conn1')
-            connectivity_node.UUID = str(uuid.uuid1())
+            connectivity_node = ConnectivityNode(name='CN_' + transformer_winding.UUID)
+            connectivity_node.UUID = str(self.uuid())
             self.cimobject_by_uuid_dict[connectivity_node.UUID] = connectivity_node
             terminal = Terminal(ConnectivityNode=connectivity_node, ConductingEquipment=transformer_winding,
                             sequenceNumber=1)
-            terminal.UUID = str(uuid.uuid1())
+            terminal.UUID = str(self.uuid())
             self.cimobject_by_uuid_dict[terminal.UUID] = terminal
             self.connectivity_by_uuid_dict[transformer_winding.UUID] = connectivity_node
         return self.connectivity_by_uuid_dict[transformer_winding.UUID]
@@ -111,36 +120,36 @@ class CimWriter:
             generating_unit = self.cimobject_by_uuid_dict[self.uuid_by_osmid_dict[generator.id]]
         else:
             print 'Create CIM Generator for OSMID ' + str(generator.id)
-            generating_unit = GeneratingUnit(name=generator.name, maxOperatingP=generator.nominal_power, minOperatingP=0,
+            generating_unit = GeneratingUnit(name='G_' + str(generator.id), maxOperatingP=generator.nominal_power, minOperatingP=0,
                                              nominalP=generator.nominal_power)
-            synchronous_machine = SynchronousMachine(name=generator.name, operatingMode='generator', qPercent=0, x=0.01,
+            synchronous_machine = SynchronousMachine(name=CimWriter.escape_string(generator.name), operatingMode='generator', qPercent=0, x=0.01,
                                                      r=0.01, ratedS=generator.nominal_power, type='generator',
                                                      GeneratingUnit=generating_unit)
-            generating_unit.UUID = str(uuid.uuid1())
-            synchronous_machine.UUID = str(uuid.uuid1())
+            generating_unit.UUID = str(self.uuid())
+            synchronous_machine.UUID = str(self.uuid())
             self.cimobject_by_uuid_dict[generating_unit.UUID] = generating_unit
             self.cimobject_by_uuid_dict[synchronous_machine.UUID] = synchronous_machine
             self.uuid_by_osmid_dict[generator.id] = generating_unit.UUID
-            connectivity_node = ConnectivityNode(name='conn1')
-            connectivity_node.UUID = str(uuid.uuid1())
+            connectivity_node = ConnectivityNode(name='CN' + generating_unit.UUID)
+            connectivity_node.UUID = str(self.uuid())
             self.cimobject_by_uuid_dict[connectivity_node.UUID] = connectivity_node
             terminal = Terminal(ConnectivityNode=connectivity_node, ConductingEquipment=synchronous_machine,
                                 sequenceNumber=1)
-            terminal.UUID = str(uuid.uuid1())
+            terminal.UUID = str(self.uuid())
             self.cimobject_by_uuid_dict[terminal.UUID] = terminal
             self.connectivity_by_uuid_dict[generating_unit.UUID] = connectivity_node
         return self.connectivity_by_uuid_dict[generating_unit.UUID]
 
     def line_to_cim(self, connectivity_node1, connectivity_node2, length, name, circuit_voltage):
-        line = ACLineSegment(name=name, bch=0, r=0.3257, x=0.3153, r0=0.5336,
+        line = ACLineSegment(name=CimWriter.escape_string(name) + '_' + connectivity_node1.name + '_' + connectivity_node2.name, bch=0, r=0.3257, x=0.3153, r0=0.5336,
                              x0=0.88025, length=length, BaseVoltage=self.base_voltages_dict[int(circuit_voltage)])
-        line.UUID = str(uuid.uuid1())
+        line.UUID = str(self.uuid())
         self.cimobject_by_uuid_dict[line.UUID] = line
         terminal1 = Terminal(ConnectivityNode=connectivity_node1, ConductingEquipment=line, sequenceNumber=1)
-        terminal1.UUID = str(uuid.uuid1())
+        terminal1.UUID = str(self.uuid())
         self.cimobject_by_uuid_dict[terminal1.UUID] = terminal1
         terminal2 = Terminal(ConnectivityNode=connectivity_node2, ConductingEquipment=line, sequenceNumber=2)
-        terminal2.UUID = str(uuid.uuid1())
+        terminal2.UUID = str(self.uuid())
         self.cimobject_by_uuid_dict[terminal2.UUID] = terminal2
 
     def get_winding_type(self, substation, circuit_voltage):
@@ -159,3 +168,12 @@ class CimWriter:
         for line_part in circuit.members[1:(len(circuit.members) - 2)]:
             line_length += line_part.length()
         return line_length
+    
+    def uuid(self):
+        self.id += 1
+        return str(self.id)
+        # return uuid.uuid1()
+
+    @staticmethod
+    def escape_string(string):
+        return string.translate(maketrans('-]^$/. ', '_______'))
