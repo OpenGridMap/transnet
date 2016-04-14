@@ -74,7 +74,7 @@ class CimWriter:
 
         # pretty write
         xml = parse(file_name + '.xml')
-        pretty_xml_as_string = xml.toprettyxml()
+        pretty_xml_as_string = xml.toprettyxml(encoding='UTF-8')
         pretty_file = open(file_name + '_pretty.xml', "w")
         pretty_file.write(pretty_xml_as_string)
         pretty_file.close()
