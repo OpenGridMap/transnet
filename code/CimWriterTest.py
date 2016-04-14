@@ -53,7 +53,7 @@ class CimWriterTest:
     def retrieve_relations(self):
 
         circuits = []
-        sql = "select parts from planet_osm_rels r1, _analysis_rels r2 where ARRAY[29331499]::bigint[] <@ r1.parts and hstore(r1.tags)->'voltage' ~ '110000|220000|380000' and hstore(r1.tags)->'type'='route' and hstore(r1.tags)->'route'='power' and r2.osm_id = r1.id and r2.num_stations = 2 and r2.incomplete = 'no'"
+        sql = "select parts from planet_osm_rels r1, _analysis_rels r2 where ARRAY[23025610]::bigint[] <@ r1.parts and hstore(r1.tags)->'voltage' ~ '110000|220000|380000' and hstore(r1.tags)->'type'='route' and hstore(r1.tags)->'route'='power' and r2.osm_id = r1.id and r2.num_stations = 2 and r2.incomplete = 'no'"
         self.cur.execute(sql)
         result = self.cur.fetchall()
         for (parts,) in result:

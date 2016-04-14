@@ -59,7 +59,7 @@ class Transnet:
         result = self.cur.fetchall()
         for (id, geom, type, name, ref, voltage, nodes, tags) in result:
             polygon = wkb.loads(geom, hex=True)
-            self.stations[id] = Station(id, polygon, type, name, ref, voltage, nodes, tags)
+            self.stations[id] = Station(id, polygon, type, name, ref, voltage.replace(',', ';') if voltage is not None else None, nodes, tags)
         print('Found ' + str(len(result)) + ' stations')
 
         # add power plants with area
@@ -68,7 +68,7 @@ class Transnet:
         result = self.cur.fetchall()
         for (id, geom, type, name, ref, voltage, output, nodes, tags) in result:
             polygon = wkb.loads(geom, hex=True)
-            self.stations[id] = Station(id, polygon, type, name, ref, voltage, nodes, tags)
+            self.stations[id] = Station(id, polygon, type, name, ref, voltage.replace(',', ';') if voltage is not None else None, nodes, tags)
             self.stations[id].nominal_power = output
         print('Found ' + str(len(result)) + ' way generators')
 
@@ -78,7 +78,7 @@ class Transnet:
         result = self.cur.fetchall()
         for (id, geom, type, name, ref, voltage, output, tags) in result:
             polygon = wkb.loads(geom, hex=True)
-            self.stations[id] = Station(id, polygon, type, name, ref, voltage, None, tags)
+            self.stations[id] = Station(id, polygon, type, name, ref, voltage.replace(',', ';') if voltage is not None else None, None, tags)
             self.stations[id].nominal_power = output
         print('Found ' + str(len(result)) + ' node generators')
 
@@ -91,14 +91,15 @@ class Transnet:
         result = self.cur.fetchall()
         for (id, geom, type, name, ref, voltage, cables, nodes,tags) in result:
             line = wkb.loads(geom, hex=True)
-            self.lines[id] = Line(id, line, type, name, ref, voltage, cables, nodes, tags)
+            self.lines[id] = Line(id, line, type, name.replace(',', ';') if name is not None else None, ref.replace(',', ';') if ref is not None else None, voltage.replace(',', ';') if voltage is not None else None, cables, nodes, tags)
         print('Found ' + str(len(self.lines)) + ' lines')
         print('')
 
         #for id in stations:
         #station_id = 18629425
         #station_id = 27124619
-        station_id = 29331499
+        #star-station_id = 29331499
+        station_id = 23025610
         relations = []
         #relations.extend(self.infer_relations(self.stations[137197826]))
         relations.extend(self.infer_relations(self.stations[station_id]))
@@ -152,7 +153,7 @@ class Transnet:
 
         print('CIM model generation started ...')
         cim_writer = CimWriter(circuits)
-        cim_writer.publish('cim.xml')
+        cim_writer.publish('/home/lej/PycharmProjects/transnet/results/cim')
 
         return
 
@@ -177,10 +178,7 @@ class Transnet:
                     # init new circuit
                     if line.ref is None:
                         line.ref = ''
-                    split_char = ';'
-                    if ',' in line.ref:
-                        split_char = ','
-                    for r in line.ref.split(split_char):
+                    for r in line.ref.split(';'):
                         relation = [station, line]
                         if first_node_in_station:
                             node_to_continue = line.last_node()
@@ -285,14 +283,8 @@ class Transnet:
             return True
         if ref1 is None or ref2 is None:
             return False
-        split_char_1 = ';'
-        if ',' in ref1:
-            split_char_1 = ','
-        split_char_2 = ';'
-        if ',' in ref2:
-            split_char_2 = ','
-        for r1 in ref1.split(split_char_1):
-            for r2 in ref2.split(split_char_2):
+        for r1 in ref1.split(';'):
+            for r2 in ref2.split(';'):
                 if r1.strip() == r2.strip():
                     return True
         return False
