@@ -5,11 +5,11 @@ from CIM14.ENTSOE.Equipment.Generation.Production import *
 from CIM14.ENTSOE.Equipment.LoadModel import LoadResponseCharacteristic
 
 from PyCIM import cimwrite
-from PyCIM.PrettyPrintXML import xmlpp
 
 import uuid
 from xml.dom.minidom import parse
 from string import maketrans
+from collections import OrderedDict
 
 class CimWriter:
     circuits = None
@@ -26,7 +26,7 @@ class CimWriter:
     # osm id -> cim uuid
     uuid_by_osmid_dict = dict()
     # cim uuid -> cim object
-    cimobject_by_uuid_dict = dict()
+    cimobject_by_uuid_dict = OrderedDict()
     # cim uuid -> cim connectivity node object
     connectivity_by_uuid_dict = dict()
 
@@ -35,9 +35,12 @@ class CimWriter:
 
     def publish(self, file_name):
 
+        covered_connections = []
         for circuit in self.circuits:
             station1 = circuit.members[0]
             station2 = circuit.members[len(circuit.members) - 1]
+            if [station1, station2] in covered_connections or [station2,station1] in covered_connections:
+                continue
             line_length = self.line_length(circuit)
 
             if 'station' in station1.type:
@@ -59,6 +62,7 @@ class CimWriter:
                 continue
 
             self.line_to_cim(connectivity_node1, connectivity_node2, line_length, circuit.name, circuit.voltage)
+            covered_connections.append([station1, station2])
 
         self.attach_loads()
 
@@ -74,7 +78,7 @@ class CimWriter:
 
         # pretty write
         xml = parse(file_name + '.xml')
-        pretty_xml_as_string = xml.toprettyxml(encoding='UTF-8')
+        pretty_xml_as_string = xml.toprettyxml(encoding='utf-8')
         pretty_file = open(file_name + '_pretty.xml', "w")
         pretty_file.write(pretty_xml_as_string)
         pretty_file.close()
@@ -141,7 +145,12 @@ class CimWriter:
         terminal2.UUID = str(self.uuid())
         self.cimobject_by_uuid_dict[terminal2.UUID] = terminal2
 
-    def get_winding_type(self, substation_voltage, circuit_voltage):
+    def get_winding_type(self, substation_voltage, circuit_voltage, transformer):
+        # is substation a winding station (only one voltage level)?
+        if ';' not in substation_voltage:
+            return self.winding_types[len(transformer.getTransformerWindings())]
+
+        # if substation has more voltage levels
         i = 0
         for station_voltage in substation_voltage.split(';'):
             if station_voltage == circuit_voltage:
@@ -154,15 +163,16 @@ class CimWriter:
         for line_part in circuit.members[1:(len(circuit.members) - 1)]:
             line_length += line_part.length()
         return line_length
-    
+
     def uuid(self):
-        self.id += 1
-        return str(self.id)
-        # return uuid.uuid1()
+        #self.id += 1
+        #return str(self.id)
+        return uuid.uuid1()
 
     def add_transformer_winding(self, osm_substation_id, osm_substation_voltage, winding_voltage, transformer):
-        transformer_winding = TransformerWinding(b=0, x=1.0, r=1.0, connectionType='Yn',
-                                                 windingType=self.get_winding_type(osm_substation_voltage, winding_voltage),
+        transformer_winding = TransformerWinding(name='TW_' + str(osm_substation_id) + '_' + str(winding_voltage),
+                                                 b=0, x=1.0, r=1.0, connectionType='Yn',
+                                                 windingType=self.get_winding_type(osm_substation_voltage, winding_voltage, transformer),
                                                  ratedU=int(winding_voltage), ratedS=5000000,
                                                  PowerTransformer=transformer,
                                                  BaseVoltage=self.base_voltages_dict[int(winding_voltage)])
@@ -172,7 +182,7 @@ class CimWriter:
         connectivity_node.UUID = str(self.uuid())
         self.cimobject_by_uuid_dict[connectivity_node.UUID] = connectivity_node
         terminal = Terminal(ConnectivityNode=connectivity_node, ConductingEquipment=transformer_winding,
-                        sequenceNumber=1)
+                            sequenceNumber=1)
         terminal.UUID = str(self.uuid())
         self.cimobject_by_uuid_dict[terminal.UUID] = terminal
         self.connectivity_by_uuid_dict[transformer_winding.UUID] = connectivity_node
@@ -207,7 +217,7 @@ class CimWriter:
         self.cimobject_by_uuid_dict[load_response_characteristic.UUID] = load_response_characteristic
         self.cimobject_by_uuid_dict[energy_consumer.UUID] = energy_consumer
         terminal = Terminal(ConnectivityNode=connectivity_node, ConductingEquipment=energy_consumer,
-                        sequenceNumber=1)
+                            sequenceNumber=1)
         terminal.UUID = str(self.uuid())
         self.cimobject_by_uuid_dict[terminal.UUID] = terminal
 
