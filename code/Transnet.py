@@ -63,23 +63,23 @@ class Transnet:
         print('Found ' + str(len(result)) + ' stations')
 
         # add power plants with area
-        sql = "select id,create_polygon(id) as geom, hstore(tags)->'power' as type, hstore(tags)->'name' as name, hstore(tags)->'ref' as ref, hstore(tags)->'voltage' as voltage, hstore(tags)->'generator:output' as output, nodes,tags from planet_osm_ways where hstore(tags)->'power'~'plant|generator' and array_length(nodes, 1) >= 4 and st_isclosed(create_line(id))"
+        sql = "select id,create_polygon(id) as geom, hstore(tags)->'power' as type, hstore(tags)->'name' as name, hstore(tags)->'ref' as ref, hstore(tags)->'voltage' as voltage, hstore(tags)->'plant:output:electricity' as output1, hstore(tags)->'generator:output:electricity' as output2, nodes,tags from planet_osm_ways where hstore(tags)->'power'~'plant|generator' and array_length(nodes, 1) >= 4 and st_isclosed(create_line(id))"
         self.cur.execute(sql)
         result = self.cur.fetchall()
-        for (id, geom, type, name, ref, voltage, output, nodes, tags) in result:
+        for (id, geom, type, name, ref, voltage, output1, output2, nodes, tags) in result:
             polygon = wkb.loads(geom, hex=True)
             self.stations[id] = Station(id, polygon, type, name, ref, voltage.replace(',', ';') if voltage is not None else None, nodes, tags)
-            self.stations[id].nominal_power = output
+            self.stations[id].nominal_power = Transnet.parse_power(output1) if output1 is not None else Transnet.parse_power(output2)
         print('Found ' + str(len(result)) + ' way generators')
 
         # add power plants which are modeled as points
-        sql = "select id,create_point(id) as geom, hstore(tags)->'power' as type, hstore(tags)->'name' as name, hstore(tags)->'ref' as ref, hstore(tags)->'voltage' as voltage, hstore(tags)->'generator:output' as output, tags from planet_osm_nodes where hstore(tags)->'power'~'plant|generator'"
+        sql = "select id,create_point(id) as geom, hstore(tags)->'power' as type, hstore(tags)->'name' as name, hstore(tags)->'ref' as ref, hstore(tags)->'voltage' as voltage, hstore(tags)->'plant:output:electricity' as output1, hstore(tags)->'generator:output:electricity' as output2, tags from planet_osm_nodes where hstore(tags)->'power'~'plant|generator'"
         self.cur.execute(sql)
         result = self.cur.fetchall()
-        for (id, geom, type, name, ref, voltage, output, tags) in result:
+        for (id, geom, type, name, ref, voltage, output1, output2, tags) in result:
             polygon = wkb.loads(geom, hex=True)
             self.stations[id] = Station(id, polygon, type, name, ref, voltage.replace(',', ';') if voltage is not None else None, None, tags)
-            self.stations[id].nominal_power = output
+            self.stations[id].nominal_power = Transnet.parse_power(output1) if output1 is not None else Transnet.parse_power(output2)
         print('Found ' + str(len(result)) + ' node generators')
 
         # create lines dictionary
@@ -112,9 +112,6 @@ class Transnet:
         total_accuracy = 0
         for relation in relations:
             if self.num_subs_in_relation(relation) == 2 and len(relation) >= 3: # at least two end points + one line
-                # extend relation end points with busbars
-                # relation = self.extend_relation_endpoints(relation)
-
                 first_line = relation[1]
                 circuit = Circuit(relation, first_line.voltage, first_line.name, first_line.ref)
                 print('Circuit ' + str(i))
@@ -307,51 +304,36 @@ class Transnet:
                 close_stations.append(station)
         return close_stations
 
-    def extend_relation_endpoints(self, relation):
-        # extend valid relations with busbars
-        first_station = relation[0]
-        first_line = relation[1]
-        last_station = relation[len(relation) - 1]
-        last_line = relation[len(relation) - 2]
+    @staticmethod
+    def parse_power(power_string):
+        if power_string is None:
+            return 0
+        power_string = power_string.replace(',', '.')
 
-        if self.node_in_any_station(first_line.first_node(), [first_station], first_line.voltage):
-            node_to_continue_id = first_line.first_node()
-        else:
-            node_to_continue_id = first_line.last_node()
-
-        busbars = self.extend_relation_endpoint(node_to_continue_id, first_line, 0)
-        if busbars:
-            relation.insert(0, busbars)
-
-        if self.node_in_any_station(last_line.first_node(), [last_station], last_line.voltage):
-            node_to_continue_id = last_line.first_node()
-        else:
-            node_to_continue_id = last_line.last_node()
-
-        busbars = self.extend_relation_endpoint(node_to_continue_id, last_line, 1)
-        if busbars:
-            relation.append(busbars)
-        return relation
-
-
-
-    # extend relations with busbars
-    def extend_relation_endpoint(self, node_to_continue_id, from_line, append=1):
-        for line in self.lines.values():
-            if node_to_continue_id in line.nodes:
-                if line.id == from_line.id:
-                    continue
-                if not Transnet.have_common_voltage(from_line.voltage, line.voltage):
-                    continue
-                if node_to_continue_id == line.first_node():
-                    node_to_continue_id = line.last_node()
-                else:
-                    node_to_continue_id = line.first_node()
-                if append:
-                    return [line].append(self.extend_relation_endpoint(node_to_continue_id, line, append))
-                else:
-                    return [line].insert(0, self.extend_relation_endpoint(node_to_continue_id, line, append))
-        return []
+        try:
+            if 'k' in power_string:
+                tokens = power_string.split('k')
+                return float(tokens[0].strip()) * 1000
+            elif 'K' in power_string:
+                tokens = power_string.split('K')
+                return float(tokens[0].strip()) * 1000
+            elif 'm' in power_string:
+                tokens = power_string.split('m')
+                return float(tokens[0].strip()) * 1000000
+            elif 'M' in power_string:
+                tokens = power_string.split('M')
+                return float(tokens[0].strip()) * 1000000
+            elif 'g' in power_string:
+                tokens = power_string.split('g')
+                return float(tokens[0].strip()) * 1000000000
+            elif 'G' in power_string:
+                tokens = power_string.split('G')
+                return float(tokens[0].strip()) * 1000000000
+            else:
+                return power_string.strip()
+        except ValueError:
+            print 'Could not extract power from string ' + power_string
+            return 0
         
 if __name__ == '__main__':
     

@@ -34,6 +34,9 @@ class CimWriter:
         self.circuits = circuits
 
     def publish(self, file_name):
+        for base_voltage in self.base_voltages_dict.values():
+            base_voltage.UUID = str(self.uuid())
+            self.cimobject_by_uuid_dict[base_voltage.UUID] = base_voltage
 
         covered_connections = []
         for circuit in self.circuits:
@@ -46,7 +49,7 @@ class CimWriter:
             if 'station' in station1.type:
                 connectivity_node1 = self.substation_to_cim(station1, circuit.voltage)
             elif 'plant' in station1.type or 'generator' in station1.type:
-                connectivity_node1 = self.generator_to_cim(station1)
+                connectivity_node1 = self.generator_to_cim(station1, circuit.voltage)
             else:
                 print 'Invalid circuit! - Skip circuit'
                 circuit.print_circuit()
@@ -55,7 +58,7 @@ class CimWriter:
             if 'station' in station2.type:
                 connectivity_node2 = self.substation_to_cim(station2, circuit.voltage)
             elif 'plant' in station2.type or 'generator' in station2.type:
-                connectivity_node2 = self.generator_to_cim(station2)
+                connectivity_node2 = self.generator_to_cim(station2, circuit.voltage)
             else:
                 print 'Invalid circuit! - Skip circuit'
                 circuit.print_circuit()
@@ -107,7 +110,7 @@ class CimWriter:
             transformer_winding = self.add_transformer_winding(osm_substation.id, osm_substation.voltage, circuit_voltage, transformer)
         return self.connectivity_by_uuid_dict[transformer_winding.UUID]
 
-    def generator_to_cim(self, generator):
+    def generator_to_cim(self, generator, circuit_voltage):
         if self.uuid_by_osmid_dict.has_key(generator.id):
             print 'Generator with OSMID ' + str(generator.id) + ' already covered.'
             generating_unit = self.cimobject_by_uuid_dict[self.uuid_by_osmid_dict[generator.id]]
@@ -117,7 +120,7 @@ class CimWriter:
                                              nominalP=generator.nominal_power)
             synchronous_machine = SynchronousMachine(name=CimWriter.escape_string(generator.name), operatingMode='generator', qPercent=0, x=0.01,
                                                      r=0.01, ratedS=generator.nominal_power, type='generator',
-                                                     GeneratingUnit=generating_unit)
+                                                     GeneratingUnit=generating_unit, BaseVoltage=self.base_voltages_dict[int(circuit_voltage)])
             generating_unit.UUID = str(self.uuid())
             synchronous_machine.UUID = str(self.uuid())
             self.cimobject_by_uuid_dict[generating_unit.UUID] = generating_unit
@@ -212,7 +215,7 @@ class CimWriter:
         connectivity_node = self.connectivity_by_uuid_dict[transformer_winding.UUID]
         load_response_characteristic = LoadResponseCharacteristic(exponentModel=False, pConstantPower=100000)
         load_response_characteristic.UUID = str(self.uuid())
-        energy_consumer = EnergyConsumer(name='L_' + str(osm_substation_id), LoadResponse=load_response_characteristic)
+        energy_consumer = EnergyConsumer(name='L_' + str(osm_substation_id), LoadResponse=load_response_characteristic, BaseVoltage=self.base_voltages_dict[int(winding_voltage)])
         energy_consumer.UUID = str(self.uuid())
         self.cimobject_by_uuid_dict[load_response_characteristic.UUID] = load_response_characteristic
         self.cimobject_by_uuid_dict[energy_consumer.UUID] = energy_consumer
