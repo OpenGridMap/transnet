@@ -5,6 +5,7 @@ function transformCimToSimulink()
 
     % reed cim objects
     [tree treeName] = xml_read ('matcim.xml');
+    baseVoltages = tree(1).BaseVoltage;
     transformers = tree(1).PowerTransformer;
     transformerWindings = tree(1).TransformerWinding;
     connectivityNodes = tree(1).ConnectivityNode;
@@ -12,7 +13,7 @@ function transformCimToSimulink()
     lines = tree(1).ACLineSegment;
     generators = tree(1).SynchronousMachine;
     loads = tree(1).EnergyConsumer;
-    load_characteristics = tree(1).LoadResponseCharacteristic;
+    loadCharacteristics = tree(1).LoadResponseCharacteristic;
 
     mdl = 'model';
     close_system('model');
@@ -29,24 +30,32 @@ function transformCimToSimulink()
        transformerWindings(i).type = 'transformerWinding';
        transformer = getWindingTransformer(transformerWindings(i), transformers);
        transformerWindings(i).block = transformer.block;
+       parameter = 'Winding1';
+       if ~isPrimaryWinding(transformerWindings(i)) 
+           parameter = 'Winding2';
+       end
+       set_param(transformer.block, parameter, ['[',getBaseVoltage(baseVoltages, transformerWindings(i).ConductingEquipment_BaseVoltage.ATTRIBUTE(1).rdf_resource),',0.002,0.08]'])
     end
     
     for i = 1:length(generators)
        block = add_block('block_templates/generator',[mdl,'/',generators(i).IdentifiedObject_name]);
        generators(i).block = block;
        generators(i).type = 'generator';
+       set_param(block, 'Voltage', getBaseVoltage(baseVoltages, generators(i).ConductingEquipment_BaseVoltage.ATTRIBUTE(1).rdf_resource));
     end
     
     for i = 1:length(loads)
        block = add_block('block_templates/load',[mdl,'/',loads(i).IdentifiedObject_name]);
        loads(i).block = block;
        loads(i).type = 'load';
+       set_param(block, 'NominalVoltage', getBaseVoltage(baseVoltages, loads(i).ConductingEquipment_BaseVoltage.ATTRIBUTE(1).rdf_resource));
     end
     
     for i = 1:length(lines)
-       block = add_block('block_templates/line',[mdl,'/line',lines(i).IdentifiedObject_name]);
+       block = add_block('block_templates/line',[mdl,'/',lines(i).IdentifiedObject_name]);
        lines(i).block = block;
        lines(i).type = 'line';
+       set_param(block, 'Length', num2str(lines(i).Conductor_length/1000)); % in km
     end
     
     for i = 1:length(connectivityNodes)
@@ -56,10 +65,22 @@ function transformCimToSimulink()
            equipments{length(equipments) + 1} = findEquipmentByTerminal(matchingTerminals{j}, transformerWindings, generators, loads, lines);
        end
        connectEquipments(mdl, equipments);
+       addBus(mdl, equipments{1}, getBaseVoltage(baseVoltages, equipments{1}.ConductingEquipment_BaseVoltage.ATTRIBUTE(1).rdf_resource), num2str(i)), 
     end
+    
+    add_block('block_templates/powergui',[mdl,'/powergui']);
     
     new_mdl = 'model_complete';
     save_system(mdl,new_mdl);    
+end
+
+function addBus(mdl, equipment, voltage, busNo)
+    block = add_block('block_templates/Load Flow Bus',[mdl,'/bus',busNo]);
+    set_param(block, 'Vbase', voltage);
+    set_param(block, 'ID', ['bus',busNo])
+    equipmentHandles = getAppropriateHandles(equipment);
+    busHandles = get(block,'Porthandles');
+    add_line(mdl, equipmentHandles(1), busHandles.LConn(1));
 end
 
 function matchingTerminals = getTerminals(connectivityNode, allTerminals)
@@ -134,7 +155,7 @@ function handles = getAppropriateHandles(equipment)
     phs = get(equipment.block,'Porthandles');
     if strcmp(equipment.type, 'transformerWinding')
         transformerWinding = equipment;
-        if isempty(strfind(transformerWinding.TransformerWinding_windingType.ATTRIBUTE(1).rdf_resource, 'primary'))
+        if isPrimaryWinding(transformerWinding)
             handles = phs.LConn;
         else
             handles = phs.RConn;
@@ -155,4 +176,16 @@ function handles = getAppropriateHandles(equipment)
         error('Could not find appropriate port handles for equipment %s', equipment.IdentifiedObject_name);
     end
 end
-%fprintf('%s\n', var.ID);
+
+function voltage = getBaseVoltage(baseVoltages, baseVoltageId)
+    for i = 1:length(baseVoltages)
+        if strcmp(baseVoltages(i).ATTRIBUTE(1).ID, baseVoltageId)
+            voltage = int2str(baseVoltages(i).BaseVoltage_nominalVoltage);
+            return
+        end
+    end
+end
+
+function isPrimary = isPrimaryWinding(transformerWinding)
+    isPrimary = ~isempty(strfind(transformerWinding.TransformerWinding_windingType.ATTRIBUTE(1).rdf_resource, 'primary'));
+end
