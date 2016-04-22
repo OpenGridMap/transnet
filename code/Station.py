@@ -5,8 +5,8 @@ class Station(Way):
     covered_line_ids = None
     nominal_power = None # only used by generators
 
-    def __init__(self, id, geom, type, name, ref, voltage, nodes, tags):
-        Way.__init__(self, id, geom, type, name, ref, voltage, nodes, tags)
+    def __init__(self, id, geom, type, name, ref, voltage, nodes, tags, lat, lon):
+        Way.__init__(self, id, geom, type, name, ref, voltage, nodes, tags, lat, lon)
         self.covered_line_ids = []
 
     def __str__(self):

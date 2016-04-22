@@ -54,44 +54,44 @@ class Transnet:
 
     def create_relations(self):
         # create station dictionary by quering only ways (there are almost no node substations for voltage level 110kV and higher)
-        sql = "select id,create_polygon(id) as geom, hstore(tags)->'power' as type, hstore(tags)->'name' as name, hstore(tags)->'ref' as ref, hstore(tags)->'voltage' as voltage, nodes,tags from planet_osm_ways where hstore(tags)->'power'~'station|substation|sub_station' and array_length(nodes, 1) >= 4 and st_isclosed(create_line(id)) and hstore(tags)->'voltage' ~ '110000|220000|380000'"
+        sql = "select id,create_polygon(id) as geom, hstore(tags)->'power' as type, hstore(tags)->'name' as name, hstore(tags)->'ref' as ref, hstore(tags)->'voltage' as voltage, nodes, tags, ST_Y(ST_Transform(ST_Centroid(create_polygon(id)),4326)) as lat, ST_X(ST_Transform(ST_Centroid(create_polygon(id)),4326)) as lon from planet_osm_ways where hstore(tags)->'power'~'station|substation|sub_station' and array_length(nodes, 1) >= 4 and st_isclosed(create_line(id)) and hstore(tags)->'voltage' ~ '110000|220000|380000'"
         self.cur.execute(sql)
         result = self.cur.fetchall()
-        for (id, geom, type, name, ref, voltage, nodes, tags) in result:
+        for (id, geom, type, name, ref, voltage, nodes, tags, lat, lon) in result:
             polygon = wkb.loads(geom, hex=True)
-            self.stations[id] = Station(id, polygon, type, name, ref, voltage.replace(',', ';') if voltage is not None else None, nodes, tags)
+            self.stations[id] = Station(id, polygon, type, name, ref, voltage.replace(',', ';') if voltage is not None else None, nodes, tags, lat, lon)
         print('Found ' + str(len(result)) + ' stations')
 
         # add power plants with area
-        sql = "select id,create_polygon(id) as geom, hstore(tags)->'power' as type, hstore(tags)->'name' as name, hstore(tags)->'ref' as ref, hstore(tags)->'voltage' as voltage, hstore(tags)->'plant:output:electricity' as output1, hstore(tags)->'generator:output:electricity' as output2, nodes,tags from planet_osm_ways where hstore(tags)->'power'~'plant|generator' and array_length(nodes, 1) >= 4 and st_isclosed(create_line(id))"
+        sql = "select id,create_polygon(id) as geom, hstore(tags)->'power' as type, hstore(tags)->'name' as name, hstore(tags)->'ref' as ref, hstore(tags)->'voltage' as voltage, hstore(tags)->'plant:output:electricity' as output1, hstore(tags)->'generator:output:electricity' as output2, nodes, tags, ST_Y(ST_Transform(ST_Centroid(create_polygon(id)),4326)) as lat, ST_X(ST_Transform(ST_Centroid(create_polygon(id)),4326)) as lon from planet_osm_ways where hstore(tags)->'power'~'plant|generator' and array_length(nodes, 1) >= 4 and st_isclosed(create_line(id))"
         self.cur.execute(sql)
         result = self.cur.fetchall()
-        for (id, geom, type, name, ref, voltage, output1, output2, nodes, tags) in result:
+        for (id, geom, type, name, ref, voltage, output1, output2, nodes, tags, lat, lon) in result:
             polygon = wkb.loads(geom, hex=True)
-            self.stations[id] = Station(id, polygon, type, name, ref, voltage.replace(',', ';') if voltage is not None else None, nodes, tags)
+            self.stations[id] = Station(id, polygon, type, name, ref, voltage.replace(',', ';') if voltage is not None else None, nodes, tags, lat, lon)
             self.stations[id].nominal_power = Transnet.parse_power(output1) if output1 is not None else Transnet.parse_power(output2)
         print('Found ' + str(len(result)) + ' way generators')
 
         # add power plants which are modeled as points
-        sql = "select id,create_point(id) as geom, hstore(tags)->'power' as type, hstore(tags)->'name' as name, hstore(tags)->'ref' as ref, hstore(tags)->'voltage' as voltage, hstore(tags)->'plant:output:electricity' as output1, hstore(tags)->'generator:output:electricity' as output2, tags from planet_osm_nodes where hstore(tags)->'power'~'plant|generator'"
+        sql = "select id,create_point(id) as geom, hstore(tags)->'power' as type, hstore(tags)->'name' as name, hstore(tags)->'ref' as ref, hstore(tags)->'voltage' as voltage, hstore(tags)->'plant:output:electricity' as output1, hstore(tags)->'generator:output:electricity' as output2, tags, ST_Y(ST_Transform(create_point(id),4326)) as lat, ST_X(ST_Transform(create_point(id),4326)) as lon from planet_osm_nodes where hstore(tags)->'power'~'plant|generator'"
         self.cur.execute(sql)
         result = self.cur.fetchall()
-        for (id, geom, type, name, ref, voltage, output1, output2, tags) in result:
+        for (id, geom, type, name, ref, voltage, output1, output2, tags, lat, lon) in result:
             polygon = wkb.loads(geom, hex=True)
-            self.stations[id] = Station(id, polygon, type, name, ref, voltage.replace(',', ';') if voltage is not None else None, None, tags)
+            self.stations[id] = Station(id, polygon, type, name, ref, voltage.replace(',', ';') if voltage is not None else None, None, tags, lat, lon)
             self.stations[id].nominal_power = Transnet.parse_power(output1) if output1 is not None else Transnet.parse_power(output2)
         print('Found ' + str(len(result)) + ' node generators')
 
         # create lines dictionary
         sql =   """
-                select id, create_line(id) as geom, hstore(tags)->'power' as type, hstore(tags)->'name' as name, hstore(tags)->'ref' as ref, hstore(tags)->'voltage' as voltage, hstore(tags)->'cables' as cables, nodes, tags
+                select id, create_line(id) as geom, hstore(tags)->'power' as type, hstore(tags)->'name' as name, hstore(tags)->'ref' as ref, hstore(tags)->'voltage' as voltage, hstore(tags)->'cables' as cables, nodes, tags, ST_Y(ST_Transform(ST_Centroid(create_line(id)),4326)) as lat, ST_X(ST_Transform(ST_Centroid(create_line(id)),4326)) as lon
                 from planet_osm_ways where hstore(tags)->'power'~'line|cable|minor_line' and exist(hstore(tags),'voltage') and hstore(tags)->'voltage' ~ '110000|220000|380000';
                 """
         self.cur.execute(sql)
         result = self.cur.fetchall()
-        for (id, geom, type, name, ref, voltage, cables, nodes,tags) in result:
+        for (id, geom, type, name, ref, voltage, cables, nodes, tags, lat, lon) in result:
             line = wkb.loads(geom, hex=True)
-            self.lines[id] = Line(id, line, type, name.replace(',', ';') if name is not None else None, ref.replace(',', ';') if ref is not None else None, voltage.replace(',', ';') if voltage is not None else None, cables, nodes, tags)
+            self.lines[id] = Line(id, line, type, name.replace(',', ';') if name is not None else None, ref.replace(',', ';') if ref is not None else None, voltage.replace(',', ';') if voltage is not None else None, cables, nodes, tags, lat, lon)
         print('Found ' + str(len(self.lines)) + ' lines')
         print('')
 

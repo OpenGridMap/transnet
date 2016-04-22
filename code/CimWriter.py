@@ -1,8 +1,11 @@
 
-from CIM14.ENTSOE.Equipment.Core import *
-from CIM14.ENTSOE.Equipment.Wires import *
-from CIM14.ENTSOE.Equipment.Generation.Production import *
+from CIM14.ENTSOE.Equipment.Core import BaseVoltage, GeographicalRegion, SubGeographicalRegion, ConnectivityNode, Terminal
+from CIM14.ENTSOE.Equipment.Wires import PowerTransformer, SynchronousMachine, TransformerWinding, EnergyConsumer
 from CIM14.ENTSOE.Equipment.LoadModel import LoadResponseCharacteristic
+from CIM14.IEC61968.Common import Location, PositionPoint
+from CIM14.IEC61970.Core import Substation
+from CIM14.IEC61970.Generation.Production import GeneratingUnit
+from CIM14.IEC61970.Wires import ACLineSegment
 
 from PyCIM import cimwrite
 
@@ -21,7 +24,7 @@ class CimWriter:
     base_voltages_dict[220000] = BaseVoltage(nominalVoltage=220000)
     base_voltages_dict[380000] = BaseVoltage(nominalVoltage=380000)
 
-    region = SubGeographicalRegion(Region=GeographicalRegion(name='Germany'))
+    region = SubGeographicalRegion(Region=GeographicalRegion(name='DE'))
 
     # osm id -> cim uuid
     uuid_by_osmid_dict = dict()
@@ -37,6 +40,9 @@ class CimWriter:
         for base_voltage in self.base_voltages_dict.values():
             base_voltage.UUID = str(self.uuid())
             self.cimobject_by_uuid_dict[base_voltage.UUID] = base_voltage
+
+        self.region.UUID = str(self.uuid())
+        self.cimobject_by_uuid_dict[self.region.UUID] = self.region
 
         covered_connections = []
         for circuit in self.circuits:
@@ -64,7 +70,7 @@ class CimWriter:
                 circuit.print_circuit()
                 continue
 
-            self.line_to_cim(connectivity_node1, connectivity_node2, line_length, circuit.name, circuit.voltage)
+            self.line_to_cim(connectivity_node1, connectivity_node2, line_length, circuit.name, circuit.voltage, circuit.members[1])
             covered_connections.append([station1, station2])
 
         self.attach_loads()
@@ -99,7 +105,7 @@ class CimWriter:
                     break
         else:
             print 'Create CIM Substation for OSMID ' + str(osm_substation.id)
-            cim_substation = Substation(name='SS_' + str(osm_substation.id), Region=self.region)
+            cim_substation = Substation(name='SS_' + str(osm_substation.id), Region=self.region, Location=self.add_equipment_location(osm_substation))
             transformer = PowerTransformer(name='T_' + str(osm_substation.id) + '_' + str(osm_substation.voltage), EquipmentContainer=cim_substation)
             cim_substation.UUID = str(self.uuid())
             transformer.UUID = str(self.uuid())
@@ -117,7 +123,7 @@ class CimWriter:
         else:
             print 'Create CIM Generator for OSMID ' + str(generator.id)
             generating_unit = GeneratingUnit(name='G_' + str(generator.id), maxOperatingP=generator.nominal_power, minOperatingP=0,
-                                             nominalP=generator.nominal_power)
+                                             nominalP=generator.nominal_power, Location=self.add_equipment_location(generator))
             synchronous_machine = SynchronousMachine(name=CimWriter.escape_string(generator.name), operatingMode='generator', qPercent=0, x=0.01,
                                                      r=0.01, ratedS=generator.nominal_power, type='generator',
                                                      GeneratingUnit=generating_unit, BaseVoltage=self.base_voltages_dict[int(circuit_voltage)])
@@ -136,9 +142,9 @@ class CimWriter:
             self.connectivity_by_uuid_dict[generating_unit.UUID] = connectivity_node
         return self.connectivity_by_uuid_dict[generating_unit.UUID]
 
-    def line_to_cim(self, connectivity_node1, connectivity_node2, length, name, circuit_voltage):
+    def line_to_cim(self, connectivity_node1, connectivity_node2, length, name, circuit_voltage, representative_line):
         line = ACLineSegment(name=CimWriter.escape_string(name) + '_' + connectivity_node1.name + '_' + connectivity_node2.name, bch=0, r=0.3257, x=0.3153, r0=0.5336,
-                             x0=0.88025, length=length, BaseVoltage=self.base_voltages_dict[int(circuit_voltage)])
+                             x0=0.88025, length=length, BaseVoltage=self.base_voltages_dict[int(circuit_voltage)], Location=self.add_equipment_location(representative_line))
         line.UUID = str(self.uuid())
         self.cimobject_by_uuid_dict[line.UUID] = line
         terminal1 = Terminal(ConnectivityNode=connectivity_node1, ConductingEquipment=line, sequenceNumber=1)
@@ -229,3 +235,12 @@ class CimWriter:
         if string is not None:
             return string.translate(maketrans('-]^$/. ', '_______'))
         return ''
+
+    def add_equipment_location(self, equipment):
+        pp = PositionPoint(xPosition=equipment.lon, yPosition=equipment.lat)
+        pp.UUID = str(self.uuid())
+        self.cimobject_by_uuid_dict[pp.UUID] = pp
+        location = Location(PositionPoints=[pp])
+        location.UUID = str(self.uuid())
+        self.cimobject_by_uuid_dict[location.UUID] = location
+        return location

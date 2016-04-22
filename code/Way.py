@@ -7,9 +7,11 @@ class Way:
     voltage = None
     nodes = None
     tags = None
+    lat = None
+    lon = None
 
 
-    def __init__(self, id, geom, type, name, ref, voltage, nodes, tags):
+    def __init__(self, id, geom, type, name, ref, voltage, nodes, tags, lat, lon):
         self.id = id
         self.geom = geom
         self.type = type
@@ -18,6 +20,8 @@ class Way:
         self.voltage = voltage
         self.nodes = nodes
         self.tags = tags
+        self.lat = lat
+        self.lon = lon
 
     def __str__(self):
         s = list('ID: ' + str(self.id) + ' Type: ' + self.type)

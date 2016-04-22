@@ -7,13 +7,16 @@ function transformCimToSimulink()
     [tree treeName] = xml_read ('matcim.xml');
     baseVoltages = tree(1).BaseVoltage;
     transformers = tree(1).PowerTransformer;
+    substations = tree(1).Substation;
     transformerWindings = tree(1).TransformerWinding;
     connectivityNodes = tree(1).ConnectivityNode;
     terminals = tree(1).Terminal;
     lines = tree(1).ACLineSegment;
     generators = tree(1).SynchronousMachine;
+    generatingUnits = tree(1).GeneratingUnit;
     loads = tree(1).EnergyConsumer;
-    loadCharacteristics = tree(1).LoadResponseCharacteristic;
+    locations = tree(1).Location;
+    positionPoints = tree(1).PositionPoint;
 
     mdl = 'model';
     close_system('model');
@@ -24,6 +27,8 @@ function transformCimToSimulink()
        block = add_block('block_templates/transformer',[mdl,'/',transformers(i).IdentifiedObject_name]);
        transformers(i).block = block;
        transformers(i).type = 'transformer';
+       positionPoint = findPositionPoint(positionPoints, locations, findSubstation(substations, transformers(i)));
+       setPosition(block, positionPoint.PositionPoint_yPosition, positionPoint.PositionPoint_xPosition);
     end
     
     for i = 1:length(transformerWindings)
@@ -42,6 +47,8 @@ function transformCimToSimulink()
        generators(i).block = block;
        generators(i).type = 'generator';
        set_param(block, 'Voltage', getBaseVoltage(baseVoltages, generators(i).ConductingEquipment_BaseVoltage.ATTRIBUTE(1).rdf_resource));
+       positionPoint = findPositionPoint(positionPoints, locations, findGeneratingUnit(generatingUnits, generators(i)));
+       setPosition(block, positionPoint.PositionPoint_yPosition, positionPoint.PositionPoint_xPosition);
     end
     
     for i = 1:length(loads)
@@ -56,6 +63,8 @@ function transformCimToSimulink()
        lines(i).block = block;
        lines(i).type = 'line';
        set_param(block, 'Length', num2str(lines(i).Conductor_length/1000)); % in km
+       positionPoint = findPositionPoint(positionPoints, locations, lines(i));
+       setPosition(block, positionPoint.PositionPoint_yPosition, positionPoint.PositionPoint_xPosition);
     end
     
     for i = 1:length(connectivityNodes)
@@ -129,10 +138,7 @@ function connectEquipments(mdl, equipments)
 end
 
 function connect(mdl, fromEquipment, toEquipment)
-    fprintf('Connect\n');
-    disp(fromEquipment);
-    fprintf('with\n');
-    disp(toEquipment);
+    fprintf('Connect %s with %s\n', fromEquipment.IdentifiedObject_name, toEquipment.IdentifiedObject_name);
     
     fromHandles = getAppropriateHandles(fromEquipment);
     toHandles = getAppropriateHandles(toEquipment);
@@ -188,4 +194,47 @@ end
 
 function isPrimary = isPrimaryWinding(transformerWinding)
     isPrimary = ~isempty(strfind(transformerWinding.TransformerWinding_windingType.ATTRIBUTE(1).rdf_resource, 'primary'));
+end
+
+function positionPoint = findPositionPoint(positionPoints, locations, equipment)
+    for i = 1:length(locations)
+        if strcmp(locations(i).ATTRIBUTE(1).ID, equipment.PowerSystemResource_Location.ATTRIBUTE(1).rdf_resource)
+            for j = 1:length(positionPoints)
+                if strcmp(locations(i).ATTRIBUTE(1).ID, positionPoints(j).PositionPoint_Location.ATTRIBUTE(1).rdf_resource)
+                    positionPoint = positionPoints(j);
+                    return
+                end
+            end
+        end
+    end
+end
+
+function generatingUnit = findGeneratingUnit(generatingUnits, generator)
+    for i = 1:length(generatingUnits)
+        if strcmp(generatingUnits(i).ATTRIBUTE(1).ID, generator.SynchronousMachine_GeneratingUnit.ATTRIBUTE(1).rdf_resource)
+            generatingUnit = generatingUnits(i);
+            return
+        end
+    end
+end
+
+function substation = findSubstation(substations, transformer)
+    for i = 1:length(substations)
+        if strcmp(substations(i).ATTRIBUTE(1).ID, transformer.Equipment_EquipmentContainer.ATTRIBUTE(1).rdf_resource)
+            substation = substations(i);
+            return
+        end
+    end
+end
+
+function setPosition(block, lat, lon)
+   currentPosition = get_param(block, 'Position');
+   blockWidth = currentPosition(3) - currentPosition(1);
+   blockHeight = currentPosition(4) - currentPosition(2);
+   [x,y] = Spherical2AzimuthalEquidistant((lat), (lon), 51, 9, 1000, 1000, 100000);
+   currentPosition(1) = x;
+   currentPosition(3) = currentPosition(1) + blockWidth;
+   currentPosition(2) = 1000 - y;
+   currentPosition(4) = currentPosition(2) + blockHeight;
+   set_param(block,'Position',currentPosition);
 end
