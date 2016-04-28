@@ -1,4 +1,4 @@
-function transformCimToSimulink()
+function transform()
 
     % simplify cim model to be better readable by MATLAB
     system('sh preparsescript.sh /home/lej/PycharmProjects/transnet/results/cim_pretty.xml matcim.xml')
@@ -81,7 +81,7 @@ function transformCimToSimulink()
            equipments{length(equipments) + 1} = findEquipmentByTerminal(matchingTerminals{j}, transformerWindings, generators, loads, lines);
        end
        connectEquipments(mdl, equipments);
-       %addBus(mdl, equipments{1}, getBaseVoltage(baseVoltages, equipments{1}.ConductingEquipment_BaseVoltage.ATTRIBUTE(1).rdf_resource), num2str(i)), 
+       addBus(mdl, equipments{1}, equipments{2}, getBaseVoltage(baseVoltages, equipments{1}.ConductingEquipment_BaseVoltage.ATTRIBUTE(1).rdf_resource), num2str(i));  
     end
     
     set_param(mdl, 'ZoomFactor', 'FitSystem');
@@ -109,17 +109,27 @@ function transformCimToSimulink()
     save_system(mdl,new_mdl);    
 end
 
-function addBus(mdl, equipment, voltage, busNo)
+function addBus(mdl, fromEquipment, toEquipment, voltage, busNo)
     block = add_block('block_templates/Load Flow Bus',[mdl,'/bus',busNo]);
     set_param(block, 'Vbase', voltage);
     set_param(block, 'ID', ['bus',busNo])
-    equipmentPosition = get_param(equipment.block, 'Position');
-    equipmentName = get_param(equipment.block, 'Name');
-    fprintf('Creating load flow bus%s at equipment %s (x=%f,y=%f)\n', busNo, equipmentName, equipmentPosition(1), equipmentPosition(2));
-    setXYPosition(block, equipmentPosition(1) - 50, (equipmentPosition(2) * (-1)) + 50);
-    equipmentHandles = getAppropriateHandles(equipment);
+    fromEquipmentPosition = get_param(fromEquipment.block, 'Position');
+    toEquipmentPosition = get_param(toEquipment.block, 'Position');
+    fromEquipmentName = get_param(fromEquipment.block, 'Name');
+    xdiff = abs(toEquipmentPosition(1) - fromEquipmentPosition(1));
+    ydiff = abs(toEquipmentPosition(2) - fromEquipmentPosition(2));
+    if xdiff > ydiff
+        busXPosition = fromEquipmentPosition(1) + abs(toEquipmentPosition(1) - fromEquipmentPosition(1));
+        busYPosition = fromEquipmentPosition(2) + 100;
+    else
+        busYPosition = fromEquipmentPosition(2) + abs(toEquipmentPosition(2) - fromEquipmentPosition(2));
+        busXPosition = fromEquipmentPosition(1) + 100;
+    end
+    fprintf('Creating load flow bus%s at equipment %s (x=%f,y=%f)\n', busNo, fromEquipmentName, busXPosition, busYPosition);
+    setXYPosition(block, busXPosition, (-1) * busYPosition);
+    equipmentHandles = getAppropriateHandles(fromEquipment);
     busHandles = get(block,'Porthandles');
-    add_line(mdl, equipmentHandles(1), busHandles.LConn(1), 'autorouting', 'on');
+    add_line(mdl, equipmentHandles(3), busHandles.LConn(1));
 end
 
 function matchingTerminals = getTerminals(connectivityNode, allTerminals)
@@ -180,7 +190,7 @@ function connect(mdl, fromEquipment, toEquipment)
     toHandles = getAppropriateHandles(toEquipment);
     
     for i=1:3
-        add_line(mdl,fromHandles(i),toHandles(i), 'autorouting','on');
+        add_line(mdl,fromHandles(i),toHandles(i));
     end
 end
 
@@ -333,7 +343,7 @@ end
 function setLoadPositionAndOrientation(load, substation)
     substationPosition = get_param(substation.block, 'Position');
     substationOrientation = get_param(substation.block, 'Orientation');
-    offset = 60;
+    offset = 100;
     if strcmp(substationOrientation, 'left')
        xdiff =  (-1) * offset;
        loadOrientation = 'left';

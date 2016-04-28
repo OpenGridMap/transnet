@@ -236,6 +236,7 @@ class Transnet:
                     node_to_continue = line.first_node()
                 relation, successful = self.infer_relation(relation, node_to_continue, voltage, ref, name, line, close_stations, covered_nodes)
                 if not successful:
+                    relation.remove(line)
                     continue
                 covered_nodes.append(node_to_continue_id)
                 return relation, successful

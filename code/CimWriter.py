@@ -75,7 +75,7 @@ class CimWriter:
                 continue
 
             lines = []
-            for line in circuit.members[1:len(circuit.members)-2]:
+            for line in circuit.members[1:len(circuit.members)-1]:
                 lines.append(line.geom)
             line_centroid = linemerge(lines).centroid
             (lat, lon) = CimWriter.convert_mercator_to_wgs84(line_centroid.y, line_centroid.x)
