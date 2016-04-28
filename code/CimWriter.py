@@ -1,11 +1,11 @@
 
 from CIM14.ENTSOE.Equipment.Core import BaseVoltage, GeographicalRegion, SubGeographicalRegion, ConnectivityNode, Terminal
-from CIM14.ENTSOE.Equipment.Wires import PowerTransformer, SynchronousMachine, TransformerWinding, EnergyConsumer
+from CIM14.ENTSOE.Equipment.Wires import PowerTransformer, SynchronousMachine, TransformerWinding
 from CIM14.ENTSOE.Equipment.LoadModel import LoadResponseCharacteristic
 from CIM14.IEC61968.Common import Location, PositionPoint
 from CIM14.IEC61970.Core import Substation
 from CIM14.IEC61970.Generation.Production import GeneratingUnit
-from CIM14.IEC61970.Wires import ACLineSegment
+from CIM14.IEC61970.Wires import ACLineSegment, EnergyConsumer
 
 from PyCIM import cimwrite
 
@@ -13,6 +13,10 @@ import uuid
 from xml.dom.minidom import parse
 from string import maketrans
 from collections import OrderedDict
+from shapely.ops import linemerge
+import ogr
+import osr
+
 
 class CimWriter:
     circuits = None
@@ -48,7 +52,7 @@ class CimWriter:
         for circuit in self.circuits:
             station1 = circuit.members[0]
             station2 = circuit.members[len(circuit.members) - 1]
-            if [station1, station2] in covered_connections or [station2,station1] in covered_connections:
+            if [station1, station2] in covered_connections or [station2, station1] in covered_connections:
                 continue
             line_length = self.line_length(circuit)
 
@@ -70,20 +74,18 @@ class CimWriter:
                 circuit.print_circuit()
                 continue
 
-            self.line_to_cim(connectivity_node1, connectivity_node2, line_length, circuit.name, circuit.voltage, circuit.members[1])
+            lines = []
+            for line in circuit.members[1:len(circuit.members)-2]:
+                lines.append(line.geom)
+            line_centroid = linemerge(lines).centroid
+            (lat, lon) = CimWriter.convert_mercator_to_wgs84(line_centroid.y, line_centroid.x)
+            self.line_to_cim(connectivity_node1, connectivity_node2, line_length, circuit.name, circuit.voltage, lat, lon)
             covered_connections.append([station1, station2])
 
         self.attach_loads()
 
-        #d_vals=sorted(dictionary.values())
-        #d_keys= sorted(dictionary, key=dictionary.get)
-        #dictionary = collections.OrderedDict(zip(d_keys, d_vals))
-
         cimwrite(self.cimobject_by_uuid_dict, file_name + '.xml')
         cimwrite(self.cimobject_by_uuid_dict, file_name + '.rdf')
-
-        #print '\nWhat is in path:\n'
-        #print xmlpp(file_name + '.xml')
 
         # pretty write
         xml = parse(file_name + '.xml')
@@ -105,7 +107,7 @@ class CimWriter:
                     break
         else:
             print 'Create CIM Substation for OSMID ' + str(osm_substation.id)
-            cim_substation = Substation(name='SS_' + str(osm_substation.id), Region=self.region, Location=self.add_equipment_location(osm_substation))
+            cim_substation = Substation(name='SS_' + str(osm_substation.id), Region=self.region, Location=self.add_location(osm_substation.lat, osm_substation.lon))
             transformer = PowerTransformer(name='T_' + str(osm_substation.id) + '_' + str(osm_substation.voltage), EquipmentContainer=cim_substation)
             cim_substation.UUID = str(self.uuid())
             transformer.UUID = str(self.uuid())
@@ -123,7 +125,7 @@ class CimWriter:
         else:
             print 'Create CIM Generator for OSMID ' + str(generator.id)
             generating_unit = GeneratingUnit(name='G_' + str(generator.id), maxOperatingP=generator.nominal_power, minOperatingP=0,
-                                             nominalP=generator.nominal_power, Location=self.add_equipment_location(generator))
+                                             nominalP=generator.nominal_power, Location=self.add_location(generator.lat, generator.lon))
             synchronous_machine = SynchronousMachine(name=CimWriter.escape_string(generator.name), operatingMode='generator', qPercent=0, x=0.01,
                                                      r=0.01, ratedS=generator.nominal_power, type='generator',
                                                      GeneratingUnit=generating_unit, BaseVoltage=self.base_voltages_dict[int(circuit_voltage)])
@@ -142,9 +144,9 @@ class CimWriter:
             self.connectivity_by_uuid_dict[generating_unit.UUID] = connectivity_node
         return self.connectivity_by_uuid_dict[generating_unit.UUID]
 
-    def line_to_cim(self, connectivity_node1, connectivity_node2, length, name, circuit_voltage, representative_line):
+    def line_to_cim(self, connectivity_node1, connectivity_node2, length, name, circuit_voltage, lat, lon):
         line = ACLineSegment(name=CimWriter.escape_string(name) + '_' + connectivity_node1.name + '_' + connectivity_node2.name, bch=0, r=0.3257, x=0.3153, r0=0.5336,
-                             x0=0.88025, length=length, BaseVoltage=self.base_voltages_dict[int(circuit_voltage)], Location=self.add_equipment_location(representative_line))
+                             x0=0.88025, length=length, BaseVoltage=self.base_voltages_dict[int(circuit_voltage)], Location=self.add_location(lat, lon))
         line.UUID = str(self.uuid())
         self.cimobject_by_uuid_dict[line.UUID] = line
         terminal1 = Terminal(ConnectivityNode=connectivity_node1, ConductingEquipment=line, sequenceNumber=1)
@@ -221,7 +223,7 @@ class CimWriter:
         connectivity_node = self.connectivity_by_uuid_dict[transformer_winding.UUID]
         load_response_characteristic = LoadResponseCharacteristic(exponentModel=False, pConstantPower=100000)
         load_response_characteristic.UUID = str(self.uuid())
-        energy_consumer = EnergyConsumer(name='L_' + str(osm_substation_id), LoadResponse=load_response_characteristic, BaseVoltage=self.base_voltages_dict[int(winding_voltage)])
+        energy_consumer = EnergyConsumer(name='L_' + osm_substation_id, LoadResponse=load_response_characteristic, BaseVoltage=self.base_voltages_dict[int(winding_voltage)])
         energy_consumer.UUID = str(self.uuid())
         self.cimobject_by_uuid_dict[load_response_characteristic.UUID] = load_response_characteristic
         self.cimobject_by_uuid_dict[energy_consumer.UUID] = energy_consumer
@@ -236,11 +238,37 @@ class CimWriter:
             return string.translate(maketrans('-]^$/. ', '_______'))
         return ''
 
-    def add_equipment_location(self, equipment):
-        pp = PositionPoint(xPosition=equipment.lon, yPosition=equipment.lat)
+    def add_location(self, lat, lon):
+        pp = PositionPoint(yPosition=lat, xPosition=lon)
         pp.UUID = str(self.uuid())
         self.cimobject_by_uuid_dict[pp.UUID] = pp
         location = Location(PositionPoints=[pp])
         location.UUID = str(self.uuid())
         self.cimobject_by_uuid_dict[location.UUID] = location
         return location
+
+
+    @staticmethod
+    def convert_mercator_to_wgs84(mercLat, mercLon):
+        # Spatial Reference System
+        inputEPSG = 3857
+        outputEPSG = 4326
+
+        # create a geometry from coordinates
+        point = ogr.Geometry(ogr.wkbPoint)
+        point.AddPoint(mercLon, mercLat)
+
+        # create coordinate transformation
+        inSpatialRef = osr.SpatialReference()
+        inSpatialRef.ImportFromEPSG(inputEPSG)
+
+        outSpatialRef = osr.SpatialReference()
+        outSpatialRef.ImportFromEPSG(outputEPSG)
+
+        coordTransform = osr.CoordinateTransformation(inSpatialRef, outSpatialRef)
+
+        # transform point
+        point.Transform(coordTransform)
+
+        # return point in EPSG 4326
+        return (point.GetY(), point.GetX())
