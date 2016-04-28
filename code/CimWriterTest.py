@@ -22,7 +22,7 @@ from Station import Station
 from shapely import wkb
 from datetime import datetime
 from CimWriter import CimWriter
-
+from Transnet import Transnet
 
 class CimWriterTest:
 
@@ -69,12 +69,12 @@ class CimWriterTest:
                     polygon = wkb.loads(geom, hex=True)
                     relation.append(Station(id, polygon, type, name, ref, voltage, nodes, tags, lat, lon))
                 elif 'generator' in type or 'plant' in type:
-                    sql = "select id,create_polygon(id) as geom, hstore(tags)->'power' as type, hstore(tags)->'name' as name, hstore(tags)->'ref' as ref, hstore(tags)->'voltage' as voltage, hstore(tags)->'generator:output' as output, nodes, tags, ST_Y(ST_Transform(ST_Centroid(create_polygon(id)),4326)) as lat, ST_X(ST_Transform(ST_Centroid(create_polygon(id)),4326)) as lon from planet_osm_ways where id = " + str(part)
+                    sql = "select id,create_polygon(id) as geom, hstore(tags)->'power' as type, hstore(tags)->'name' as name, hstore(tags)->'ref' as ref, hstore(tags)->'voltage' as voltage, hstore(tags)->'plant:output:electricity' as output1, hstore(tags)->'generator:output:electricity' as output2, nodes, tags, ST_Y(ST_Transform(ST_Centroid(create_polygon(id)),4326)) as lat, ST_X(ST_Transform(ST_Centroid(create_polygon(id)),4326)) as lon from planet_osm_ways where id = " + str(part)
                     self.cur.execute(sql)
-                    [(id, geom, type, name, ref, voltage, output, nodes, tags, lat, lon)] = self.cur.fetchall()
+                    [(id, geom, type, name, ref, voltage, output1, output2, nodes, tags, lat, lon)] = self.cur.fetchall()
                     polygon = wkb.loads(geom, hex=True)
                     generator = Station(id, polygon, type, name, ref, voltage, nodes, tags, lat, lon)
-                    generator.nominal_power = output
+                    generator.nominal_power = Transnet.parse_power(output1) if output1 is not None else Transnet.parse_power(output2)
                     relation.append(generator)
                 elif 'line' in type or 'cable' in type:
                     sql =   "select id, create_line(id) as geom, hstore(tags)->'power' as type, hstore(tags)->'name' as name, hstore(tags)->'ref' as ref, hstore(tags)->'voltage' as voltage, hstore(tags)->'cables' as cables, nodes, tags, ST_Y(ST_Transform(ST_Centroid(create_line(id)),4326)) as lat, ST_X(ST_Transform(ST_Centroid(create_line(id)),4326)) as lon from planet_osm_ways where id = " + str(part)

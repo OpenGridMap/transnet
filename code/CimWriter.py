@@ -52,7 +52,7 @@ class CimWriter:
         for circuit in self.circuits:
             station1 = circuit.members[0]
             station2 = circuit.members[len(circuit.members) - 1]
-            if [station1, station2] in covered_connections or [station2, station1] in covered_connections:
+            if str(station1.id) + str(station2.id) + str(circuit.voltage) in covered_connections or str(station2.id) + str(station1.id) + str(circuit.voltage) in covered_connections:
                 continue
             line_length = self.line_length(circuit)
 
@@ -80,7 +80,7 @@ class CimWriter:
             line_centroid = linemerge(lines).centroid
             (lat, lon) = CimWriter.convert_mercator_to_wgs84(line_centroid.y, line_centroid.x)
             self.line_to_cim(connectivity_node1, connectivity_node2, line_length, circuit.name, circuit.voltage, lat, lon)
-            covered_connections.append([station1, station2])
+            covered_connections.append(str(station1.id) + str(station2.id) + str(circuit.voltage))
 
         self.attach_loads()
 
