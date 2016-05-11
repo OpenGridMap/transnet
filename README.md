@@ -3,3 +3,11 @@ The Transnet project consists of a set of Python and Matlab scripts for the auto
 
 ## PostgreSQL + PostGIS setup
 Transnet relies on a local PostgreSQL + PostGIS installation, which is the host of power-relevant OSM data.
+To install PostgreSQL + PostGIS open a terminal and execute the following command:
+```
+sudo apt-get install postgres postgis
+```
+Create a PostGIS-enabled database template:
+```
+sudo -u postgres createdb -U postgres -h localhost plpgsql transnet_template
+```
