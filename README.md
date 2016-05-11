@@ -5,14 +5,17 @@ The Transnet project consists of a set of Python and Matlab scripts for the auto
 Transnet relies on a local PostgreSQL + PostGIS installation, which is the host of power-relevant OSM data.
 To install PostgreSQL + PostGIS open a terminal and execute the following command:
 ```
-echo "deb http://apt.postgresql.org/pub/repos/apt/ precise-pgdg main" | sudo tee /etc/apt/sources.list.d/postgis.list
-wget --quiet -O - http://apt.postgresql.org/pub/repos/apt/ACCC4CF8.asc | sudo apt-key add -
-sudo apt-get update
-sudo apt-get install postgresql-9.3 postgresql-9.3-postgis-2.1 postgresql-client-9.3
+sudo apt-get install postgresql postgis
 sudo -u postgres psql -c '\password'
-sudo -u postgres psql -c 'create extension postgis;'
 ```
 Create a PostGIS-enabled database template:
 ```
-sudo -u postgres createdb -U postgres -h localhost plpgsql transnet_template
+sudo -u postgres createdb -U postgres -h localhost transnet_template
+sudo -u postgres psql -d transnet_template -U postgres -h localhost -f /usr/share/postgresql/9.1/contrib/postgis-1.5/postgis.sql
+sudo -u postgres psql -d transnet_template -U postgres -h localhost -f /usr/share/postgresql/9.1/contrib/postgis-1.5/spatial_ref_sys.sql
+sudo -u postgres psql -d transnet_template -U postgres -q -h localhost -c "CREATE EXTENSION hstore;"
+```
+Create a database using the template:
+```
+sudo -u postgres psql -U postgres -d transnet_template -h localhost -c "CREATE DATABASE power_de WITH TEMPLATE = transnet_template;"
 ```
