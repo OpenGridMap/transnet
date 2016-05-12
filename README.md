@@ -39,7 +39,7 @@ osmosis \
   --tag-filter accept-ways power=* \
   --used-node --buffer \
   --bounding-polygon file=’Downloads/germany.poly’ \
-  completeRelations=yes \
+  completeWays=yes \
   --write-pbf file=’Downloads/power_extract1.pbf’
 ```
 
