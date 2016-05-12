@@ -8,6 +8,28 @@ Install the osmosis tool, which is capable of filtering OSM data by (power) tags
 ```
 sudo apt-get install osmosis
 ```
+Filter all nodes, ways and relations tagged with 'power=*':
+```
+osmosis \
+  --read-pbf file=’Downloads/germany-latest.osm.pbf’ \
+  --tag-filter accept-relations power=* \
+  --tag-filter accept-ways power=* \
+  --tag-filter accept-nodes power=* \
+  --used-node --buffer \
+  --bounding-polygon file=’Downloads/germany.poly’ \
+  completeRelations=yes \
+  --write-pbf file=’Downloads/power_extract1.pbf’
+```
+Filter all relations tagged with 'route=power':
+```
+osmosis \
+  --read-pbf file=’Downloads/germany-latest.osm.pbf’ \
+  --tag-filter accept-relations route=power \
+  --used-node --buffer \
+  --bounding-polygon file=’Downloads/germany.poly’ \
+  completeRelations=yes \
+  --write-pbf file=’Downloads/power_extract2.pbf’
+```
 
 ## PostgreSQL + PostGIS setup
 Transnet relies on a local PostgreSQL + PostGIS installation, which is the host of power-relevant OSM data.
