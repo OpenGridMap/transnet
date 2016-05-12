@@ -140,11 +140,11 @@ if __name__ == '__main__':
     
     (options, args) = parser.parse_args()
     # get connection data via command line or set to default values
-    dbname = options.dbname if options.dbname else 'de_power_151125_de2'
+    dbname = options.dbname if options.dbname else 'power_de'
     dbhost = options.dbhost if options.dbhost else '127.0.0.1'
     dbport = options.dbport if options.dbport else '5432'
     dbuser = options.dbuser if options.dbuser else 'postgres' 
-    dbpwrd = options.dbpwrd if options.dbpwrd else 'open50arms'
+    dbpwrd = options.dbpwrd if options.dbpwrd else 'OpenGridMap'
  
     # Connect to DB 
     try:
