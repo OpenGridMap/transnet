@@ -40,7 +40,7 @@ osmosis \
   --used-node --buffer \
   --bounding-polygon file=’Downloads/germany.poly’ \
   completeWays=yes \
-  --write-pbf file=’Downloads/power_extract1.pbf’
+  --write-pbf file=’Downloads/power_extract3.pbf’
 ```
 
 ## PostgreSQL + PostGIS setup
