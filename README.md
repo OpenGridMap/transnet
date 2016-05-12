@@ -84,3 +84,12 @@ Install osm2pgsql tool for OSM data import:
 ```
 sudo apt-get install osm2psql
 ```
+Import data extract from above into database:
+```
+osm2pgsql -r pbf -U postgres -H localhost -P 5432 -d power_de
+  -S transnet/util/power.style -k -s \
+  -C 800mb \
+  --number-processes 4 \
+  power_extract.pbf
+```
+
