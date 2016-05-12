@@ -1,7 +1,19 @@
 # Transnet
 The Transnet project consists of a set of Python and Matlab scripts for the automatic inference of high voltage power (transmission) grids based on crowdsourced OpenStreetMap (OSM) data. Transnet yields two different models, a Common Information Model (CIM) model and a Matlab Simulink model. The latter can be used to perform load flow analysis. This manual guides you to the Transnet setup and gives several usage examples.
 
-## Checkout Transnet Project
+## Setup Transnet Project:
+Transnet requires Python-2.7, which can be installed as follows:
+```
+sudo apt-get install python
+```
+A few additional GIS/Python packages have to be installed:
+```
+sudo apt-get install python-psycopg2
+sudo apt-get install binutils libproj-dev gdal-bin
+sudo pip install shapely
+easy_install PyCIM
+```
+
 ```
 git clone https://github.com/OpenGridMap/transnet
 ```
