@@ -100,6 +100,7 @@ class Transnet:
         #station_id = 27124619
         #star-station_id = 29331499
         station_id = 23025610
+        #station_id = 27124619
         relations = []
         #relations.extend(self.infer_relations(self.stations[137197826]))
         relations.extend(self.infer_relations(self.stations[station_id]))
