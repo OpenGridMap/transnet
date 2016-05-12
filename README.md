@@ -25,10 +25,22 @@ Filter all relations tagged with 'route=power':
 osmosis \
   --read-pbf file=’Downloads/germany-latest.osm.pbf’ \
   --tag-filter accept-relations route=power \
+  --used-way \
+	--used-node \
+  --buffer \
+  --bounding-polygon file=’Downloads/germany.poly’ \
+  completeRelations=yes completeWays=yes \
+  --write-pbf file=’Downloads/power_extract2.pbf’
+```
+Get all power ways and its nodes (even if they are not power-tagged):
+```
+osmosis \
+  --read-pbf file=’Downloads/germany-latest.osm.pbf’ \
+  --tag-filter accept-ways power=* \
   --used-node --buffer \
   --bounding-polygon file=’Downloads/germany.poly’ \
   completeRelations=yes \
-  --write-pbf file=’Downloads/power_extract2.pbf’
+  --write-pbf file=’Downloads/power_extract1.pbf’
 ```
 
 ## PostgreSQL + PostGIS setup
