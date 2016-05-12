@@ -4,9 +4,12 @@ The Transnet project consists of a set of Python and Matlab scripts for the auto
 ## Data Preparation
 Download OSM data (.pbf) from https://download.geofabrik.de/ for the considered region, e.g. for Europe or Germany. Also download the corresponding shape file (.poly).
 
-Install the osmosis tool, which is capable of filtering OSM data by (power) tags:
+Install the LATEST osmosis tool, which is capable of filtering OSM data by (power) tags:
 ```
-sudo apt-get install osmosis
+mkdir osmosis && cd osmosis
+wget http://bretth.dev.openstreetmap.org/osmosis-build/osmosis-latest.tgz
+tar xvfz osmosis-latest.tgz
+chmod +x bin/osmosis
 ```
 Filter all nodes, ways and relations tagged with 'power=*':
 ```
