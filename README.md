@@ -42,6 +42,22 @@ osmosis \
   completeWays=yes \
   --write-pbf file=’Downloads/power_extract3.pbf’
 ```
+Merge first 2 extracts:
+```
+osmosis \
+--read-pbf file=’Downloads/power_extract1.pbf’\
+--read-pbf file=’Downloads/power_extract2.pbf’\
+--merge \
+--write-pbf file=’Downloads/power_extract12.pbf’
+```
+Merge with 3rd extract:
+```
+osmosis \
+--read-pbf file=’Downloads/power_extract12.pbf’\
+--read-pbf file=’Downloads/power_extract3.pbf’\
+--merge \
+--write-pbf file=’Downloads/power_extract.pbf’
+```
 
 ## PostgreSQL + PostGIS setup
 Transnet relies on a local PostgreSQL + PostGIS installation, which is the host of power-relevant OSM data.
