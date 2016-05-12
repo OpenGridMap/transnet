@@ -4,18 +4,19 @@ The Transnet project consists of a set of Python and Matlab scripts for the auto
 ## Setup Transnet Project:
 Transnet requires Python-2.7, which can be installed as follows:
 ```
-sudo apt-get install python
+sudo apt-get install python-2.7
 ```
-A few additional GIS/Python packages have to be installed:
+Moreover, QGIS has to be installed - the installation guide for Linux systems can be found here:
+http://qgis.org/en/site/forusers/alldownloads.html#linux
+
+A few additional Python packages have to be installed:
 ```
-sudo apt-get install python-psycopg2
-sudo apt-get install binutils libproj-dev gdal-bin
-sudo pip install shapely
+sudo apt-get install python-psycopg2 python-shapely
 easy_install PyCIM
 ```
-
+Finally checkout the Transnet project:
 ```
-git clone https://github.com/OpenGridMap/transnet
+git clone https://github.com/OpenGridMap/transnet transnet
 ```
 
 ## Data Preparation
