@@ -109,8 +109,8 @@ sudo -u postgres psql -c '\password'
 Create a PostGIS-enabled database template:
 ```
 sudo -u postgres createdb -U postgres -h localhost transnet_template
-sudo -u postgres psql -d transnet_template -U postgres -h localhost -f /usr/share/postgresql/9.1/contrib/postgis-1.5/postgis.sql
-sudo -u postgres psql -d transnet_template -U postgres -h localhost -f /usr/share/postgresql/9.1/contrib/postgis-1.5/spatial_ref_sys.sql
+sudo -u postgres psql -d transnet_template -U postgres -h localhost -f /usr/share/postgresql/9.4/contrib/postgis-2.2/postgis.sql
+sudo -u postgres psql -d transnet_template -U postgres -h localhost -f /usr/share/postgresql/9.2/contrib/postgis-2.2/spatial_ref_sys.sql
 sudo -u postgres psql -d transnet_template -U postgres -q -h localhost -c "CREATE EXTENSION hstore;"
 ```
 Create a database using the template:
