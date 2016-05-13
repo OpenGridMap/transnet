@@ -3,7 +3,7 @@ The Transnet project consists of a set of Python and Matlab scripts for the auto
 
 ## Environment Details
 |System/Application/Tool|Version|Description|
-|---|---|
+|---|---|---|
 |Ubuntu|12.04|Linux distribution|
 |PostgreSQL|9.4|PostgreSQL Database server|
 |PostGIS|9.2|PostgreSQL GIS extension|
