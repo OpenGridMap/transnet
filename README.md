@@ -104,10 +104,6 @@ sudo apt-get install osm2psql
 ```
 Import data extract from above into database:
 ```
-osm2pgsql -r pbf -U postgres -H localhost -P 5432 -d power_de
-  -S transnet/util/power.style -k -s \
-  -C 1024 \
-  --number-processes 4 \
-  power_extract.pbf
+osm2pgsql -r pbf --username='postgres' -d power_de -k -s -C 6000 -v --host='localhost' --port='5432' --password --style transnet/util/power.style Downloads/power_extract.pbf
 ```
 
