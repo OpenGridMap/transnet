@@ -117,12 +117,25 @@ Create a database using the template:
 ```
 sudo -u postgres psql -U postgres -d transnet_template -h localhost -c "CREATE DATABASE power_de WITH TEMPLATE = transnet_template;"
 ```
-Install osm2pgsql tool for OSM data import:
+## Data Import
+The data import is performed with the tool osm2pgsql. To install the latest version, the boost library and a C/C++-Compiler are required. Here are some useful links to install these requirements:
+|Install boost library|http://stackoverflow.com/questions/12578499/how-to-install-boost-on-ubuntu|
+|Install C/C++ Compiler|http://askubuntu.com/questions/466651/how-do-i-use-the-latest-gcc-on-ubuntu-14-04|
+|Setup C/C++ Compiler|http://askubuntu.com/questions/26498/choose-gcc-and-g-version|
+
+Install the LATEST osm2pgsql tool for OSM data import:
 ```
-sudo apt-get install osm2psql
+git clone https://github.com/openstreetmap/osm2pgsql osm2pgsql
+sudo apt-get install make cmake g++ libboost-dev libboost-system-dev \
+  libboost-filesystem-dev libexpat1-dev zlib1g-dev \
+  libbz2-dev libpq-dev libgeos-dev libgeos++-dev libproj-dev lua5.2 \
+  liblua5.2-dev
+mkdir build && cd build
+cmake ..
+make
+sudo make install
 ```
 Import data extract from above into database:
 ```
 osm2pgsql -r pbf --username='postgres' -d power_de -k -s -C 6000 -v --host='localhost' --port='5432' --password --style transnet/util/power.style Downloads/power_extract.pbf
 ```
-
