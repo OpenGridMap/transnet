@@ -1,6 +1,19 @@
 # Transnet
 The Transnet project consists of a set of Python and Matlab scripts for the automatic inference of high voltage power (transmission) grids based on crowdsourced OpenStreetMap (OSM) data. Transnet yields two different models, a Common Information Model (CIM) model and a Matlab Simulink model. The latter can be used to perform load flow analysis. This manual guides you to the Transnet setup and gives several usage examples.
 
+## Environment Details
+|System/Application/Tool|Version|Description|
+|---|---|
+|Ubuntu|12.04|Linux distribution|
+|PostgreSQL|9.4|PostgreSQL Database server|
+|PostGIS|9.2|PostgreSQL GIS extension|
+|osmosis|0.44.1-2|OSM data filtering/merging tool|
+|osm2pgsql|0.88.1-1|OSM data import-into-PostgreSQL tool|
+|Python|2.7||
+|Shapely|1.5.13|Python module for GIS operations|
+|Psycopg2|2.6.1|Python module for PostgreSQL support|
+|PyCIM|15.13.4|Python module for CIM modeling|
+
 ## Setup Transnet Project:
 Transnet requires Python-2.7, which can be installed as follows:
 ```
@@ -84,7 +97,13 @@ osmosis \
 Transnet relies on a local PostgreSQL + PostGIS installation, which is the host of power-relevant OSM data.
 To install PostgreSQL + PostGIS open a terminal and execute the following command:
 ```
-sudo apt-get install postgresql postgis
+sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ precise-pgdg main" >> /etc/apt/sources.list'
+wget --quiet -O - http://apt.postgresql.org/pub/repos/apt/ACCC4CF8.asc | sudo apt-key add -
+sudo apt-get update
+sudo apt-get install postgresql-9.4-postgis pgadmin3 postgresql-contrib
+```
+Change password of user postgres:
+```
 sudo -u postgres psql -c '\password'
 ```
 Create a PostGIS-enabled database template:
