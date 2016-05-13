@@ -119,9 +119,10 @@ sudo -u postgres psql -U postgres -d transnet_template -h localhost -c "CREATE D
 ```
 ## Data Import
 The data import is performed with the tool osm2pgsql. To install the latest version, the boost library and a C/C++-Compiler are required. Here are some useful links to install these requirements:
-|Install boost library|http://stackoverflow.com/questions/12578499/how-to-install-boost-on-ubuntu|
-|Install C/C++ Compiler|http://askubuntu.com/questions/466651/how-do-i-use-the-latest-gcc-on-ubuntu-14-04|
-|Setup C/C++ Compiler|http://askubuntu.com/questions/26498/choose-gcc-and-g-version|
+
+Install boost library - http://stackoverflow.com/questions/12578499/how-to-install-boost-on-ubuntu
+Install C/C++ Compiler - http://askubuntu.com/questions/466651/how-do-i-use-the-latest-gcc-on-ubuntu-14-04
+Setup C/C++ Compiler - http://askubuntu.com/questions/26498/choose-gcc-and-g-version
 
 Install the LATEST osm2pgsql tool for OSM data import:
 ```
