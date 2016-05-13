@@ -130,7 +130,7 @@ sudo apt-get install make cmake g++ libboost-dev libboost-system-dev \
   libboost-filesystem-dev libexpat1-dev zlib1g-dev \
   libbz2-dev libpq-dev libgeos-dev libgeos++-dev libproj-dev lua5.2 \
   liblua5.2-dev
-mkdir build && cd build
+cd osm2pgsql && mkdir build && cd build
 cmake ..
 make
 sudo make install
