@@ -141,3 +141,12 @@ Import data extract from above into database:
 ```
 osm2pgsql -r pbf --username='postgres' -d power_de -k -s -C 6000 -v --host='localhost' --port='5432' --password --style transnet/util/power.style Downloads/power_extract.pbf
 ```
+If you are having problems with the maximal connection configuration like
+```
+Connection to database failed: FATAL:  sorry, too many clients already
+```
+edit PostgreSQL configuration to allow more connections, e.g. change max_connections from 100 to 1000 connections by editing postgresql.conf and restarting the database server:
+```
+sudo vim /etc/postgresql/9.4/main/postgresql.conf
+sudo /etc/init.d/postgresql restart
+```
