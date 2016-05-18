@@ -53,7 +53,7 @@ class CimWriterTest:
     def retrieve_relations(self):
 
         circuits = []
-        sql = "select parts from planet_osm_rels r1, _analysis_rels r2 where ARRAY[27124619]::bigint[] <@ r1.parts and hstore(r1.tags)->'voltage' ~ '110000|220000|380000' and hstore(r1.tags)->'type'='route' and hstore(r1.tags)->'route'='power' and r2.osm_id = r1.id and r2.num_stations = 2 and r2.incomplete = 'no'"
+        sql = "select parts from planet_osm_rels r1 where ARRAY[27124619]::bigint[] <@ r1.parts and hstore(r1.tags)->'voltage' ~ '110000|220000|380000' and hstore(r1.tags)->'type'='route' and hstore(r1.tags)->'route'='power'"
         self.cur.execute(sql)
         result = self.cur.fetchall()
         for (parts,) in result:
@@ -95,7 +95,7 @@ class CimWriterTest:
 
         print('CIM model generation started ...')
         cim_writer = CimWriter(circuits)
-        cim_writer.publish('/home/lej/PycharmProjects/transnet/results/cim')
+        cim_writer.publish('../results/cim')
 
         return
 
@@ -143,7 +143,7 @@ if __name__ == '__main__':
     dbname = options.dbname if options.dbname else 'power_de'
     dbhost = options.dbhost if options.dbhost else '127.0.0.1'
     dbport = options.dbport if options.dbport else '5432'
-    dbuser = options.dbuser if options.dbuser else 'postgres' 
+    dbuser = options.dbuser if options.dbuser else 'postgres'
     dbpwrd = options.dbpwrd if options.dbpwrd else 'OpenGridMap'
  
     # Connect to DB 

@@ -54,38 +54,38 @@ class Transnet:
 
     def create_relations(self):
         # create station dictionary by quering only ways (there are almost no node substations for voltage level 110kV and higher)
-        sql = "select id,create_polygon(id) as geom, hstore(tags)->'power' as type, hstore(tags)->'name' as name, hstore(tags)->'ref' as ref, hstore(tags)->'voltage' as voltage, nodes, tags, ST_Y(ST_Transform(ST_Centroid(create_polygon(id)),4326)) as lat, ST_X(ST_Transform(ST_Centroid(create_polygon(id)),4326)) as lon from planet_osm_ways where hstore(tags)->'power'~'station|substation|sub_station' and array_length(nodes, 1) >= 4 and st_isclosed(create_line(id)) and hstore(tags)->'voltage' ~ '110000|220000|380000'"
+        sql = "select osm_id as id, way as geom, power as type, name, ref, voltage, tags, ST_Y(ST_Transform(ST_Centroid(way),4326)) as lat, ST_X(ST_Transform(ST_Centroid(way),4326)) as lon from planet_osm_polygon where power ~ 'substation|station|sub_station' and voltage ~ '110000|220000|380000'"
         self.cur.execute(sql)
         result = self.cur.fetchall()
-        for (id, geom, type, name, ref, voltage, nodes, tags, lat, lon) in result:
+        for (id, geom, type, name, ref, voltage, tags, lat, lon) in result:
             polygon = wkb.loads(geom, hex=True)
-            self.stations[id] = Station(id, polygon, type, name, ref, voltage.replace(',', ';') if voltage is not None else None, nodes, tags, lat, lon)
+            self.stations[id] = Station(id, polygon, type, name, ref, voltage.replace(',', ';') if voltage is not None else None, None, tags, lat, lon)
         print('Found ' + str(len(result)) + ' stations')
 
         # add power plants with area
-        sql = "select id,create_polygon(id) as geom, hstore(tags)->'power' as type, hstore(tags)->'name' as name, hstore(tags)->'ref' as ref, hstore(tags)->'voltage' as voltage, hstore(tags)->'plant:output:electricity' as output1, hstore(tags)->'generator:output:electricity' as output2, nodes, tags, ST_Y(ST_Transform(ST_Centroid(create_polygon(id)),4326)) as lat, ST_X(ST_Transform(ST_Centroid(create_polygon(id)),4326)) as lon from planet_osm_ways where hstore(tags)->'power'~'plant|generator' and array_length(nodes, 1) >= 4 and st_isclosed(create_line(id))"
-        self.cur.execute(sql)
-        result = self.cur.fetchall()
-        for (id, geom, type, name, ref, voltage, output1, output2, nodes, tags, lat, lon) in result:
-            polygon = wkb.loads(geom, hex=True)
-            self.stations[id] = Station(id, polygon, type, name, ref, voltage.replace(',', ';') if voltage is not None else None, nodes, tags, lat, lon)
-            self.stations[id].nominal_power = Transnet.parse_power(output1) if output1 is not None else Transnet.parse_power(output2)
-        print('Found ' + str(len(result)) + ' way generators')
-
-        # add power plants which are modeled as points
-        sql = "select id,create_point(id) as geom, hstore(tags)->'power' as type, hstore(tags)->'name' as name, hstore(tags)->'ref' as ref, hstore(tags)->'voltage' as voltage, hstore(tags)->'plant:output:electricity' as output1, hstore(tags)->'generator:output:electricity' as output2, tags, ST_Y(ST_Transform(create_point(id),4326)) as lat, ST_X(ST_Transform(create_point(id),4326)) as lon from planet_osm_nodes where hstore(tags)->'power'~'plant|generator'"
+        sql = "select osm_id, way as geom, power as type, name, ref, voltage, 'plant:output:electricity' as output1, 'generator:output:electricity' as output2, tags, ST_Y(ST_Transform(ST_Centroid(way),4326)) as lat, ST_X(ST_Transform(ST_Centroid(way),4326)) as lon from planet_osm_polygon where power ~ 'plant|generator'"
         self.cur.execute(sql)
         result = self.cur.fetchall()
         for (id, geom, type, name, ref, voltage, output1, output2, tags, lat, lon) in result:
             polygon = wkb.loads(geom, hex=True)
             self.stations[id] = Station(id, polygon, type, name, ref, voltage.replace(',', ';') if voltage is not None else None, None, tags, lat, lon)
             self.stations[id].nominal_power = Transnet.parse_power(output1) if output1 is not None else Transnet.parse_power(output2)
-        print('Found ' + str(len(result)) + ' node generators')
+        print('Found ' + str(len(result)) + ' way generators')
+
+        # add power plants which are modeled as points
+        #sql = "select id,create_point(id) as geom, hstore(tags)->'power' as type, hstore(tags)->'name' as name, hstore(tags)->'ref' as ref, hstore(tags)->'voltage' as voltage, hstore(tags)->'plant:output:electricity' as output1, hstore(tags)->'generator:output:electricity' as output2, tags, ST_Y(ST_Transform(create_point(id),4326)) as lat, ST_X(ST_Transform(create_point(id),4326)) as lon from planet_osm_nodes where hstore(tags)->'power'~'plant|generator'"
+        #self.cur.execute(sql)
+        #result = self.cur.fetchall()
+        #for (id, geom, type, name, ref, voltage, output1, output2, tags, lat, lon) in result:
+        #    polygon = wkb.loads(geom, hex=True)
+        #    self.stations[id] = Station(id, polygon, type, name, ref, voltage.replace(',', ';') if voltage is not None else None, None, tags, lat, lon)
+        #    self.stations[id].nominal_power = Transnet.parse_power(output1) if output1 is not None else Transnet.parse_power(output2)
+        #print('Found ' + str(len(result)) + ' node generators')
 
         # create lines dictionary
         sql =   """
-                select id, create_line(id) as geom, hstore(tags)->'power' as type, hstore(tags)->'name' as name, hstore(tags)->'ref' as ref, hstore(tags)->'voltage' as voltage, hstore(tags)->'cables' as cables, nodes, tags, ST_Y(ST_Transform(ST_Centroid(create_line(id)),4326)) as lat, ST_X(ST_Transform(ST_Centroid(create_line(id)),4326)) as lon
-                from planet_osm_ways where hstore(tags)->'power'~'line|cable|minor_line' and exist(hstore(tags),'voltage') and hstore(tags)->'voltage' ~ '110000|220000|380000';
+                select l.osm_id, l.way as geom, l.power as type, l.name, l.ref, l.voltage, l.cables, w.nodes, w.tags, ST_Y(ST_Transform(ST_Centroid(way),4326)) as lat, ST_X(ST_Transform(ST_Centroid(way),4326)) as lon
+                from planet_osm_line l, planet_osm_ways w where l.power ~ 'line|cable|minor_line' and voltage ~ '110000|220000|380000' and l.osm_id = w.id;
                 """
         self.cur.execute(sql)
         result = self.cur.fetchall()
@@ -151,7 +151,7 @@ class Transnet:
 
         print('CIM model generation started ...')
         cim_writer = CimWriter(circuits)
-        cim_writer.publish('/home/lej/PycharmProjects/transnet/results/cim')
+        cim_writer.publish('../results/cim')
 
         return
 
@@ -356,7 +356,7 @@ if __name__ == '__main__':
     dbname = options.dbname if options.dbname else 'power_de'
     dbhost = options.dbhost if options.dbhost else '127.0.0.1'
     dbport = options.dbport if options.dbport else '5432'
-    dbuser = options.dbuser if options.dbuser else 'postgres' 
+    dbuser = options.dbuser if options.dbuser else 'postgres'
     dbpwrd = options.dbpwrd if options.dbpwrd else 'OpenGridMap'
  
     # Connect to DB 
