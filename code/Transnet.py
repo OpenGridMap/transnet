@@ -293,14 +293,6 @@ class Transnet:
                     return True
         return False
 
-    def get_close_stations(self, station_id):
-        close_stations = []
-        for station in self.stations.values():
-            distance = station.geom.centroid.distance(station.geom.centroid)
-            if distance <= 300000:
-                close_stations.append(station)
-        return close_stations
-
     @staticmethod
     def parse_power(power_string):
         if power_string is None:
