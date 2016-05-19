@@ -84,14 +84,19 @@ class Transnet:
 
         # create lines dictionary
         sql =   """
-                select l.osm_id, l.way as geom, l.power as type, l.name, l.ref, l.voltage, l.cables, w.nodes, w.tags, ST_Y(ST_Transform(ST_Centroid(way),4326)) as lat, ST_X(ST_Transform(ST_Centroid(way),4326)) as lon
+                select l.osm_id, l.way as geom, l.power as type, l.name, l.ref, l.voltage, l.cables, w.nodes, w.tags, create_point(w.nodes[1]) as first_node_geom, create_point(w.nodes[array_length(w.nodes, 1)]) as last_node_geom, ST_Y(ST_Transform(ST_Centroid(way),4326)) as lat, ST_X(ST_Transform(ST_Centroid(way),4326)) as lon
                 from planet_osm_line l, planet_osm_ways w where l.power ~ 'line|cable|minor_line' and voltage ~ '110000|220000|380000' and l.osm_id = w.id;
                 """
         self.cur.execute(sql)
         result = self.cur.fetchall()
-        for (id, geom, type, name, ref, voltage, cables, nodes, tags, lat, lon) in result:
+        for (id, geom, type, name, ref, voltage, cables, nodes, tags, first_node_geom, last_node_geom, lat, lon) in result:
             line = wkb.loads(geom, hex=True)
-            self.lines[id] = Line(id, line, type, name.replace(',', ';') if name is not None else None, ref.replace(',', ';') if ref is not None else None, voltage.replace(',', ';') if voltage is not None else None, cables, nodes, tags, lat, lon)
+            first_node = wkb.loads(first_node_geom, hex=True)
+            last_node = wkb.loads(last_node_geom, hex=True)
+            end_points_geom_dict = dict()
+            end_points_geom_dict[nodes[0]] = first_node
+            end_points_geom_dict[nodes[len(nodes) - 1]] = last_node
+            self.lines[id] = Line(id, line, type, name.replace(',', ';') if name is not None else None, ref.replace(',', ';') if ref is not None else None, voltage.replace(',', ';') if voltage is not None else None, cables, nodes, tags, lat, lon, end_points_geom_dict)
         print('Found ' + str(len(self.lines)) + ' lines')
         print('')
 
@@ -166,8 +171,8 @@ class Transnet:
         relations = []
         for line in self.lines.values():
             line_crosses_station = station.geom.crosses(line.geom)
-            first_node_in_station = self.node_in_any_station(line.first_node(), [station], line.voltage)
-            last_node_in_station = self.node_in_any_station(line.last_node(), [station], line.voltage)
+            first_node_in_station = self.node_in_any_station(line.end_point_dict[line.first_node()], [station], line.voltage)
+            last_node_in_station = self.node_in_any_station(line.end_point_dict[line.last_node()], [station], line.voltage)
             if line_crosses_station and (first_node_in_station or last_node_in_station):
                 if line.id not in station.covered_line_ids:
                     print(str(station))
@@ -194,7 +199,7 @@ class Transnet:
     # line - line of circuit
     # stations - all known stations
     def infer_relation(self, relation, node_to_continue_id, voltage, ref, name, from_line, close_stations, covered_nodes):
-        station_id = self.node_in_any_station(node_to_continue_id, close_stations, voltage)
+        station_id = self.node_in_any_station(from_line.end_point_dict[node_to_continue_id], close_stations, voltage)
         if station_id and station_id == relation[0].id: # if node to continue is at the starting station --> LOOP
             print('Encountered loop')
             print('')
@@ -247,13 +252,7 @@ class Transnet:
         return relation, False
 
     # returns if node is in station
-    def node_in_any_station(self, node_id, stations, voltage):
-        sql = " select create_point(id) as point from planet_osm_nodes where id = " + str(node_id) + ";"
-        self.cur.execute(sql)
-
-        result = self.cur.fetchall()
-        for(point,) in result:
-            node = wkb.loads(point, hex=True)
+    def node_in_any_station(self, node, stations, voltage):
         for station in stations:
             if node.within(station.geom) and Transnet.have_common_voltage(voltage, station.voltage):
                 return station.id
@@ -356,7 +355,7 @@ if __name__ == '__main__':
     dbname = options.dbname if options.dbname else 'power_de'
     dbhost = options.dbhost if options.dbhost else '127.0.0.1'
     dbport = options.dbport if options.dbport else '5432'
-    dbuser = options.dbuser if options.dbuser else 'postgres'
+    dbuser = options.dbuser if options.dbuser else 'lej'
     dbpwrd = options.dbpwrd if options.dbpwrd else 'OpenGridMap'
  
     # Connect to DB 
