@@ -1,7 +1,7 @@
 function transform()
 
     % simplify cim model to be better readable by MATLAB
-    system('sh preparsescript.sh /home/lej/PycharmProjects/transnet/results/cim_pretty.xml matcim.xml')
+    system('sh preparsescript.sh ../results/cim_pretty.xml matcim.xml')
 
     % reed cim objects
     [tree, ~] = xml_read ('matcim.xml');
