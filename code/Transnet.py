@@ -53,8 +53,16 @@ class Transnet:
         self.connect_to_DB(self, password)
 
     def create_relations(self):
+
+        #for id in stations:
+        #station_id = 18629425
+        #station_id = 27124619
+        #star-station_id = 29331499
+        station_id = 23025610
+        #station_id = 27124619
+
         # create station dictionary by quering only ways (there are almost no node substations for voltage level 110kV and higher)
-        sql = "select osm_id as id, way as geom, power as type, name, ref, voltage, tags, ST_Y(ST_Transform(ST_Centroid(way),4326)) as lat, ST_X(ST_Transform(ST_Centroid(way),4326)) as lon from planet_osm_polygon where power ~ 'substation|station|sub_station' and voltage ~ '110000|220000|380000'"
+        sql = "select osm_id as id, way as geom, power as type, name, ref, voltage, tags, ST_Y(ST_Transform(ST_Centroid(way),4326)) as lat, ST_X(ST_Transform(ST_Centroid(way),4326)) as lon from planet_osm_polygon where power ~ 'substation|station|sub_station' and voltage ~ '110000|220000|380000' and st_distance(way, (select way from planet_osm_polygon where osm_id = " + str(station_id) + ")) <= 300000"
         self.cur.execute(sql)
         result = self.cur.fetchall()
         for (id, geom, type, name, ref, voltage, tags, lat, lon) in result:
@@ -63,7 +71,7 @@ class Transnet:
         print('Found ' + str(len(result)) + ' stations')
 
         # add power plants with area
-        sql = "select osm_id, way as geom, power as type, name, ref, voltage, 'plant:output:electricity' as output1, 'generator:output:electricity' as output2, tags, ST_Y(ST_Transform(ST_Centroid(way),4326)) as lat, ST_X(ST_Transform(ST_Centroid(way),4326)) as lon from planet_osm_polygon where power ~ 'plant|generator'"
+        sql = "select osm_id, way as geom, power as type, name, ref, voltage, 'plant:output:electricity' as output1, 'generator:output:electricity' as output2, tags, ST_Y(ST_Transform(ST_Centroid(way),4326)) as lat, ST_X(ST_Transform(ST_Centroid(way),4326)) as lon from planet_osm_polygon where power ~ 'plant|generator' and st_distance(way, (select way from planet_osm_polygon where osm_id = " + str(station_id) + ")) <= 300000"
         self.cur.execute(sql)
         result = self.cur.fetchall()
         for (id, geom, type, name, ref, voltage, output1, output2, tags, lat, lon) in result:
@@ -83,10 +91,7 @@ class Transnet:
         #print('Found ' + str(len(result)) + ' node generators')
 
         # create lines dictionary
-        sql =   """
-                select l.osm_id, l.way as geom, l.power as type, l.name, l.ref, l.voltage, l.cables, w.nodes, w.tags, create_point(w.nodes[1]) as first_node_geom, create_point(w.nodes[array_length(w.nodes, 1)]) as last_node_geom, ST_Y(ST_Transform(ST_Centroid(way),4326)) as lat, ST_X(ST_Transform(ST_Centroid(way),4326)) as lon
-                from planet_osm_line l, planet_osm_ways w where l.power ~ 'line|cable|minor_line' and voltage ~ '110000|220000|380000' and l.osm_id = w.id;
-                """
+        sql = "select l.osm_id, l.way as geom, l.power as type, l.name, l.ref, l.voltage, l.cables, w.nodes, w.tags, create_point(w.nodes[1]) as first_node_geom, create_point(w.nodes[array_length(w.nodes, 1)]) as last_node_geom, ST_Y(ST_Transform(ST_Centroid(way),4326)) as lat, ST_X(ST_Transform(ST_Centroid(way),4326)) as lon from planet_osm_line l, planet_osm_ways w where l.power ~ 'line|cable|minor_line' and voltage ~ '110000|220000|380000' and l.osm_id = w.id and st_distance(way, (select way from planet_osm_polygon where osm_id = " + str(station_id) + ")) <= 300000"
         self.cur.execute(sql)
         result = self.cur.fetchall()
         for (id, geom, type, name, ref, voltage, cables, nodes, tags, first_node_geom, last_node_geom, lat, lon) in result:
@@ -100,14 +105,7 @@ class Transnet:
         print('Found ' + str(len(self.lines)) + ' lines')
         print('')
 
-        #for id in stations:
-        #station_id = 18629425
-        #station_id = 27124619
-        #star-station_id = 29331499
-        station_id = 23025610
-        #station_id = 27124619
         relations = []
-        #relations.extend(self.infer_relations(self.stations[137197826]))
         relations.extend(self.infer_relations(self.stations[station_id]))
 
         # post-process circuits and identify corrupt circuits
@@ -165,8 +163,6 @@ class Transnet:
     # stations - dict of all possibly connected stations
     # lines - list of all lines that could connect stations
     def infer_relations(self, station):
-        close_stations = self.get_close_stations(station.id)
-
         # find lines that cross the station's area - note that the end point of the line has to be within the substation for valid crossing
         relations = []
         for line in self.lines.values():
@@ -189,7 +185,7 @@ class Transnet:
                         else:
                             node_to_continue = line.first_node()
                             covered_nodes = [line.last_node()]
-                        relation, successful = self.infer_relation(relation, node_to_continue, line.voltage, r, line.name, line, close_stations, covered_nodes)
+                        relation, successful = self.infer_relation(relation, node_to_continue, line.voltage, r, line.name, line, covered_nodes)
                         if relation is not None:
                             relations.append(relation)
         return relations
@@ -198,8 +194,8 @@ class Transnet:
     # circuit - sorted member array
     # line - line of circuit
     # stations - all known stations
-    def infer_relation(self, relation, node_to_continue_id, voltage, ref, name, from_line, close_stations, covered_nodes):
-        station_id = self.node_in_any_station(from_line.end_point_dict[node_to_continue_id], close_stations, voltage)
+    def infer_relation(self, relation, node_to_continue_id, voltage, ref, name, from_line, covered_nodes):
+        station_id = self.node_in_any_station(from_line.end_point_dict[node_to_continue_id], self.stations.values(), voltage)
         if station_id and station_id == relation[0].id: # if node to continue is at the starting station --> LOOP
             print('Encountered loop')
             print('')
@@ -240,7 +236,7 @@ class Transnet:
                     node_to_continue = line.last_node()
                 else:
                     node_to_continue = line.first_node()
-                relation, successful = self.infer_relation(relation, node_to_continue, voltage, ref, name, line, close_stations, covered_nodes)
+                relation, successful = self.infer_relation(relation, node_to_continue, voltage, ref, name, line, covered_nodes)
                 if not successful:
                     relation.remove(line)
                     continue
