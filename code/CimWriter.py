@@ -16,7 +16,10 @@ from collections import OrderedDict
 from shapely.ops import linemerge
 import ogr
 import osr
+import logging
+import sys
 
+root = logging.getLogger()
 
 class CimWriter:
     circuits = None
@@ -61,7 +64,7 @@ class CimWriter:
             elif 'plant' in station1.type or 'generator' in station1.type:
                 connectivity_node1 = self.generator_to_cim(station1, circuit.voltage)
             else:
-                print 'Invalid circuit! - Skip circuit'
+                root.error('Invalid circuit! - Skip circuit')
                 circuit.print_circuit()
                 continue
 
@@ -70,7 +73,7 @@ class CimWriter:
             elif 'plant' in station2.type or 'generator' in station2.type:
                 connectivity_node2 = self.generator_to_cim(station2, circuit.voltage)
             else:
-                print 'Invalid circuit! - Skip circuit'
+                root.error('Invalid circuit! - Skip circuit')
                 circuit.print_circuit()
                 continue
 
@@ -97,16 +100,16 @@ class CimWriter:
     def substation_to_cim(self, osm_substation, circuit_voltage):
         transformer_winding = None
         if self.uuid_by_osmid_dict.has_key(osm_substation.id):
-            print 'Substation with OSMID ' + str(osm_substation.id) + ' already covered.'
+            root.debug('Substation with OSMID %s already covered', str(osm_substation.id))
             cim_substation = self.cimobject_by_uuid_dict[self.uuid_by_osmid_dict[osm_substation.id]]
             transformer = cim_substation.getEquipments()[0] # TODO check if there is actually one equipment
             for winding in transformer.getTransformerWindings():
                 if int(circuit_voltage) == winding.ratedU:
-                    print 'Transformer of Substation with OSMID ' + str(osm_substation.id) + ' already has winding for voltage ' + circuit_voltage
+                    root.debug('Transformer of Substation with OSMID %s already has winding for voltage %s', str(osm_substation.id), circuit_voltage)
                     transformer_winding = winding
                     break
         else:
-            print 'Create CIM Substation for OSMID ' + str(osm_substation.id)
+            root.debug('Create CIM Substation for OSMID %s', str(osm_substation.id))
             cim_substation = Substation(name='SS_' + str(osm_substation.id), Region=self.region, Location=self.add_location(osm_substation.lat, osm_substation.lon))
             transformer = PowerTransformer(name='T_' + str(osm_substation.id) + '_' + str(osm_substation.voltage), EquipmentContainer=cim_substation)
             cim_substation.UUID = str(self.uuid())
@@ -120,10 +123,10 @@ class CimWriter:
 
     def generator_to_cim(self, generator, circuit_voltage):
         if self.uuid_by_osmid_dict.has_key(generator.id):
-            print 'Generator with OSMID ' + str(generator.id) + ' already covered.'
+            root.debug('Generator with OSMID %s already covered', str(generator.id))
             generating_unit = self.cimobject_by_uuid_dict[self.uuid_by_osmid_dict[generator.id]]
         else:
-            print 'Create CIM Generator for OSMID ' + str(generator.id)
+            root.debug('Create CIM Generator for OSMID %s', str(generator.id))
             generating_unit = GeneratingUnit(name='G_' + str(generator.id), maxOperatingP=generator.nominal_power, minOperatingP=0,
                                              nominalP=generator.nominal_power, Location=self.add_location(generator.lat, generator.lon))
             synchronous_machine = SynchronousMachine(name='G_' + CimWriter.escape_string(generator.name), operatingMode='generator', qPercent=0, x=0.01,

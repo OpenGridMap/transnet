@@ -24,9 +24,17 @@ from datetime import datetime
 from CimWriter import CimWriter
 from PolyParser import PolyParser
 from Plotter import Plotter
+import logging
+import sys
 
+root = logging.getLogger()
+root.setLevel(logging.INFO)
+ch = logging.StreamHandler(sys.stdout)
+ch.setLevel(logging.INFO)
+root.addHandler(ch)
 
 class Transnet:
+
 
     def __init__(self, database, user, host, port, password):
         # Initializes the SciGRID class with the database connection parameters.
@@ -62,13 +70,12 @@ class Transnet:
             if ';' not in line.voltage:
                 return voltage;
         first_voltage = relation[1].voltage.split(';')[1]
-        print('Warning: Could not determine exact voltage: Using voltage ' + first_voltage + ' of ' + relation[1].voltage)
+        root.warning('Could not determine exact voltage: Using voltage %s of %s', first_voltage, relation[1].voltage)
         return first_voltage
 
     @staticmethod
     def create_relations(stations, lines, ssid=None):
-
-        print('Start inference for Substation ' + str(ssid))
+        root.info('Start inference for Substation %s', str(ssid))
         station_id = long(ssid)
 
         relations = []
@@ -109,8 +116,7 @@ class Transnet:
             #else:
             #    print('No existing relations found')
         else:
-            print('Could not obtain any circuit')
-        print('')
+            root.info('Could not obtain any circuit')
 
         # print('##### Corrupt circuits #####')
         # i = 1
@@ -139,8 +145,8 @@ class Transnet:
             last_node_in_station = Transnet.node_in_any_station(line.end_point_dict[line.last_node()], [station], line.voltage)
             if line_crosses_station and (first_node_in_station or last_node_in_station):
                 if line.id not in station.covered_line_ids:
-                    print(str(station))
-                    print(str(line))
+                    root.debug('%s', str(station))
+                    root.debug('%s', str(line))
                     station.covered_line_ids.append(line.id)
                     # init new circuit
                     if line.ref is None:
@@ -165,20 +171,17 @@ class Transnet:
         relation = list(relation)
         station_id = Transnet.node_in_any_station(from_line.end_point_dict[node_to_continue_id], stations.values(), voltage)
         if station_id and station_id == relation[0].id: # if node to continue is at the starting station --> LOOP
-            print('Encountered loop')
-            print('')
+            root.debug('Encountered loop')
             return []
         elif station_id and station_id != relation[0].id: # if a node is within another station --> FOUND THE 2nd ENDPOINT
             station = stations[station_id]
-            print(str(station))
+            root.debug('%s', str(station))
             if from_line.id in station.covered_line_ids:
-                print('Relation with ' + str(from_line) + ' at ' + str(station) + ' already covered')
-                print('')
+                root.debug('Relation with %s at %s already covered', str(from_line), str(station))
                 return []
             station.covered_line_ids.append(from_line.id)
             relation.append(station)
-            print('Could obtain relation')
-            print('')
+            root.debug('Could obtain relation')
             return [list(relation)]
 
         # no endpoints encountered - handle line subsection
@@ -196,10 +199,9 @@ class Transnet:
                             Transnet.ref_matches(ref, line.name)):
                     continue
                 if node_to_continue_id in covered_nodes:
-                    print('Encountered loop - stopping inference for this line')
-                    print('')
+                    root.debug('Encountered loop - stopping inference for this line')
                     continue
-                print(str(line))
+                root.debug('%s', str(line))
                 relation.append(line)
                 if line.first_node() == node_to_continue_id:
                     node_to_continue = line.last_node()
@@ -211,8 +213,7 @@ class Transnet:
                 relations.extend(Transnet.infer_relation(stations, lines, relation, node_to_continue, voltage, ref, name, line, covered_nodes_new))
 
         if not relations:
-            print('Error - could not obtain circuit')
-            print('')
+            root.debug('Could not obtain circuit')
         return relations
 
     # returns if node is in station
@@ -300,7 +301,7 @@ class Transnet:
             else:
                 return power_string.strip()
         except ValueError:
-            print 'Could not extract power from string ' + power_string
+            root.error('Could not extract power from string %s', power_string)
             return 0
 
     @staticmethod
@@ -347,7 +348,7 @@ if __name__ == '__main__':
     try:
         transnet_instance = Transnet(database=dbname, user=dbuser, port=dbport, host=dbhost, password=dbpwrd)
     except:
-        print "Could not connect to database. Please check the values of host,port,user,password, and database name."
+        root.error("Could not connect to database. Please check the values of host,port,user,password, and database name.")
         parser.print_help()
         exit()
 
@@ -373,7 +374,7 @@ if __name__ == '__main__':
         polygon = wkb.loads(geom, hex=True)
         substations[id] = Station(id, polygon, type, name, ref,
                                     voltage.replace(',', ';') if voltage is not None else None, None, tags, lat, lon)
-    print('Found ' + str(len(result)) + ' stations')
+    root.info('Found %s stations', str(len(result)))
 
     # add power plants with area
     sql = "select osm_id as id, st_setsrid(st_transform(way, 4326), 4326) as geom, power as type, name, ref, voltage, 'plant:output:electricity' as output1, 'generator:output:electricity' as output2, tags, ST_Y(ST_Transform(ST_Centroid(way),4326)) as lat, ST_X(ST_Transform(ST_Centroid(way),4326)) as lon from planet_osm_polygon where power ~ 'plant|generator' and " + where_clause
@@ -385,7 +386,7 @@ if __name__ == '__main__':
                                     voltage.replace(',', ';') if voltage is not None else None, None, tags, lat, lon)
         generators[id].nominal_power = Transnet.parse_power(
             output1) if output1 is not None else Transnet.parse_power(output2)
-    print('Found ' + str(len(result)) + ' generators')
+    root.info('Found %s generators', str(len(result)))
 
     # create lines dictionary
     sql = "select l.osm_id as id, st_setsrid(st_transform(l.way, 4326), 4326) as geom, l.power as type, l.name, l.ref, l.voltage, l.cables, w.nodes, w.tags, st_transform(create_point(w.nodes[1]), 4326) as first_node_geom, st_transform(create_point(w.nodes[array_length(w.nodes, 1)]), 4326) as last_node_geom, ST_Y(ST_Transform(ST_Centroid(way),4326)) as lat, ST_X(ST_Transform(ST_Centroid(way),4326)) as lon from planet_osm_line l, planet_osm_ways w where l.power ~ 'line|cable|minor_line' and voltage ~ '220000|380000' and l.osm_id = w.id and " + where_clause
@@ -402,8 +403,7 @@ if __name__ == '__main__':
                               ref.replace(',', ';') if ref is not None else None,
                               voltage.replace(',', ';') if voltage is not None else None, cables, nodes, tags, lat, lon,
                               end_points_geom_dict)
-    print('Found ' + str(len(lines)) + ' lines')
-    print('')
+    root.info('Found %s lines', str(len(result)))
 
     if poly is not None:
         circuits = Transnet.create_relations_of_region(substations, generators, lines)
@@ -412,16 +412,13 @@ if __name__ == '__main__':
         stations.update(generators)
         circuits = Transnet.create_relations(stations, lines, ssid)
 
-    print('Infernece took ' + str(datetime.now() - time) + ' millies')
+    root.info('Infernece took %s millies', str(datetime.now() - time))
 
-    print('CIM model generation started ...')
+    root.info('CIM model generation started ...')
     cim_writer = CimWriter(circuits)
     cim_writer.publish('../results/cim')
 
-    print('Plot inferred transmission system topology')
+    root.info('Plot inferred transmission system topology')
     Plotter.plot_topology(circuits, boundary)
 
-    print('Took ' + str(datetime.now() - time) + ' millies in total')
-
-    
-    
+    root.info('Took %s millies in total', str(datetime.now() - time))
