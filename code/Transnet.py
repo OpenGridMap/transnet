@@ -25,6 +25,7 @@ from CimWriter import CimWriter
 from PolyParser import PolyParser
 from Plotter import Plotter
 
+
 class Transnet:
 
     def __init__(self, database, user, host, port, password):
@@ -365,7 +366,7 @@ if __name__ == '__main__':
     lines = dict()
 
     # create station dictionary by quering only ways (there are almost no node substations for voltage level 110kV and higher)
-    sql = "select osm_id as id, way as geom, power as type, name, ref, voltage, tags, ST_Y(ST_Transform(ST_Centroid(way),4326)) as lat, ST_X(ST_Transform(ST_Centroid(way),4326)) as lon from planet_osm_polygon where power ~ 'substation|station|sub_station' and voltage ~ '220000|380000' and " + where_clause
+    sql = "select osm_id as id, st_setsrid(st_transform(way, 4326), 4326) as geom, power as type, name, ref, voltage, tags, ST_Y(ST_Transform(ST_Centroid(way),4326)) as lat, ST_X(ST_Transform(ST_Centroid(way),4326)) as lon from planet_osm_polygon where power ~ 'substation|station|sub_station' and voltage ~ '220000|380000' and " + where_clause
     transnet_instance.cur.execute(sql)
     result = transnet_instance.cur.fetchall()
     for (id, geom, type, name, ref, voltage, tags, lat, lon) in result:
@@ -375,7 +376,7 @@ if __name__ == '__main__':
     print('Found ' + str(len(result)) + ' stations')
 
     # add power plants with area
-    sql = "select osm_id, way as geom, power as type, name, ref, voltage, 'plant:output:electricity' as output1, 'generator:output:electricity' as output2, tags, ST_Y(ST_Transform(ST_Centroid(way),4326)) as lat, ST_X(ST_Transform(ST_Centroid(way),4326)) as lon from planet_osm_polygon where power ~ 'plant|generator' and " + where_clause
+    sql = "select osm_id as id, st_setsrid(st_transform(way, 4326), 4326) as geom, power as type, name, ref, voltage, 'plant:output:electricity' as output1, 'generator:output:electricity' as output2, tags, ST_Y(ST_Transform(ST_Centroid(way),4326)) as lat, ST_X(ST_Transform(ST_Centroid(way),4326)) as lon from planet_osm_polygon where power ~ 'plant|generator' and " + where_clause
     transnet_instance.cur.execute(sql)
     result = transnet_instance.cur.fetchall()
     for (id, geom, type, name, ref, voltage, output1, output2, tags, lat, lon) in result:
@@ -387,7 +388,7 @@ if __name__ == '__main__':
     print('Found ' + str(len(result)) + ' generators')
 
     # create lines dictionary
-    sql = "select l.osm_id, l.way as geom, l.power as type, l.name, l.ref, l.voltage, l.cables, w.nodes, w.tags, create_point(w.nodes[1]) as first_node_geom, create_point(w.nodes[array_length(w.nodes, 1)]) as last_node_geom, ST_Y(ST_Transform(ST_Centroid(way),4326)) as lat, ST_X(ST_Transform(ST_Centroid(way),4326)) as lon from planet_osm_line l, planet_osm_ways w where l.power ~ 'line|cable|minor_line' and voltage ~ '220000|380000' and l.osm_id = w.id and " + where_clause
+    sql = "select l.osm_id as id, st_setsrid(st_transform(l.way, 4326), 4326) as geom, l.power as type, l.name, l.ref, l.voltage, l.cables, w.nodes, w.tags, st_transform(create_point(w.nodes[1]), 4326) as first_node_geom, st_transform(create_point(w.nodes[array_length(w.nodes, 1)]), 4326) as last_node_geom, ST_Y(ST_Transform(ST_Centroid(way),4326)) as lat, ST_X(ST_Transform(ST_Centroid(way),4326)) as lon from planet_osm_line l, planet_osm_ways w where l.power ~ 'line|cable|minor_line' and voltage ~ '220000|380000' and l.osm_id = w.id and " + where_clause
     transnet_instance.cur.execute(sql)
     result = transnet_instance.cur.fetchall()
     for (id, geom, type, name, ref, voltage, cables, nodes, tags, first_node_geom, last_node_geom, lat, lon) in result:

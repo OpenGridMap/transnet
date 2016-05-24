@@ -78,8 +78,8 @@ class CimWriter:
             for line in circuit.members[1:len(circuit.members)-1]:
                 lines.append(line.geom)
             line_centroid = linemerge(lines).centroid
-            (lat, lon) = CimWriter.convert_mercator_to_wgs84(line_centroid.y, line_centroid.x)
-            self.line_to_cim(connectivity_node1, connectivity_node2, line_length, circuit.name, circuit.voltage, lat, lon)
+            #(lat, lon) = CimWriter.convert_mercator_to_wgs84(line_centroid.y, line_centroid.x)
+            self.line_to_cim(connectivity_node1, connectivity_node2, line_length, circuit.name, circuit.voltage, line_centroid.y, line_centroid.x)
             covered_connections.append(str(station1.id) + str(station2.id) + str(circuit.voltage))
 
         self.attach_loads()
