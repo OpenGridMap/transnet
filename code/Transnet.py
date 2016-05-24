@@ -35,26 +35,18 @@ root.addHandler(ch)
 
 class Transnet:
 
-
     def __init__(self, database, user, host, port, password):
-        # Initializes the SciGRID class with the database connection parameters.
-        # These parameters are: database name, database user, database password, database host and port. 
-        # Notice: The password will not be stored.
-
         self.connection = {'database':database, 'user':user, 'host':host, 'port':port}
         self.connect_to_DB(password)
 
     def get_connection_data(self):
-	# Obtain the database connection parameters. 
         return self.connection
     
     def connect_to_DB(self, password):
-	# Establish the database connection. 
         self.conn = psycopg2.connect(password=password, **self.connection)
         self.cur = self.conn.cursor()
 
     def reconnect_to_DB(self):
-	# Reconnect to the database if connection got lost. 
         msg = "Please enter the database password for \n\t database=%s, user=%s, host=%s, port=%port \nto reconnect to the database: " \
             %(str(self.connection['database']), str(self.connection['user']), str(self.connection['host']), str(self.connection['port'])) 
         password = raw_input(msg)
