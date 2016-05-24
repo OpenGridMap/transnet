@@ -8,11 +8,17 @@ class Plotter:
         None
 
     @staticmethod
-    def plot_topology(circuits):
+    def plot_topology(circuits, boundary):
         fig = plt.figure(figsize=(10, 12), facecolor='white')
         ax = plt.subplot(111)
         ax.set_axis_off()
         fig.add_axes(ax)
+
+        if boundary is not None:
+            for polygon in boundary.geoms:
+                x,y = polygon.exterior.xy
+                plt.plot(x, y, color='#6699cc', alpha=0.7,
+                        linewidth=3, solid_capstyle='round', zorder=2)
 
         for circuit in circuits:
             plt.plot(circuit.members[0].lon, circuit.members[0].lat, marker='o', markerfacecolor='black', linestyle="None", markersize=3, zorder=2)

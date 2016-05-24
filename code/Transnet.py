@@ -152,9 +152,7 @@ class Transnet:
                         else:
                             node_to_continue = line.first_node()
                             covered_nodes = [line.last_node()]
-                        relation, successful = Transnet.infer_relation(stations, lines, relation, node_to_continue, line.voltage, r, line.name, line, covered_nodes)
-                        if relation is not None:
-                            relations.append(relation)
+                        relations.extend(Transnet.infer_relation(stations, lines, relation, node_to_continue, line.voltage, r, line.name, line, covered_nodes))
         return relations
 
     # recursive function that infers electricity circuits
@@ -163,26 +161,28 @@ class Transnet:
     # stations - all known stations
     @staticmethod
     def infer_relation(stations, lines, relation, node_to_continue_id, voltage, ref, name, from_line, covered_nodes):
+        relation = list(relation)
         station_id = Transnet.node_in_any_station(from_line.end_point_dict[node_to_continue_id], stations.values(), voltage)
         if station_id and station_id == relation[0].id: # if node to continue is at the starting station --> LOOP
             print('Encountered loop')
             print('')
-            return relation, False
+            return []
         elif station_id and station_id != relation[0].id: # if a node is within another station --> FOUND THE 2nd ENDPOINT
             station = stations[station_id]
             print(str(station))
             if from_line.id in station.covered_line_ids:
                 print('Relation with ' + str(from_line) + ' at ' + str(station) + ' already covered')
                 print('')
-                return relation, False
+                return []
             station.covered_line_ids.append(from_line.id)
             relation.append(station)
             print('Could obtain relation')
             print('')
-            return relation, True
+            return [list(relation)]
 
         # no endpoints encountered - handle line subsection
         # at first find all lines that cover the node to continue
+        relations = []
         for line in lines.values():
             if node_to_continue_id in line.nodes:
                 if line.id == from_line.id:
@@ -197,24 +197,22 @@ class Transnet:
                 if node_to_continue_id in covered_nodes:
                     print('Encountered loop - stopping inference for this line')
                     print('')
-                    return relation, False
+                    continue
                 print(str(line))
                 relation.append(line)
                 if line.first_node() == node_to_continue_id:
                     node_to_continue = line.last_node()
                 else:
                     node_to_continue = line.first_node()
-                covered_nodes.append(node_to_continue_id)
-                relation, successful = Transnet.infer_relation(stations, lines, relation, node_to_continue, voltage, ref, name, line, covered_nodes)
-                if not successful:
-                    relation.remove(line)
-                    covered_nodes.remove(node_to_continue_id)
-                    continue
-                return relation, successful
+                covered_nodes_new = []
+                covered_nodes_new.extend(covered_nodes)
+                covered_nodes_new.append(node_to_continue_id)
+                relations.extend(Transnet.infer_relation(stations, lines, relation, node_to_continue, voltage, ref, name, line, covered_nodes_new))
 
-        print('Error - could not obtain circuit')
-        print('')
-        return relation, False
+        if not relations:
+            print('Error - could not obtain circuit')
+            print('')
+        return relations
 
     # returns if node is in station
     @staticmethod
@@ -354,6 +352,7 @@ if __name__ == '__main__':
 
     time = datetime.now()
 
+    boundary = None
     if poly is not None:
         poly_parser = PolyParser()
         boundary = poly_parser.poly_to_polygon(poly)
@@ -419,7 +418,7 @@ if __name__ == '__main__':
     cim_writer.publish('../results/cim')
 
     print('Plot inferred transmission system topology')
-    Plotter.plot_topology(circuits)
+    Plotter.plot_topology(circuits, boundary)
 
     print('Took ' + str(datetime.now() - time) + ' millies in total')
 
