@@ -81,12 +81,8 @@ class Transnet:
         relations = []
         relations.extend(Transnet.infer_relations(stations, lines, stations[station_id]))
 
-        # post-process circuits and identify corrupt circuits
-        estimated_relations = set()
-        corrupt_relations = []
         circuits = []
         i = 1
-        total_accuracy = 0
         for relation in relations:
             if Transnet.num_subs_in_relation(relation) == 2 and len(
                     relation) >= 3:  # at least two end points + one line
@@ -95,36 +91,12 @@ class Transnet:
                 print('Circuit ' + str(i))
                 circuit.print_circuit()
                 circuits.append(circuit)
-                #(estimated_rel_id, accuracy) = circuit.validate(self.cur, i)
-                #if estimated_rel_id is not None:
-                #    estimated_relations.add(estimated_rel_id)
-                #total_accuracy += accuracy
-                #print('')
                 i += 1
-            else:
-                corrupt_relations.append(relation)
         num_valid_circuits = len(circuits)
         if num_valid_circuits > 0:
             None
-            #average_accuracy = total_accuracy / num_valid_circuits
-            #print('Average accuracy: ' + str(average_accuracy * 100) + '%')
-            #existing_relations = transnet_instance.existing_relations(station_id)
-            #if existing_relations is not None:
-            #    print(str(len(estimated_relations)) + ' existing relations covered of ' + str(len(existing_relations)))
-            #    print(str(sorted(estimated_relations)) + ' (Estimated)')
-            #    print(str(sorted(list(existing_relations))) + ' (Existing)')
-            #else:
-            #    print('No existing relations found')
         else:
             root.info('Could not obtain any circuit')
-
-        # print('##### Corrupt circuits #####')
-        # i = 1
-        # for relation in corrupt_relations:
-        #    print('Circuit ' + str(i))
-        #    Circuit.print_relation(relation)
-        #    print('')
-        #    i+=1
 
         for circuit in circuits:
             circuit.print_overpass()
