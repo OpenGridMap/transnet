@@ -126,7 +126,7 @@ class CimWriter:
             print 'Create CIM Generator for OSMID ' + str(generator.id)
             generating_unit = GeneratingUnit(name='G_' + str(generator.id), maxOperatingP=generator.nominal_power, minOperatingP=0,
                                              nominalP=generator.nominal_power, Location=self.add_location(generator.lat, generator.lon))
-            synchronous_machine = SynchronousMachine(name=CimWriter.escape_string(generator.name), operatingMode='generator', qPercent=0, x=0.01,
+            synchronous_machine = SynchronousMachine(name='G_' + CimWriter.escape_string(generator.name), operatingMode='generator', qPercent=0, x=0.01,
                                                      r=0.01, ratedS=generator.nominal_power, type='generator',
                                                      GeneratingUnit=generating_unit, BaseVoltage=self.base_voltages_dict[int(circuit_voltage)])
             generating_unit.UUID = str(self.uuid())

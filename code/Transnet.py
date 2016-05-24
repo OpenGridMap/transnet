@@ -23,6 +23,7 @@ from shapely import wkb
 from datetime import datetime
 from CimWriter import CimWriter
 from PolyParser import PolyParser
+from Plotter import Plotter
 
 class Transnet:
 
@@ -416,6 +417,9 @@ if __name__ == '__main__':
     print('CIM model generation started ...')
     cim_writer = CimWriter(circuits)
     cim_writer.publish('../results/cim')
+
+    print('Plot inferred transmission system topology')
+    Plotter.plot_topology(circuits)
 
     print('Took ' + str(datetime.now() - time) + ' millies in total')
 
