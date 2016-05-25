@@ -29,10 +29,6 @@ import sys
 
 root = logging.getLogger()
 root.setLevel(logging.DEBUG)
-ch = logging.StreamHandler(sys.stdout)
-ch.setLevel(logging.DEBUG)
-root.addHandler(ch)
-
 
 class Transnet:
 
@@ -295,10 +291,12 @@ if __name__ == '__main__':
     help = "database user name of the topology network")
     parser.add_option("-X","--dbpwrd", action="store", dest="dbpwrd", \
     help = "database user password of the topology network")
-    parser.add_option("-s", "--ssid", action="store", dest="ssid")
-    help = "substation id to start the inference from"
-    parser.add_option("-p", "--poly", action="store", dest="poly")
-    help = "poly file that defines the region to perform the inference for"
+    parser.add_option("-s", "--ssid", action="store", dest="ssid", \
+    help = "substation id to start the inference from")
+    parser.add_option("-p", "--poly", action="store", dest="poly",\
+    help = "poly file that defines the region to perform the inference for")
+    parser.add_option("-v", "--verbose", action="store_true", dest="verbose",\
+    help = "enable verbose logging")
     
     (options, args) = parser.parse_args()
     # get connection data via command line or set to default values
@@ -309,7 +307,15 @@ if __name__ == '__main__':
     dbpwrd = options.dbpwrd if options.dbpwrd else 'OpenGridMap'
     ssid = options.ssid if options.ssid else '23025610'
     poly = options.poly if options.poly else None
- 
+    verbose = options.verbose if options.verbose else None
+
+    ch = logging.StreamHandler(sys.stdout)
+    if verbose:
+        ch.setLevel(logging.DEBUG)
+    else:
+        ch.setLevel(logging.INFO)
+    root.addHandler(ch)
+
     # Connect to DB 
     try:
         transnet_instance = Transnet(database=dbname, user=dbuser, port=dbport, host=dbhost, password=dbpwrd)

@@ -209,7 +209,7 @@ class CimWriter:
                 osm_substation_id = transformer.name.split('_')[1]
                 transformer_voltage = transformer.name.split('_')[2]
                 transformer_voltage_levels = transformer_voltage.split(';')
-                transformer_lower_voltage = transformer_voltage_levels[len(transformer_voltage_levels) - 1]
+                transformer_lower_voltage = transformer_voltage_levels[1 if len(transformer_voltage_levels) >= 2 else 0]
                 self.attach_load(osm_substation_id, transformer_voltage, transformer_lower_voltage, transformer)
 
     def attach_load(self, osm_substation_id, transformer_voltage, winding_voltage, transformer):
