@@ -34,9 +34,9 @@ class Plotter:
                         linewidth=2, solid_capstyle='round', zorder=1)
 
         for circuit in circuits:
-            plt.plot(circuit.members[0].lon, circuit.members[0].lat, marker='o', markerfacecolor='black', linestyle="None", markersize=3, zorder=4)
+            plt.plot(circuit.members[0].lon, circuit.members[0].lat, marker='o', markerfacecolor='black', linestyle="None", markersize=5, zorder=4)
             plt.plot(circuit.members[-1].lon, circuit.members[-1].lat, marker='o', markerfacecolor='black',
-                     linestyle="None", markersize=3, zorder=4)
+                     linestyle="None", markersize=5, zorder=4)
 
             for line in circuit.members[1:-1]:
                 x,y = line.geom.xy
@@ -47,7 +47,7 @@ class Plotter:
             end_of_link = [circuit.members[-1].lon, circuit.members[-1].lat]
             plt.plot(*zip(start_of_link, end_of_link), color='#333333', alpha=0.2, lw=1.3, zorder=1)
 
-        plt.plot([], [], marker='o', markerfacecolor='black', linestyle="None", markersize=3, zorder=5, label='substation')
+        plt.plot([], [], marker='o', markerfacecolor='black', linestyle="None", markersize=5, zorder=5, label='substation')
         for voltage in Plotter.color_dict.keys():
             label = voltage + 'V transmission line'
             plt.plot([], [], color=Plotter.color_dict[voltage], lw=1.3, zorder=5,

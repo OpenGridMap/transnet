@@ -28,10 +28,11 @@ import logging
 import sys
 
 root = logging.getLogger()
-root.setLevel(logging.INFO)
+root.setLevel(logging.DEBUG)
 ch = logging.StreamHandler(sys.stdout)
-ch.setLevel(logging.INFO)
+ch.setLevel(logging.DEBUG)
 root.addHandler(ch)
+
 
 class Transnet:
 
@@ -66,7 +67,7 @@ class Transnet:
         return first_voltage
 
     @staticmethod
-    def create_relations(stations, lines, ssid=None):
+    def create_relations(stations, lines, ssid):
         root.info('Start inference for Substation %s', str(ssid))
         station_id = long(ssid)
 
@@ -104,26 +105,26 @@ class Transnet:
         # find lines that cross the station's area - note that the end point of the line has to be within the substation for valid crossing
         relations = []
         for line in lines.values():
-            line_crosses_station = station.geom.crosses(line.geom)
-            first_node_in_station = Transnet.node_in_any_station(line.end_point_dict[line.first_node()], [station], line.voltage)
-            last_node_in_station = Transnet.node_in_any_station(line.end_point_dict[line.last_node()], [station], line.voltage)
-            if line_crosses_station and (first_node_in_station or last_node_in_station):
+            if station.geom.crosses(line.geom):
+                if line.ref is None:
+                    line.ref = ''
+                first_node_in_station = Transnet.node_in_any_station(line.end_point_dict[line.first_node()], [station], line.voltage)
+                if first_node_in_station:
+                    node_to_continue = line.last_node()
+                    covered_nodes = [line.first_node()]
+                else: #last node in station
+                    node_to_continue = line.first_node()
+                    covered_nodes = [line.last_node()]
                 if line.id not in station.covered_line_ids:
                     root.debug('%s', str(station))
                     root.debug('%s', str(line))
                     station.covered_line_ids.append(line.id)
                     # init new circuit
-                    if line.ref is None:
-                        line.ref = ''
                     for r in line.ref.split(';'):
                         relation = [station, line]
-                        if first_node_in_station:
-                            node_to_continue = line.last_node()
-                            covered_nodes = [line.first_node()]
-                        else:
-                            node_to_continue = line.first_node()
-                            covered_nodes = [line.last_node()]
-                        relations.extend(Transnet.infer_relation(stations, lines, relation, node_to_continue, line.voltage, r, line.name, line, covered_nodes))
+                        relations.extend(
+                            Transnet.infer_relation(stations, lines, relation, node_to_continue, line.voltage, r,
+                                                    line.name, line, covered_nodes))
         return relations
 
     # recursive function that infers electricity circuits
@@ -132,7 +133,7 @@ class Transnet:
     # stations - all known stations
     @staticmethod
     def infer_relation(stations, lines, relation, node_to_continue_id, voltage, ref, name, from_line, covered_nodes):
-        relation = list(relation)
+        relation = list(relation) # make a copy
         station_id = Transnet.node_in_any_station(from_line.end_point_dict[node_to_continue_id], stations.values(), voltage)
         if station_id and station_id == relation[0].id: # if node to continue is at the starting station --> LOOP
             root.debug('Encountered loop')
@@ -153,28 +154,32 @@ class Transnet:
         relations = []
         for line in lines.values():
             if node_to_continue_id in line.nodes:
+                relation_copy = list(relation)
                 if line.id == from_line.id:
                     continue
                 if not Transnet.have_common_voltage(voltage, line.voltage):
                     continue
-                if not (Transnet.ref_matches(ref, line.ref) or
-                            Transnet.ref_matches(name, line.name) or
-                            Transnet.ref_matches(name, line.ref) or
-                            Transnet.ref_matches(ref, line.name)):
+                if not ref:
+                    ref = line.ref
+                    if ref:
+                        for r in ref.split(';'):
+                            relations.extend(Transnet.infer_relation(stations, lines, relation_copy, node_to_continue_id, line.voltage, r,
+                                                    line.name, from_line, covered_nodes))
+                        return relations
+                if not Transnet.ref_matches(ref, line.ref):
                     continue
                 if node_to_continue_id in covered_nodes:
                     root.debug('Encountered loop - stopping inference for this line')
                     continue
                 root.debug('%s', str(line))
-                relation.append(line)
+                relation_copy.append(line)
                 if line.first_node() == node_to_continue_id:
                     node_to_continue = line.last_node()
                 else:
                     node_to_continue = line.first_node()
-                covered_nodes_new = []
-                covered_nodes_new.extend(covered_nodes)
+                covered_nodes_new = list(covered_nodes)
                 covered_nodes_new.append(node_to_continue_id)
-                relations.extend(Transnet.infer_relation(stations, lines, relation, node_to_continue, voltage, ref, name, line, covered_nodes_new))
+                relations.extend(Transnet.infer_relation(stations, lines, relation_copy, node_to_continue, voltage, ref, name, line, covered_nodes_new))
 
         if not relations:
             root.debug('Could not obtain circuit')
@@ -216,15 +221,12 @@ class Transnet:
 
     # compares the ref/name tokens like 303;304 in the power line tags
     @staticmethod
-    def ref_matches(ref1, ref2):
-        if ref1 is None and ref2 is None:
+    def ref_matches(circuit_ref, line_ref):
+        if line_ref is None:
             return True
-        if ref1 is None or ref2 is None:
-            return False
-        for r1 in ref1.split(';'):
-            for r2 in ref2.split(';'):
-                if r1.strip() == r2.strip():
-                    return True
+        for r in line_ref.split(';'):
+            if r.strip() == circuit_ref:
+                return True
         return False
 
     @staticmethod
@@ -353,7 +355,7 @@ if __name__ == '__main__':
     root.info('Found %s generators', str(len(result)))
 
     # create lines dictionary
-    sql = "select l.osm_id as id, st_setsrid(st_transform(l.way, 4326), 4326) as geom, l.power as type, l.name, l.ref, l.voltage, l.cables, w.nodes, w.tags, st_transform(create_point(w.nodes[1]), 4326) as first_node_geom, st_transform(create_point(w.nodes[array_length(w.nodes, 1)]), 4326) as last_node_geom, ST_Y(ST_Transform(ST_Centroid(way),4326)) as lat, ST_X(ST_Transform(ST_Centroid(way),4326)) as lon from planet_osm_line l, planet_osm_ways w where l.power ~ 'line|cable|minor_line' and voltage ~ '220000|380000' and l.osm_id = w.id and " + where_clause
+    sql = "select l.osm_id as id, st_setsrid(st_transform(create_line(osm_id), 4326), 4326) as geom, l.power as type, l.name, l.ref, l.voltage, l.cables, w.nodes, w.tags, st_transform(create_point(w.nodes[1]), 4326) as first_node_geom, st_transform(create_point(w.nodes[array_length(w.nodes, 1)]), 4326) as last_node_geom, ST_Y(ST_Transform(ST_Centroid(way),4326)) as lat, ST_X(ST_Transform(ST_Centroid(way),4326)) as lon from planet_osm_line l, planet_osm_ways w where l.power ~ 'line|cable|minor_line' and voltage ~ '220000|380000' and l.osm_id = w.id and " + where_clause
     transnet_instance.cur.execute(sql)
     result = transnet_instance.cur.fetchall()
     for (id, geom, type, name, ref, voltage, cables, nodes, tags, first_node_geom, last_node_geom, lat, lon) in result:
