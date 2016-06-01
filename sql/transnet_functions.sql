@@ -47,3 +47,19 @@ $BODY$
   COST 100;
 ALTER FUNCTION create_polygon(bigint)
   OWNER TO postgres;
+
+-- Function: public.get_stations(bigint[])
+
+-- DROP FUNCTION public.get_stations(bigint[]);
+
+CREATE OR REPLACE FUNCTION get_stations(parts bigint[])
+  RETURNS bigint[] AS
+$BODY$
+BEGIN
+ return (select array_agg(s.osm_id) from planet_osm_polygon s where ARRAY[s.osm_id]::bigint[] <@ parts and (s.power ~ 'substation|station|sub_station' and s.voltage ~ '220000|380000' or s.power ~ 'plant|generator'));
+END
+$BODY$
+  LANGUAGE plpgsql VOLATILE
+  COST 100;
+ALTER FUNCTION public.get_stations(bigint[])
+  OWNER TO postgres;

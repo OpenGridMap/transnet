@@ -24,11 +24,16 @@ from datetime import datetime
 from CimWriter import CimWriter
 from PolyParser import PolyParser
 from Plotter import Plotter
+from InferenceValidator import InferenceValidator
 import logging
 import sys
 
 root = logging.getLogger()
 root.setLevel(logging.DEBUG)
+
+validate = False
+validator = None
+
 
 class Transnet:
 
@@ -64,7 +69,7 @@ class Transnet:
 
     @staticmethod
     def create_relations(stations, lines, ssid):
-        root.info('Start inference for Substation %s', str(ssid))
+        root.info('\nStart inference for Substation %s', str(ssid))
         station_id = long(ssid)
 
         relations = []
@@ -87,8 +92,8 @@ class Transnet:
         else:
             root.info('Could not obtain any circuit')
 
-        for circuit in circuits:
-            circuit.print_overpass()
+        #for circuit in circuits:
+        #    circuit.print_overpass()
 
         return circuits
 
@@ -101,26 +106,26 @@ class Transnet:
         # find lines that cross the station's area - note that the end point of the line has to be within the substation for valid crossing
         relations = []
         for line in lines.values():
-            if station.geom.crosses(line.geom):
-                if line.ref is None:
-                    line.ref = ''
-                first_node_in_station = Transnet.node_in_any_station(line.end_point_dict[line.first_node()], [station], line.voltage)
-                if first_node_in_station:
-                    node_to_continue = line.last_node()
-                    covered_nodes = [line.first_node()]
-                else: #last node in station
-                    node_to_continue = line.first_node()
-                    covered_nodes = [line.last_node()]
-                if line.id not in station.covered_line_ids:
-                    root.debug('%s', str(station))
-                    root.debug('%s', str(line))
-                    station.covered_line_ids.append(line.id)
-                    # init new circuit
-                    for r in line.ref.split(';'):
-                        relation = [station, line]
-                        relations.extend(
-                            Transnet.infer_relation(stations, lines, relation, node_to_continue, line.voltage, r,
-                                                    line.name, line, covered_nodes))
+            node_to_continue = None
+            if Transnet.node_in_any_station(line.end_point_dict[line.first_node()], [station], line.voltage):
+                node_to_continue = line.last_node()
+                covered_nodes = [line.first_node()]
+            elif Transnet.node_in_any_station(line.end_point_dict[line.last_node()], [station], line.voltage):
+                node_to_continue = line.first_node()
+                covered_nodes = [line.last_node()]
+            if node_to_continue is not None:
+                line.ref = '' if line.ref is None else line.ref
+                if line.id in station.covered_line_ids and not validate:
+                    continue
+                root.debug('%s', str(station))
+                root.debug('%s', str(line))
+                station.covered_line_ids.append(line.id)
+                # init new circuit
+                for r in line.ref.split(';'):
+                    relation = [station, line]
+                    relations.extend(
+                        Transnet.infer_relation(stations, lines, relation, node_to_continue, line.voltage, r,
+                                                line.name, line, covered_nodes))
         return relations
 
     # recursive function that infers electricity circuits
@@ -137,7 +142,7 @@ class Transnet:
         elif station_id and station_id != relation[0].id: # if a node is within another station --> FOUND THE 2nd ENDPOINT
             station = stations[station_id]
             root.debug('%s', str(station))
-            if from_line.id in station.covered_line_ids:
+            if from_line.id in station.covered_line_ids and not validate:
                 root.debug('Relation with %s at %s already covered', str(from_line), str(station))
                 return []
             station.covered_line_ids.append(from_line.id)
@@ -185,7 +190,7 @@ class Transnet:
     @staticmethod
     def node_in_any_station(node, stations, voltage):
         for station in stations:
-            if node.within(station.geom) and Transnet.have_common_voltage(voltage, station.voltage):
+            if node.intersects(station.geom) and Transnet.have_common_voltage(voltage, station.voltage):
                 return station.id
         return None
 
@@ -221,7 +226,7 @@ class Transnet:
         if line_ref is None:
             return True
         for r in line_ref.split(';'):
-            if r.strip() == circuit_ref:
+            if Transnet.have_equal_characters(r.strip(), circuit_ref):
                 return True
         return False
 
@@ -234,6 +239,14 @@ class Transnet:
                 if v1.strip() == v2.strip():
                     return True
         return False
+
+    # sometimes refs are modeled with 12A or A12, which is the same
+    @staticmethod
+    def have_equal_characters(str1, str2):
+        for c1 in str1:
+            if c1 not in str2:
+                return False
+        return True
 
     @staticmethod
     def parse_power(power_string):
@@ -267,15 +280,24 @@ class Transnet:
             return 0
 
     @staticmethod
-    def create_relations_of_region(substations, generators, lines):
+    def create_relations_of_region(substations, generators, lines, boundary):
         stations = substations.copy()
         stations.update(generators)
         circuits = []
+        hit_rates = []
         for substation_id in substations.keys():
             close_stations_dict = Transnet.get_close_components(stations.values(), stations[substation_id])
             close_lines_dict = Transnet.get_close_components(lines.values(), stations[substation_id])
             circuits.extend(Transnet.create_relations(close_stations_dict, close_lines_dict, substation_id))
+            if validate:
+                hit_rate = validator.validate(substation_id, circuits, boundary)
+                if hit_rate is not None:
+                    hit_rates.append(hit_rate)
+        if validate:
+            root.info('Got an average hit rate of %.2lf percent', sum(hit_rates)/len(hit_rates) * 100)
         return circuits
+
+
 
 
 if __name__ == '__main__':
@@ -297,6 +319,11 @@ if __name__ == '__main__':
     help = "poly file that defines the region to perform the inference for")
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose",\
     help = "enable verbose logging")
+    parser.add_option("-e", "--evaluate", action="store_true", dest="evaluate",\
+    help = "enable inference-to-existing-relation evaluation")
+    parser.add_option("-t", "--topology", action="store_true", dest="topology", \
+    help="enable plotting topology graph")
+
     
     (options, args) = parser.parse_args()
     # get connection data via command line or set to default values
@@ -307,7 +334,10 @@ if __name__ == '__main__':
     dbpwrd = options.dbpwrd if options.dbpwrd else 'OpenGridMap'
     ssid = options.ssid if options.ssid else '23025610'
     poly = options.poly if options.poly else None
-    verbose = options.verbose if options.verbose else None
+    verbose = options.verbose if options.verbose else False
+    validate = options.evaluate if options.evaluate else False
+    topology = options.topology if options.topology else False
+
 
     ch = logging.StreamHandler(sys.stdout)
     if verbose:
@@ -370,19 +400,22 @@ if __name__ == '__main__':
         last_node = wkb.loads(last_node_geom, hex=True)
         end_points_geom_dict = dict()
         end_points_geom_dict[nodes[0]] = first_node
-        end_points_geom_dict[nodes[len(nodes) - 1]] = last_node
+        end_points_geom_dict[nodes[-1]] = last_node
         lines[id] = Line(id, line, type, name.replace(',', ';') if name is not None else None,
                               ref.replace(',', ';') if ref is not None else None,
                               voltage.replace(',', ';') if voltage is not None else None, cables, nodes, tags, lat, lon,
                               end_points_geom_dict)
     root.info('Found %s lines', str(len(result)))
 
+    validator = InferenceValidator(transnet_instance.cur)
     if poly is not None:
-        circuits = Transnet.create_relations_of_region(substations, generators, lines)
+        circuits = Transnet.create_relations_of_region(substations, generators, lines, boundary)
     else:
         stations = substations.copy()
         stations.update(generators)
         circuits = Transnet.create_relations(stations, lines, ssid)
+        if validate:
+            validator.validate(ssid, circuits, None)
 
     root.info('Infernece took %s millies', str(datetime.now() - time))
 
@@ -390,7 +423,8 @@ if __name__ == '__main__':
     cim_writer = CimWriter(circuits)
     cim_writer.publish('../results/cim')
 
-    root.info('Plot inferred transmission system topology')
-    Plotter.plot_topology(circuits, boundary)
+    if topology:
+        root.info('Plot inferred transmission system topology')
+        Plotter.plot_topology(circuits, boundary)
 
     root.info('Took %s millies in total', str(datetime.now() - time))

@@ -17,7 +17,6 @@ from shapely.ops import linemerge
 import ogr
 import osr
 import logging
-import sys
 
 root = logging.getLogger()
 
@@ -27,9 +26,6 @@ class CimWriter:
     winding_types = ['primary', 'secondary', 'tertiary']
 
     base_voltages_dict = dict()
-    base_voltages_dict[110000] = BaseVoltage(nominalVoltage=110000)
-    base_voltages_dict[220000] = BaseVoltage(nominalVoltage=220000)
-    base_voltages_dict[380000] = BaseVoltage(nominalVoltage=380000)
 
     region = SubGeographicalRegion(Region=GeographicalRegion(name='DE'))
 
@@ -44,10 +40,6 @@ class CimWriter:
         self.circuits = circuits
 
     def publish(self, file_name):
-        for base_voltage in self.base_voltages_dict.values():
-            base_voltage.UUID = str(self.uuid())
-            self.cimobject_by_uuid_dict[base_voltage.UUID] = base_voltage
-
         self.region.UUID = str(self.uuid())
         self.cimobject_by_uuid_dict[self.region.UUID] = self.region
 
@@ -129,9 +121,9 @@ class CimWriter:
             root.debug('Create CIM Generator for OSMID %s', str(generator.id))
             generating_unit = GeneratingUnit(name='G_' + str(generator.id), maxOperatingP=generator.nominal_power, minOperatingP=0,
                                              nominalP=generator.nominal_power, Location=self.add_location(generator.lat, generator.lon))
-            synchronous_machine = SynchronousMachine(name='G_' + CimWriter.escape_string(generator.name), operatingMode='generator', qPercent=0, x=0.01,
+            synchronous_machine = SynchronousMachine(name='G_' + str(generator.id) + '_' + CimWriter.escape_string(generator.name), operatingMode='generator', qPercent=0, x=0.01,
                                                      r=0.01, ratedS=generator.nominal_power, type='generator',
-                                                     GeneratingUnit=generating_unit, BaseVoltage=self.base_voltages_dict[int(circuit_voltage)])
+                                                     GeneratingUnit=generating_unit, BaseVoltage=self.base_voltage(int(circuit_voltage)))
             generating_unit.UUID = str(self.uuid())
             synchronous_machine.UUID = str(self.uuid())
             self.cimobject_by_uuid_dict[generating_unit.UUID] = generating_unit
@@ -149,7 +141,7 @@ class CimWriter:
 
     def line_to_cim(self, connectivity_node1, connectivity_node2, length, name, circuit_voltage, lat, lon):
         line = ACLineSegment(name=CimWriter.escape_string(name) + '_' + connectivity_node1.name + '_' + connectivity_node2.name, bch=0, r=0.3257, x=0.3153, r0=0.5336,
-                             x0=0.88025, length=length, BaseVoltage=self.base_voltages_dict[int(circuit_voltage)], Location=self.add_location(lat, lon))
+                             x0=0.88025, length=length, BaseVoltage=self.base_voltage(int(circuit_voltage)), Location=self.add_location(lat, lon))
         line.UUID = str(self.uuid())
         self.cimobject_by_uuid_dict[line.UUID] = line
         terminal1 = Terminal(ConnectivityNode=connectivity_node1, ConductingEquipment=line, sequenceNumber=1)
@@ -189,7 +181,7 @@ class CimWriter:
                                                  windingType=self.get_winding_type(osm_substation_voltage, winding_voltage, transformer),
                                                  ratedU=int(winding_voltage), ratedS=5000000,
                                                  PowerTransformer=transformer,
-                                                 BaseVoltage=self.base_voltages_dict[int(winding_voltage)])
+                                                 BaseVoltage=self.base_voltage(int(winding_voltage)))
         transformer_winding.UUID = str(self.uuid())
         self.cimobject_by_uuid_dict[transformer_winding.UUID] = transformer_winding
         connectivity_node = ConnectivityNode(name='CN_' + str(osm_substation_id) + '_' + winding_voltage)
@@ -226,7 +218,7 @@ class CimWriter:
         connectivity_node = self.connectivity_by_uuid_dict[transformer_winding.UUID]
         load_response_characteristic = LoadResponseCharacteristic(exponentModel=False, pConstantPower=100000)
         load_response_characteristic.UUID = str(self.uuid())
-        energy_consumer = EnergyConsumer(name='L_' + osm_substation_id, LoadResponse=load_response_characteristic, BaseVoltage=self.base_voltages_dict[int(winding_voltage)])
+        energy_consumer = EnergyConsumer(name='L_' + osm_substation_id, LoadResponse=load_response_characteristic, BaseVoltage=self.base_voltage(int(winding_voltage)))
         energy_consumer.UUID = str(self.uuid())
         self.cimobject_by_uuid_dict[load_response_characteristic.UUID] = load_response_characteristic
         self.cimobject_by_uuid_dict[energy_consumer.UUID] = energy_consumer
@@ -275,3 +267,12 @@ class CimWriter:
 
         # return point in EPSG 4326
         return (point.GetY(), point.GetX())
+
+    def base_voltage(self, voltage):
+        if self.base_voltages_dict.has_key(voltage):
+            return self.base_voltages_dict[voltage];
+        base_voltage = BaseVoltage(nominalVoltage=voltage)
+        base_voltage.UUID = str(self.uuid())
+        self.cimobject_by_uuid_dict[base_voltage.UUID] = base_voltage
+        self.base_voltages_dict[voltage] = base_voltage
+        return base_voltage
