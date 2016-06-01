@@ -16,7 +16,6 @@ class InferenceValidator:
         sql += " where s1.osm_id = " + str(ssid) + " and s1.power ~ 'substation|station|sub_station' and s1.voltage ~ '220000|380000' and ARRAY[s1.osm_id]::bigint[] <@ r.parts"
         if boundary is not None:
             sql += " and (s2.power ~ 'substation|station|sub_station' and s2.voltage ~ '220000|380000' or s2.power ~ 'generator|plant') and ARRAY[s2.osm_id]::bigint[] <@ r.parts and st_within(s2.way, st_transform(st_geomfromtext('" + boundary.wkt + "',4269),900913))"
-        print(sql)
         self.cur.execute(sql)
         result = self.cur.fetchall()
         if not result:
