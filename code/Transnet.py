@@ -27,6 +27,7 @@ from Plotter import Plotter
 from InferenceValidator import InferenceValidator
 import logging
 import sys
+from Util import Util
 
 root = logging.getLogger()
 root.setLevel(logging.DEBUG)
@@ -158,7 +159,7 @@ class Transnet:
                 relation_copy = list(relation)
                 if line.id == from_line.id:
                     continue
-                if not Transnet.have_common_voltage(voltage, line.voltage):
+                if not Util.have_common_voltage(voltage, line.voltage):
                     continue
                 if not ref:
                     ref = line.ref
@@ -190,7 +191,7 @@ class Transnet:
     @staticmethod
     def node_in_any_station(node, stations, voltage):
         for station in stations:
-            if node.intersects(station.geom) and Transnet.have_common_voltage(voltage, station.voltage):
+            if node.intersects(station.geom) and Util.have_common_voltage(voltage, station.voltage):
                 return station.id
         return None
 
@@ -228,16 +229,6 @@ class Transnet:
         for r in line_ref.split(';'):
             if Transnet.have_equal_characters(r.strip(), circuit_ref):
                 return True
-        return False
-
-    @staticmethod
-    def have_common_voltage(vstring1, vstring2):
-        if vstring1 is None or vstring2 is None:
-            return True
-        for v1 in vstring1.split(';'):
-            for v2 in vstring2.split(';'):
-                if v1.strip() == v2.strip():
-                    return True
         return False
 
     # sometimes refs are modeled with 12A or A12, which is the same
@@ -284,17 +275,12 @@ class Transnet:
         stations = substations.copy()
         stations.update(generators)
         circuits = []
-        hit_rates = []
         for substation_id in substations.keys():
             close_stations_dict = Transnet.get_close_components(stations.values(), stations[substation_id])
             close_lines_dict = Transnet.get_close_components(lines.values(), stations[substation_id])
             circuits.extend(Transnet.create_relations(close_stations_dict, close_lines_dict, substation_id))
-            if validate:
-                hit_rate = validator.validate(substation_id, circuits, boundary)
-                if hit_rate is not None:
-                    hit_rates.append(hit_rate)
         if validate:
-            root.info('Got an average hit rate of %.2lf percent', sum(hit_rates)/len(hit_rates) * 100)
+            validator.validate2(circuits, boundary)
         return circuits
 
 

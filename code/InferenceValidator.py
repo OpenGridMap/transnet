@@ -1,4 +1,6 @@
 import logging
+from Util import Util
+
 
 class InferenceValidator:
     cur = None
@@ -22,19 +24,61 @@ class InferenceValidator:
             logging.info('No existing relation found for station %s', str(ssid))
             return None
         not_hit_stations = []
-        hit_count = 0
+        hits = 0
         for (station,) in result:
             station_hit = False
             for circuit in circuits:
                 if station == circuit.members[0].id or station == circuit.members[-1].id:
-                    hit_count += 1
+                    hits += 1
                     station_hit = True
                     break
             if not station_hit:
                 not_hit_stations.append(station)
-        logging.info('Found %d of %d connected stations to %s', hit_count, len(result), str(ssid))
+        logging.info('Found %d of %d connected stations to %s', hits, len(result), str(ssid))
         logging.info('Not hit stations: %s', str(not_hit_stations))
-        return hit_count * 1.0 / len(result)
+        return hits * 1.0 / len(result)
+
+    def validate2(self, circuits, boundary):
+        logging.info("Starting inference validation")
+        sql = "select id, get_stations(r.parts), hstore(r.tags)->'voltage' from planet_osm_rels r, planet_osm_polygon s1, planet_osm_polygon s2"
+        sql += " where (s1.power ~ 'substation|station|sub_station' and s1.voltage ~ '220000|380000' or s1.power ~ 'generator|plant') and ARRAY[s1.osm_id]::bigint[] <@ r.parts and st_within(s1.way, st_transform(st_geomfromtext('" + boundary.wkt + "',4269),900913))"
+        sql += " and (s2.power ~ 'substation|station|sub_station' and s2.voltage ~ '220000|380000' or s2.power ~ 'generator|plant') and ARRAY[s2.osm_id]::bigint[] <@ r.parts and st_within(s2.way, st_transform(st_geomfromtext('" + boundary.wkt + "',4269),900913))"
+        sql += " and s1.osm_id <> s2.osm_id"
+        print(sql)
+        self.cur.execute(sql)
+        result = self.cur.fetchall()
+        hits = 0;
+        not_hit_connections = []
+        for (id, stations, voltage) in result:
+            connection_hit = False
+            if len(stations) > 2:
+                logging.info("Skip relations with more than 2 stations")
+                continue
+            if voltage is None or int(voltage) < 220000:
+                sql = "select parts from planet_osm_rels where id = " + str(id)
+                self.cur.execute(sql)
+                result2 = self.cur.fetchall()
+                (parts,) = result2
+                for part in parts:
+                    sql = "select hstore(tags)->'voltage' from planet_osm_ways where id = " + str(part)
+                    self.cur.execute(sql)
+                    result3 = self.cur.fetchall()
+                    (part_voltage,) = result3
+                    if part_voltage is not None and ';' not in part_voltage or ',' not in part_voltage and int(part_voltage) >= 220000:
+                        voltage = part_voltage
+                        break;
+
+            for circuit in circuits:
+                if circuit.members[0].id == stations[0] and circuit.members[-1].id == stations[-1] or circuit.members[0].id == stations[-1] and circuit.members[-1].id == stations[0] and Util.have_common_voltage(circuit.voltage, voltage):
+                    hits += 1
+                    connection_hit = True
+                    break
+            if not connection_hit:
+                not_hit_connections.append(stations)
+        hit_rate = hits * 1.0 / len(result)
+        logging.info('Found %d of %d point-to-point connections (%.2lf)', hits, len(result), hit_rate)
+        logging.info('Not hit point-to-point connections: %s', str(stations))
+
 
     def num_stations(self, circuits):
         stations = set()
