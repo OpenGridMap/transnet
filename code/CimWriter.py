@@ -20,6 +20,7 @@ import logging
 
 root = logging.getLogger()
 
+
 class CimWriter:
     circuits = None
     centroid = None
@@ -53,7 +54,6 @@ class CimWriter:
             station2 = circuit.members[len(circuit.members) - 1]
             if str(station1.id) + str(station2.id) + str(circuit.voltage) in covered_connections or str(station2.id) + str(station1.id) + str(circuit.voltage) in covered_connections:
                 continue
-            line_length = self.line_length(circuit)
 
             if 'station' in station1.type:
                 connectivity_node1 = self.substation_to_cim(station1, circuit.voltage)
@@ -73,12 +73,15 @@ class CimWriter:
                 circuit.print_circuit()
                 continue
 
-            lines = []
-            for line in circuit.members[1:len(circuit.members)-1]:
-                lines.append(line.geom)
-            line_centroid = linemerge(lines).centroid
-            #(lat, lon) = CimWriter.convert_mercator_to_wgs84(line_centroid.y, line_centroid.x)
-            self.line_to_cim(connectivity_node1, connectivity_node2, line_length, circuit.name, circuit.voltage, line_centroid.y, line_centroid.x)
+            lines_wsg84 = []
+            lines_srs = []
+            for line_wsg84 in circuit.members[1:-1]:
+                lines_wsg84.append(line_wsg84.geom)
+                lines_srs.append(line_wsg84.srs_geom)
+            line_wsg84 = linemerge(lines_wsg84)
+            line_srs = linemerge(lines_srs)
+            root.debug('Map line from (%lf,%lf) to (%lf,%lf) with length %s meters', station1.geom.centroid.y, station1.geom.centroid.x, station2.geom.centroid.y, station2.geom.centroid.x, str(line_srs.length))
+            self.line_to_cim(connectivity_node1, connectivity_node2, line_srs.length, circuit.name, circuit.voltage, line_wsg84.centroid.y, line_wsg84.centroid.x)
             covered_connections.append(str(station1.id) + str(station2.id) + str(circuit.voltage))
 
         self.attach_loads()
@@ -168,15 +171,7 @@ class CimWriter:
             i += 1
         return None
 
-    def line_length(self, circuit):
-        line_length = 0
-        for line_part in circuit.members[1:(len(circuit.members) - 1)]:
-            line_length += line_part.length()
-        return line_length
-
     def uuid(self):
-        #self.id += 1
-        #return str(self.id)
         return uuid.uuid1()
 
     def add_transformer_winding(self, osm_substation_id, osm_substation_voltage, winding_voltage, transformer):

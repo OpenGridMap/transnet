@@ -343,7 +343,7 @@ if __name__ == '__main__':
     substation_points = []
 
     # create station dictionary by quering only ways (there are almost no node substations for voltage level 110kV and higher)
-    sql = "select osm_id as id, st_setsrid(st_transform(way, 4326), 4326) as geom, power as type, name, ref, voltage, tags, ST_Y(ST_Transform(ST_Centroid(way),4326)) as lat, ST_X(ST_Transform(ST_Centroid(way),4326)) as lon from planet_osm_polygon where power ~ 'substation|station|sub_station' and voltage ~ '" + voltage_levels + "' and " + where_clause
+    sql = "select osm_id as id, st_transform(way, 4326) as geom, power as type, name, ref, voltage, tags, ST_Y(ST_Transform(ST_Centroid(way),4326)) as lat, ST_X(ST_Transform(ST_Centroid(way),4326)) as lon from planet_osm_polygon where power ~ 'substation|station|sub_station' and voltage ~ '" + voltage_levels + "' and " + where_clause
     transnet_instance.cur.execute(sql)
     result = transnet_instance.cur.fetchall()
     for (id, geom, type, name, ref, voltage, tags, lat, lon) in result:
@@ -355,7 +355,7 @@ if __name__ == '__main__':
     map_centroid = MultiPoint(substation_points).centroid
 
     # add power plants with area
-    sql = "select osm_id as id, st_setsrid(st_transform(way, 4326), 4326) as geom, power as type, name, ref, voltage, 'plant:output:electricity' as output1, 'generator:output:electricity' as output2, tags, ST_Y(ST_Transform(ST_Centroid(way),4326)) as lat, ST_X(ST_Transform(ST_Centroid(way),4326)) as lon from planet_osm_polygon where power ~ 'plant|generator' and " + where_clause
+    sql = "select osm_id as id, st_transform(way, 4326) as geom, power as type, name, ref, voltage, 'plant:output:electricity' as output1, 'generator:output:electricity' as output2, tags, ST_Y(ST_Transform(ST_Centroid(way),4326)) as lat, ST_X(ST_Transform(ST_Centroid(way),4326)) as lon from planet_osm_polygon where power ~ 'plant|generator' and " + where_clause
     transnet_instance.cur.execute(sql)
     result = transnet_instance.cur.fetchall()
     for (id, geom, type, name, ref, voltage, output1, output2, tags, lat, lon) in result:
@@ -367,17 +367,18 @@ if __name__ == '__main__':
     root.info('Found %s generators', str(len(result)))
 
     # create lines dictionary
-    sql = "select l.osm_id as id, st_setsrid(st_transform(create_line(osm_id), 4326), 4326) as geom, l.power as type, l.name, l.ref, l.voltage, l.cables, w.nodes, w.tags, st_transform(create_point(w.nodes[1]), 4326) as first_node_geom, st_transform(create_point(w.nodes[array_length(w.nodes, 1)]), 4326) as last_node_geom, ST_Y(ST_Transform(ST_Centroid(way),4326)) as lat, ST_X(ST_Transform(ST_Centroid(way),4326)) as lon from planet_osm_line l, planet_osm_ways w where l.power ~ 'line|cable|minor_line' and voltage ~ '" + voltage_levels + "' and l.osm_id = w.id and " + where_clause
+    sql = "select l.osm_id as id, st_transform(create_line(osm_id), 4326) as geom, way as srs_geom, l.power as type, l.name, l.ref, l.voltage, l.cables, w.nodes, w.tags, st_transform(create_point(w.nodes[1]), 4326) as first_node_geom, st_transform(create_point(w.nodes[array_length(w.nodes, 1)]), 4326) as last_node_geom, ST_Y(ST_Transform(ST_Centroid(way),4326)) as lat, ST_X(ST_Transform(ST_Centroid(way),4326)) as lon from planet_osm_line l, planet_osm_ways w where l.power ~ 'line|cable|minor_line' and voltage ~ '" + voltage_levels + "' and l.osm_id = w.id and " + where_clause
     transnet_instance.cur.execute(sql)
     result = transnet_instance.cur.fetchall()
-    for (id, geom, type, name, ref, voltage, cables, nodes, tags, first_node_geom, last_node_geom, lat, lon) in result:
+    for (id, geom, srs_geom, type, name, ref, voltage, cables, nodes, tags, first_node_geom, last_node_geom, lat, lon) in result:
         line = wkb.loads(geom, hex=True)
+        srs_line = wkb.loads(srs_geom, hex=True)
         first_node = wkb.loads(first_node_geom, hex=True)
         last_node = wkb.loads(last_node_geom, hex=True)
         end_points_geom_dict = dict()
         end_points_geom_dict[nodes[0]] = first_node
         end_points_geom_dict[nodes[-1]] = last_node
-        lines[id] = Line(id, line, type, name.replace(',', ';') if name is not None else None,
+        lines[id] = Line(id, line, srs_line, type, name.replace(',', ';') if name is not None else None,
                               ref.replace(',', ';') if ref is not None else None,
                               voltage.replace(',', ';') if voltage is not None else None, cables, nodes, tags, lat, lon,
                               end_points_geom_dict)
