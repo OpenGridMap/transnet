@@ -22,6 +22,7 @@ root = logging.getLogger()
 
 class CimWriter:
     circuits = None
+    centroid = None
     id = 0
     winding_types = ['primary', 'secondary', 'tertiary']
 
@@ -36,12 +37,15 @@ class CimWriter:
     # cim uuid -> cim connectivity node object
     connectivity_by_uuid_dict = dict()
 
-    def __init__(self, circuits):
+    def __init__(self, circuits, centroid):
         self.circuits = circuits
+        self.centroid = centroid
 
     def publish(self, file_name):
         self.region.UUID = str(self.uuid())
         self.cimobject_by_uuid_dict[self.region.UUID] = self.region
+
+        self.add_location(self.centroid.y, self.centroid.x, is_center=True)
 
         covered_connections = []
         for circuit in self.circuits:
@@ -201,7 +205,10 @@ class CimWriter:
                 osm_substation_id = transformer.name.split('_')[1]
                 transformer_voltage = transformer.name.split('_')[2]
                 transformer_voltage_levels = transformer_voltage.split(';')
-                transformer_lower_voltage = transformer_voltage_levels[1 if len(transformer_voltage_levels) >= 2 else 0]
+                if len(transformer_voltage_levels) >= 2 and int(transformer_voltage_levels[1]) > 0:
+                    transformer_lower_voltage = transformer_voltage_levels[1]
+                else:
+                    transformer_lower_voltage = transformer_voltage_levels[0]
                 self.attach_load(osm_substation_id, transformer_voltage, transformer_lower_voltage, transformer)
 
     def attach_load(self, osm_substation_id, transformer_voltage, winding_voltage, transformer):
@@ -233,8 +240,10 @@ class CimWriter:
             return string.translate(maketrans('-]^$/. ', '_______'))
         return ''
 
-    def add_location(self, lat, lon):
+    def add_location(self, lat, lon, is_center=False):
         pp = PositionPoint(yPosition=lat, xPosition=lon)
+        if is_center:
+            pp.zPosition = 1
         pp.UUID = str(self.uuid())
         self.cimobject_by_uuid_dict[pp.UUID] = pp
         location = Location(PositionPoints=[pp])

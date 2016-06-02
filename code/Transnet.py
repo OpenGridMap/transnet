@@ -28,6 +28,7 @@ from InferenceValidator import InferenceValidator
 import logging
 import sys
 from Util import Util
+from shapely.geometry import MultiPoint
 
 root = logging.getLogger()
 root.setLevel(logging.DEBUG)
@@ -64,7 +65,7 @@ class Transnet:
         for line in relation[1:len(relation) - 1]:
             if ';' not in line.voltage:
                 return voltage;
-        first_voltage = relation[1].voltage.split(';')[1]
+        first_voltage = relation[1].voltage.split(';')[0]
         root.warning('Could not determine exact voltage: Using voltage %s of %s', first_voltage, relation[1].voltage)
         return first_voltage
 
@@ -309,6 +310,8 @@ if __name__ == '__main__':
     help = "enable inference-to-existing-relation evaluation")
     parser.add_option("-t", "--topology", action="store_true", dest="topology", \
     help="enable plotting topology graph")
+    parser.add_option("-V", "--voltage", action="store", dest="voltage_levels", \
+    help="voltage levels in format 'level 1|...|level n', e.g. '220000|380000'")
 
     
     (options, args) = parser.parse_args()
@@ -323,7 +326,7 @@ if __name__ == '__main__':
     verbose = options.verbose if options.verbose else False
     validate = options.evaluate if options.evaluate else False
     topology = options.topology if options.topology else False
-
+    voltage_levels = options.voltage_levels if options.voltage_levels else '220000|380000'
 
     ch = logging.StreamHandler(sys.stdout)
     if verbose:
@@ -353,16 +356,19 @@ if __name__ == '__main__':
     substations = dict()
     generators = dict()
     lines = dict()
+    substation_points = []
 
     # create station dictionary by quering only ways (there are almost no node substations for voltage level 110kV and higher)
-    sql = "select osm_id as id, st_setsrid(st_transform(way, 4326), 4326) as geom, power as type, name, ref, voltage, tags, ST_Y(ST_Transform(ST_Centroid(way),4326)) as lat, ST_X(ST_Transform(ST_Centroid(way),4326)) as lon from planet_osm_polygon where power ~ 'substation|station|sub_station' and voltage ~ '220000|380000' and " + where_clause
+    sql = "select osm_id as id, st_setsrid(st_transform(way, 4326), 4326) as geom, power as type, name, ref, voltage, tags, ST_Y(ST_Transform(ST_Centroid(way),4326)) as lat, ST_X(ST_Transform(ST_Centroid(way),4326)) as lon from planet_osm_polygon where power ~ 'substation|station|sub_station' and voltage ~ '" + voltage_levels + "' and " + where_clause
     transnet_instance.cur.execute(sql)
     result = transnet_instance.cur.fetchall()
     for (id, geom, type, name, ref, voltage, tags, lat, lon) in result:
         polygon = wkb.loads(geom, hex=True)
         substations[id] = Station(id, polygon, type, name, ref,
                                     voltage.replace(',', ';') if voltage is not None else None, None, tags, lat, lon)
+        substation_points.append((lat, lon))
     root.info('Found %s stations', str(len(result)))
+    map_centroid = MultiPoint(substation_points).centroid
 
     # add power plants with area
     sql = "select osm_id as id, st_setsrid(st_transform(way, 4326), 4326) as geom, power as type, name, ref, voltage, 'plant:output:electricity' as output1, 'generator:output:electricity' as output2, tags, ST_Y(ST_Transform(ST_Centroid(way),4326)) as lat, ST_X(ST_Transform(ST_Centroid(way),4326)) as lon from planet_osm_polygon where power ~ 'plant|generator' and " + where_clause
@@ -377,7 +383,7 @@ if __name__ == '__main__':
     root.info('Found %s generators', str(len(result)))
 
     # create lines dictionary
-    sql = "select l.osm_id as id, st_setsrid(st_transform(create_line(osm_id), 4326), 4326) as geom, l.power as type, l.name, l.ref, l.voltage, l.cables, w.nodes, w.tags, st_transform(create_point(w.nodes[1]), 4326) as first_node_geom, st_transform(create_point(w.nodes[array_length(w.nodes, 1)]), 4326) as last_node_geom, ST_Y(ST_Transform(ST_Centroid(way),4326)) as lat, ST_X(ST_Transform(ST_Centroid(way),4326)) as lon from planet_osm_line l, planet_osm_ways w where l.power ~ 'line|cable|minor_line' and voltage ~ '220000|380000' and l.osm_id = w.id and " + where_clause
+    sql = "select l.osm_id as id, st_setsrid(st_transform(create_line(osm_id), 4326), 4326) as geom, l.power as type, l.name, l.ref, l.voltage, l.cables, w.nodes, w.tags, st_transform(create_point(w.nodes[1]), 4326) as first_node_geom, st_transform(create_point(w.nodes[array_length(w.nodes, 1)]), 4326) as last_node_geom, ST_Y(ST_Transform(ST_Centroid(way),4326)) as lat, ST_X(ST_Transform(ST_Centroid(way),4326)) as lon from planet_osm_line l, planet_osm_ways w where l.power ~ 'line|cable|minor_line' and voltage ~ '" + voltage_levels + "' and l.osm_id = w.id and " + where_clause
     transnet_instance.cur.execute(sql)
     result = transnet_instance.cur.fetchall()
     for (id, geom, type, name, ref, voltage, cables, nodes, tags, first_node_geom, last_node_geom, lat, lon) in result:
@@ -406,11 +412,12 @@ if __name__ == '__main__':
     root.info('Infernece took %s millies', str(datetime.now() - time))
 
     root.info('CIM model generation started ...')
-    cim_writer = CimWriter(circuits)
+    cim_writer = CimWriter(circuits, map_centroid)
     cim_writer.publish('../results/cim')
 
     if topology:
         root.info('Plot inferred transmission system topology')
-        Plotter.plot_topology(circuits, boundary)
+        plotter = Plotter(voltage_levels)
+        plotter.plot_topology(circuits, boundary)
 
     root.info('Took %s millies in total', str(datetime.now() - time))

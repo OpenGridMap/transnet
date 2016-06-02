@@ -21,6 +21,9 @@ function transform()
     mdl = 'model';
     close_system('model');
     open(mdl);
+    
+    centroidPositionPoint = findCentroidPositionPoint(positionPoints);
+    fprintf('Center position is \tlat=%f and lon=%f\n', centroidPositionPoint.PositionPoint_yPosition, centroidPositionPoint.PositionPoint_xPosition);
 
     blocks = {};
     for i = 1:length(transformers)
@@ -28,7 +31,7 @@ function transform()
        transformers(i).type = 'transformer';
        substation_index = findSubstationByTransformer(substations, transformers(i));
        positionPoint = findPositionPoint(positionPoints, locations, substations(substation_index));
-       setLatLonPosition(block, positionPoint.PositionPoint_yPosition, positionPoint.PositionPoint_xPosition);
+       setLatLonPosition(block, positionPoint.PositionPoint_yPosition, positionPoint.PositionPoint_xPosition, centroidPositionPoint.PositionPoint_yPosition, centroidPositionPoint.PositionPoint_xPosition);
        transformers(i).block = block;
        substations(substation_index).block = block;
        blocks{length(blocks) + 1} = block;
@@ -50,7 +53,7 @@ function transform()
        generators(i).type = 'generator';
        set_param(block, 'Voltage', getBaseVoltage(baseVoltages, generators(i).ConductingEquipment_BaseVoltage.ATTRIBUTE(1).rdf_resource));
        positionPoint = findPositionPoint(positionPoints, locations, findGeneratingUnit(generatingUnits, generators(i)));
-       setLatLonPosition(block, positionPoint.PositionPoint_yPosition, positionPoint.PositionPoint_xPosition);
+       setLatLonPosition(block, positionPoint.PositionPoint_yPosition, positionPoint.PositionPoint_xPosition, centroidPositionPoint.PositionPoint_yPosition, centroidPositionPoint.PositionPoint_xPosition);
        generators(i).block = block;
        blocks{length(blocks) + 1} = block;
     end
@@ -69,7 +72,7 @@ function transform()
        lines(i).type = 'line';
        set_param(block, 'Length', num2str(lines(i).Conductor_length/1000)); % in km
        positionPoint = findPositionPoint(positionPoints, locations, lines(i));
-       setLatLonPosition(block, positionPoint.PositionPoint_yPosition, positionPoint.PositionPoint_xPosition);
+       setLatLonPosition(block, positionPoint.PositionPoint_yPosition, positionPoint.PositionPoint_xPosition, centroidPositionPoint.PositionPoint_yPosition, centroidPositionPoint.PositionPoint_xPosition);
        lines(i).block = block;
        blocks{length(blocks) + 1} = block;
     end
@@ -81,7 +84,7 @@ function transform()
            equipments{length(equipments) + 1} = findEquipmentByTerminal(matchingTerminals{j}, transformerWindings, generators, loads, lines);
        end
        connectEquipments(mdl, equipments);
-       addBus(mdl, equipments{1}, equipments{2}, getBaseVoltage(baseVoltages, equipments{1}.ConductingEquipment_BaseVoltage.ATTRIBUTE(1).rdf_resource), num2str(i));  
+       % addBus(mdl, equipments{1}, equipments{2}, getBaseVoltage(baseVoltages, equipments{1}.ConductingEquipment_BaseVoltage.ATTRIBUTE(1).rdf_resource), num2str(i));  
     end
     
     set_param(mdl, 'ZoomFactor', 'FitSystem');
@@ -255,6 +258,15 @@ function positionPoint = findPositionPoint(positionPoints, locations, equipment)
     end
 end
 
+function positionPoint = findCentroidPositionPoint(positionPoints)
+    for i = 1:length(positionPoints)
+        if positionPoints(i).PositionPoint_zPosition == 1
+            positionPoint = positionPoints(i);
+            return
+        end
+    end
+end
+
 function generatingUnit = findGeneratingUnit(generatingUnits, generator)
     for i = 1:length(generatingUnits)
         if strcmp(generatingUnits(i).ATTRIBUTE(1).ID, generator.SynchronousMachine_GeneratingUnit.ATTRIBUTE(1).rdf_resource)
@@ -284,8 +296,8 @@ function substation = findSubstationByLoad(substations, load)
     end
 end
 
-function setLatLonPosition(block, lat, lon)
-   [x,y] = Spherical2AzimuthalEquidistant((lat), (lon), 51, 9, 10000, 10000, 400000);
+function setLatLonPosition(block, lat, lon, latCenter, lonCenter)
+   [x,y] = Spherical2AzimuthalEquidistant((lat), (lon), latCenter, lonCenter, 10000, 10000, 400000);
    setXYPosition(block, x, y);
 end
 
