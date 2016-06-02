@@ -1,34 +1,18 @@
-"""							         
-Copyright "2015" "NEXT ENERGY"						  
-										  
-Licensed under the Apache License, Version 2.0 (the "License");		  
-you may not use this file except in compliance with the License.	  
-You may obtain a copy of the License at					  
-										  
-http://www.apache.org/licenses/LICENSE-2.0				  
-
-Unless required by applicable law or agreed to in writing, software	  
-distributed under the License is distributed on an "AS IS" BASIS,	  
-WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.  
-See the License for the specific language governing permissions and	  
-limitations under the License.
-"""
-
 import psycopg2
 from optparse import OptionParser
+from shapely import wkb
+from shapely.geometry import MultiPoint
+from datetime import datetime
+import logging
+import sys
 from Circuit import Circuit
 from Line import Line
 from Station import Station
-from shapely import wkb
-from datetime import datetime
 from CimWriter import CimWriter
 from PolyParser import PolyParser
 from Plotter import Plotter
 from InferenceValidator import InferenceValidator
-import logging
-import sys
 from Util import Util
-from shapely.geometry import MultiPoint
 
 root = logging.getLogger()
 root.setLevel(logging.DEBUG)
