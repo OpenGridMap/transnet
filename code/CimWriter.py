@@ -17,6 +17,8 @@ from shapely.ops import linemerge
 import ogr
 import osr
 import logging
+import re
+import io
 
 root = logging.getLogger()
 
@@ -86,13 +88,16 @@ class CimWriter:
 
         self.attach_loads()
 
-        cimwrite(self.cimobject_by_uuid_dict, file_name + '.xml')
-        cimwrite(self.cimobject_by_uuid_dict, file_name + '.rdf')
+        cimwrite(self.cimobject_by_uuid_dict, file_name + '.xml', encoding='utf-8')
+        cimwrite(self.cimobject_by_uuid_dict, file_name + '.rdf', encoding='utf-8')
 
-        # pretty write
+        # pretty print cim file
         xml = parse(file_name + '.xml')
         pretty_xml_as_string = xml.toprettyxml(encoding='utf-8')
-        pretty_file = open(file_name + '_pretty.xml', "w")
+        matches = re.findall('#x[0-9a-f]{4}', pretty_xml_as_string)
+        for match in matches:
+            pretty_xml_as_string = pretty_xml_as_string.replace(match, unichr(int(match[2:len(match)], 16)))
+        pretty_file = io.open(file_name + '_pretty.xml', 'w', encoding='utf8')
         pretty_file.write(pretty_xml_as_string)
         pretty_file.close()
 
@@ -232,7 +237,14 @@ class CimWriter:
     @staticmethod
     def escape_string(string):
         if string is not None:
-            return string.translate(maketrans('-]^$/. ', '_______'))
+            str = unicode(string.translate(maketrans('-]^$/. ', '_______')), 'utf-8')
+            hexstr = ''
+            for c in str:
+                if ord(c) > 127:
+                    hexstr += "#x%04x" % ord(c)
+                else:
+                    hexstr += c
+            return hexstr
         return ''
 
     def add_location(self, lat, lon, is_center=False):

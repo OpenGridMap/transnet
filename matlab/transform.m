@@ -54,9 +54,11 @@ function transform()
        voltage = getBaseVoltage(baseVoltages, generators(i).ConductingEquipment_BaseVoltage.ATTRIBUTE(1).rdf_resource);
        set_param(block, 'Voltage', voltage);
        set_param(block, 'BaseVoltage', voltage);
-       nominalPower = generators(i).SynchronousMachine_ratedS;
-       if ~isempty(nominalPower) && isnumeric(nominalPower)
-          set_param(block, 'Pref', num2str(nominalPower)); 
+       if isprop(generators(i), 'SynchronousMachine_ratedS')  
+           nominalPower = generators(i).SynchronousMachine_ratedS;
+           if ~isempty(nominalPower) && isnumeric(nominalPower)
+              set_param(block, 'Pref', num2str(nominalPower)); 
+           end
        end
        positionPoint = findPositionPoint(positionPoints, locations, findGeneratingUnit(generatingUnits, generators(i)));
        setLatLonPosition(block, positionPoint.PositionPoint_yPosition, positionPoint.PositionPoint_xPosition, centroidPositionPoint.PositionPoint_yPosition, centroidPositionPoint.PositionPoint_xPosition);
