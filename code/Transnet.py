@@ -1,6 +1,6 @@
 import psycopg2
 from optparse import OptionParser
-from shapely import wkb
+from shapely import wkb, wkt
 from shapely.geometry import MultiPoint
 from datetime import datetime
 import logging
@@ -227,9 +227,8 @@ class Transnet:
     @staticmethod
     def parse_power(power_string):
         if power_string is None:
-            return 0
+            return None
         power_string = power_string.replace(',', '.')
-
         try:
             if 'k' in power_string:
                 tokens = power_string.split('k')
@@ -250,13 +249,13 @@ class Transnet:
                 tokens = power_string.split('G')
                 return float(tokens[0].strip()) * 1000000000
             else:
-                return power_string.strip()
+                return float(power_string)
         except ValueError:
-            root.error('Could not extract power from string %s', power_string)
-            return 0
+            root.debug('Could not extract power from string %s', power_string)
+            return None
 
     @staticmethod
-    def create_relations_of_region(substations, generators, lines, boundary):
+    def create_relations_of_region(substations, generators, lines):
         stations = substations.copy()
         stations.update(generators)
         circuits = []
@@ -264,8 +263,6 @@ class Transnet:
             close_stations_dict = Transnet.get_close_components(stations.values(), stations[substation_id])
             close_lines_dict = Transnet.get_close_components(lines.values(), stations[substation_id])
             circuits.extend(Transnet.create_relations(close_stations_dict, close_lines_dict, substation_id))
-        if validate:
-            validator.validate2(circuits, boundary)
         return circuits
 
 
@@ -288,6 +285,8 @@ if __name__ == '__main__':
     help = "substation id to start the inference from")
     parser.add_option("-p", "--poly", action="store", dest="poly",\
     help = "poly file that defines the region to perform the inference for")
+    parser.add_option("-b", "--bpoly", action="store", dest="bounding_polygon",\
+    help = "defines the region to perform the inference for within the specified polygon in WKT, e.g. 'POLYGON((128.74 41.68, 142.69 41.68, 142.69 30.84, 128.74 30.84, 128.74 41.68))'")
     parser.add_option("-v", "--verbose", action="store_true", dest="verbose",\
     help = "enable verbose logging")
     parser.add_option("-e", "--evaluate", action="store_true", dest="evaluate",\
@@ -307,6 +306,7 @@ if __name__ == '__main__':
     dbpwrd = options.dbpwrd if options.dbpwrd else 'OpenGridMap'
     ssid = options.ssid if options.ssid else '23025610'
     poly = options.poly if options.poly else None
+    bpoly = options.bounding_polygon if options.bounding_polygon else None
     verbose = options.verbose if options.verbose else False
     validate = options.evaluate if options.evaluate else False
     topology = options.topology if options.topology else False
@@ -334,6 +334,9 @@ if __name__ == '__main__':
         poly_parser = PolyParser()
         boundary = poly_parser.poly_to_polygon(poly)
         where_clause = "st_within(way, st_transform(st_geomfromtext('" + boundary.wkt + "',4269),900913))"
+    elif bpoly is not None:
+        boundary = wkt.loads(bpoly)
+        where_clause = "st_within(way, st_transform(st_geomfromtext('" + boundary.wkt + "',4269),900913))"
     else:
         where_clause = "st_distance(way, (select way from planet_osm_polygon where osm_id = " + str(ssid) + ")) <= 300000"
 
@@ -353,9 +356,10 @@ if __name__ == '__main__':
         substation_points.append((lat, lon))
     root.info('Found %s stations', str(len(result)))
     map_centroid = MultiPoint(substation_points).centroid
+    logging.debug('Centroid lat:%lf, lon:%lf', map_centroid.x, map_centroid.y)
 
     # add power plants with area
-    sql = "select osm_id as id, st_transform(way, 4326) as geom, power as type, name, ref, voltage, 'plant:output:electricity' as output1, 'generator:output:electricity' as output2, tags, ST_Y(ST_Transform(ST_Centroid(way),4326)) as lat, ST_X(ST_Transform(ST_Centroid(way),4326)) as lon from planet_osm_polygon where power ~ 'plant|generator' and " + where_clause
+    sql = "select osm_id as id, st_transform(way, 4326) as geom, power as type, name, ref, voltage, \"plant:output:electricity\" as output1, \"generator:output:electricity\" as output2, tags, ST_Y(ST_Transform(ST_Centroid(way),4326)) as lat, ST_X(ST_Transform(ST_Centroid(way),4326)) as lon from planet_osm_polygon where power ~ 'plant|generator' and " + where_clause
     transnet_instance.cur.execute(sql)
     result = transnet_instance.cur.fetchall()
     for (id, geom, type, name, ref, voltage, output1, output2, tags, lat, lon) in result:
@@ -384,14 +388,18 @@ if __name__ == '__main__':
                               end_points_geom_dict)
     root.info('Found %s lines', str(len(result)))
 
-    validator = InferenceValidator(transnet_instance.cur)
-    if poly is not None:
-        circuits = Transnet.create_relations_of_region(substations, generators, lines, boundary)
+    if boundary is not None:
+        circuits = Transnet.create_relations_of_region(substations, generators, lines)
     else:
         stations = substations.copy()
         stations.update(generators)
         circuits = Transnet.create_relations(stations, lines, ssid)
-        if validate:
+
+    if validate:
+        validator = InferenceValidator(transnet_instance.cur)
+        if boundary is not None:
+            validator.validate2(circuits, boundary)
+        else:
             validator.validate(ssid, circuits, None)
 
     root.info('Infernece took %s millies', str(datetime.now() - time))

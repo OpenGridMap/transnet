@@ -51,7 +51,13 @@ function transform()
     for i = 1:length(generators)
        block = add_block('block_templates/generator',[mdl,'/',generators(i).IdentifiedObject_name]);
        generators(i).type = 'generator';
-       set_param(block, 'Voltage', getBaseVoltage(baseVoltages, generators(i).ConductingEquipment_BaseVoltage.ATTRIBUTE(1).rdf_resource));
+       voltage = getBaseVoltage(baseVoltages, generators(i).ConductingEquipment_BaseVoltage.ATTRIBUTE(1).rdf_resource);
+       set_param(block, 'Voltage', voltage);
+       set_param(block, 'BaseVoltage', voltage);
+       nominalPower = generators(i).SynchronousMachine_ratedS;
+       if ~isempty(nominalPower) && isnumeric(nominalPower)
+          set_param(block, 'Pref', num2str(nominalPower)); 
+       end
        positionPoint = findPositionPoint(positionPoints, locations, findGeneratingUnit(generatingUnits, generators(i)));
        setLatLonPosition(block, positionPoint.PositionPoint_yPosition, positionPoint.PositionPoint_xPosition, centroidPositionPoint.PositionPoint_yPosition, centroidPositionPoint.PositionPoint_xPosition);
        generators(i).block = block;

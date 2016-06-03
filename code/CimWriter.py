@@ -46,7 +46,7 @@ class CimWriter:
         self.region.UUID = str(self.uuid())
         self.cimobject_by_uuid_dict[self.region.UUID] = self.region
 
-        self.add_location(self.centroid.y, self.centroid.x, is_center=True)
+        self.add_location(self.centroid.x, self.centroid.y, is_center=True)
 
         covered_connections = []
         for circuit in self.circuits:
@@ -110,7 +110,7 @@ class CimWriter:
         else:
             root.debug('Create CIM Substation for OSMID %s', str(osm_substation.id))
             cim_substation = Substation(name='SS_' + str(osm_substation.id), Region=self.region, Location=self.add_location(osm_substation.lat, osm_substation.lon))
-            transformer = PowerTransformer(name='T_' + str(osm_substation.id) + '_' + str(osm_substation.voltage), EquipmentContainer=cim_substation)
+            transformer = PowerTransformer(name='T_' + str(osm_substation.id) + '_' + str(osm_substation.voltage) + '_' + CimWriter.escape_string(osm_substation.name), EquipmentContainer=cim_substation)
             cim_substation.UUID = str(self.uuid())
             transformer.UUID = str(self.uuid())
             self.cimobject_by_uuid_dict[cim_substation.UUID] = cim_substation
@@ -127,9 +127,9 @@ class CimWriter:
         else:
             root.debug('Create CIM Generator for OSMID %s', str(generator.id))
             generating_unit = GeneratingUnit(name='G_' + str(generator.id), maxOperatingP=generator.nominal_power, minOperatingP=0,
-                                             nominalP=generator.nominal_power, Location=self.add_location(generator.lat, generator.lon))
+                                             nominalP='' if generator.nominal_power is None else generator.nominal_power, Location=self.add_location(generator.lat, generator.lon))
             synchronous_machine = SynchronousMachine(name='G_' + str(generator.id) + '_' + CimWriter.escape_string(generator.name), operatingMode='generator', qPercent=0, x=0.01,
-                                                     r=0.01, ratedS=generator.nominal_power, type='generator',
+                                                     r=0.01, ratedS='' if generator.nominal_power is None else generator.nominal_power, type='generator',
                                                      GeneratingUnit=generating_unit, BaseVoltage=self.base_voltage(int(circuit_voltage)))
             generating_unit.UUID = str(self.uuid())
             synchronous_machine.UUID = str(self.uuid())
