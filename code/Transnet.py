@@ -13,6 +13,7 @@ from PolyParser import PolyParser
 from Plotter import Plotter
 from InferenceValidator import InferenceValidator
 from Util import Util
+from LoadEstimator import LoadEstimator
 
 root = logging.getLogger()
 root.setLevel(logging.DEBUG)
@@ -295,6 +296,8 @@ if __name__ == '__main__':
     help="enable plotting topology graph")
     parser.add_option("-V", "--voltage", action="store", dest="voltage_levels", \
     help="voltage levels in format 'level 1|...|level n', e.g. '220000|380000'")
+    parser.add_option("-l", "--loadestimation", action="store_true", dest="load_estimation", \
+    help="enable load estimation based on Voronoi partitions")
 
     
     (options, args) = parser.parse_args()
@@ -311,6 +314,7 @@ if __name__ == '__main__':
     validate = options.evaluate if options.evaluate else False
     topology = options.topology if options.topology else False
     voltage_levels = options.voltage_levels if options.voltage_levels else '220000|380000'
+    load_estimation = options.load_estimation if options.load_estimation else False
 
     ch = logging.StreamHandler(sys.stdout)
     if verbose:
@@ -408,9 +412,15 @@ if __name__ == '__main__':
     cim_writer = CimWriter(circuits, map_centroid)
     cim_writer.publish('../results/cim')
 
+    voronoi_partitions = None
+    if load_estimation:
+        root.info('Start partitioning into Voronoi-partions')
+        load_estimator = LoadEstimator()
+        voronoi_partitions = load_estimator.partition(substations)
+
     if topology:
         root.info('Plot inferred transmission system topology')
         plotter = Plotter(voltage_levels)
-        plotter.plot_topology(circuits, boundary)
+        plotter.plot_topology(circuits, boundary, voronoi_partitions)
 
     root.info('Took %s millies in total', str(datetime.now() - time))

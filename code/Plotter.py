@@ -1,5 +1,6 @@
 import matplotlib.pyplot as plt
 from matplotlib import cm
+from shapely.geometry import Point, Polygon
 cmap = cm.spectral
 
 
@@ -21,7 +22,7 @@ class Plotter:
                 self.thickness_dict[voltage] = 1
                 self.zorder_dict[voltage] = 3
 
-    def plot_topology(self, circuits, boundary):
+    def plot_topology(self, circuits, boundary, voronoi_partitions):
         fig = plt.figure(figsize=(10, 12), facecolor='white')
         ax = plt.subplot(111)
         ax.set_axis_off()
@@ -44,9 +45,25 @@ class Plotter:
                 plt.plot(x, y, color=self.color_dict[line.voltage.split(';')[0]], alpha=1,
                         linewidth=self.thickness_dict[line.voltage.split(';')[0]], solid_capstyle='round', zorder=self.zorder_dict[line.voltage.split(';')[0]])
 
+            # direct links between stations
             #start_of_link = [circuit.members[0].lon, circuit.members[0].lat]
             #end_of_link = [circuit.members[-1].lon, circuit.members[-1].lat]
             #plt.plot(*zip(start_of_link, end_of_link), color='#333333', alpha=0.2, lw=0.5, zorder=1)
+
+        if voronoi_partitions is not None:
+            for ridge in voronoi_partitions.ridge_vertices:
+                if ridge[0] == -1 or ridge[1] == -1:
+                    continue
+                start_of_ridge = voronoi_partitions.vertices[ridge[0]]
+                end_of_ridge = voronoi_partitions.vertices[ridge[1]]
+                (xmin, ymax, xmax, ymin) = boundary.bounds
+                bounding_polygon = Polygon([(xmin, ymax), (xmax, ymax), (xmax, ymin), (xmin, ymin), (xmin, ymax)])
+                if Point(start_of_ridge[0], start_of_ridge[1]).within(bounding_polygon) and Point(end_of_ridge[0], end_of_ridge[1]).within(bounding_polygon):
+                    plt.plot(start_of_ridge[0], start_of_ridge[1], marker='o', markerfacecolor='#333333', linestyle="None", markersize=1, zorder=4)
+                    plt.plot(end_of_ridge[0], end_of_ridge[1], marker='o', markerfacecolor='#333333', linestyle="None",
+                             markersize=1, zorder=4)
+                    plt.plot(*zip(start_of_ridge, end_of_ridge), color='#333333', alpha=1, lw=0.5, zorder=1)
+            plt.plot([], [], color='#333333', lw=0.5, zorder=5, label='Voronoi partitions')
 
         plt.plot([], [], marker='o', markerfacecolor='black', linestyle="None", markersize=1, zorder=5, label='station')
         for voltage in self.color_dict.keys():
