@@ -413,14 +413,18 @@ if __name__ == '__main__':
     cim_writer.publish('../results/cim')
 
     voronoi_partitions = None
+    cities = None
+    interpolation_fct = None
     if load_estimation:
         root.info('Start partitioning into Voronoi-partions')
-        load_estimator = LoadEstimator()
-        voronoi_partitions = load_estimator.partition(substations)
+        load_estimator = LoadEstimator(substations, boundary)
+        voronoi_partitions = load_estimator.partition()
+        cities = load_estimator.cities
+        interpolation_fct = load_estimator.interpolation_fct
 
     if topology:
         root.info('Plot inferred transmission system topology')
         plotter = Plotter(voltage_levels)
-        plotter.plot_topology(circuits, boundary, voronoi_partitions)
+        plotter.plot_topology(circuits, boundary, voronoi_partitions, cities, interpolation_fct)
 
     root.info('Took %s millies in total', str(datetime.now() - time))
