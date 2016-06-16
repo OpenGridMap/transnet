@@ -74,14 +74,6 @@ class Plotter:
         #              label = city.name
         #              ax.annotate(label, (city.lon, city.lat))
 
-        #if boundary is not None and interpolation_fct is not None:
-        #    tx = np.linspace(xmin, xmax, 500)
-        #    ty = np.linspace(ymin, ymax, 500)
-        #    xi, yi = np.meshgrid(tx, ty)
-        #    pi = interpolation_fct(xi, yi)
-        #    plt.pcolor(xi, yi, pi)
-        #    plt.colorbar()
-
         plt.plot([], [], marker='o', markerfacecolor='black', linestyle="None", markersize=1, zorder=5, label='station')
         for voltage in self.color_dict.keys():
             label = voltage + 'V'

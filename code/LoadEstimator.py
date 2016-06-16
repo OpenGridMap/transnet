@@ -1,15 +1,11 @@
 import numpy as np
 from scipy.spatial import Voronoi
-from scipy.interpolate import Rbf
 import mysql.connector
 from City import City
 import logging
 from shapely import wkt
 from shapely.geometry import Polygon
 from Plotter import Plotter
-import pyproj
-from shapely.ops import transform, polygonize
-from functools import partial
 
 root = logging.getLogger()
 
@@ -150,26 +146,6 @@ class LoadEstimator:
         cursor.close()
         cnx.close()
         return cities
-
-    def population_interpolation_function(self):
-        x = []
-        y = []
-        p = []
-        for city in self.cities:
-            x.append(city.lon)
-            y.append(city.lat)
-            p.append(city.population)
-        return Rbf(x, y, p, function='linear', smooth=1)
-
-    def station_population_density(self, partition_by_station_dict):
-        total_area = 0
-        for station_id in partition_by_station_dict.keys():
-            geom = partition_by_station_dict[station_id]
-            if geom.within(self.boundary):
-                geom_area = transform(partial(pyproj.transform, pyproj.Proj(init='EPSG:4326'), pyproj.Proj(proj='aea', lat1=geom.bounds[1], lat2=geom.bounds[3])), geom)
-                root.info('Station %s supplies area of %s square kilometers', str(station_id), str(geom_area.area/(1000**2)))
-                total_area += geom_area.area/(1000**2)
-        print str(total_area)
 
     def population_of_region(self, region_polygon):
         population = 0
