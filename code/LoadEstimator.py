@@ -15,13 +15,11 @@ class LoadEstimator:
     stations = None
     boundary = None
     cities = None
-    interpolation_fct = None
 
     def __init__(self, stations, boundary):
         self.stations = stations
         self.boundary = boundary
         self.cities = self.find_cities()
-        self.interpolation_fct = self.population_interpolation_function()
 
     def partition(self):
         partition_by_station_dict = dict()
