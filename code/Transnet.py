@@ -147,15 +147,15 @@ class Transnet:
                     continue
                 if not Util.have_common_voltage(voltage, line.voltage):
                     continue
-                if not ref:
-                    ref = line.ref
-                    if ref:
-                        for r in ref.split(';'):
-                            relations.extend(Transnet.infer_relation(stations, lines, relation_copy, node_to_continue_id, line.voltage, r,
-                                                    line.name, from_line, covered_nodes))
-                        return relations
-                if not Transnet.ref_matches(ref, line.ref):
-                    continue
+                #if not ref:
+                #    ref = line.ref
+                #    if ref:
+                #        for r in ref.split(';'):
+                #            relations.extend(Transnet.infer_relation(stations, lines, relation_copy, node_to_continue_id, line.voltage, r,
+                #                                    line.name, from_line, covered_nodes))
+                #        return relations
+                #if not Transnet.ref_matches(ref, line.ref):
+                #    continue
                 if node_to_continue_id in covered_nodes:
                     root.debug('Encountered loop - stopping inference for this line')
                     continue
@@ -408,23 +408,22 @@ if __name__ == '__main__':
 
     root.info('Infernece took %s millies', str(datetime.now() - time))
 
-    root.info('CIM model generation started ...')
-    cim_writer = CimWriter(circuits, map_centroid)
-    cim_writer.publish('../results/cim')
-
-    voronoi_partitions = None
+    partition_by_station_dict = None
+    population_by_station_dict = None
     cities = None
-    interpolation_fct = None
     if load_estimation:
         root.info('Start partitioning into Voronoi-partions')
         load_estimator = LoadEstimator(substations, boundary)
-        voronoi_partitions = load_estimator.partition()
+        partition_by_station_dict, population_by_station_dict = load_estimator.partition()
         cities = load_estimator.cities
-        interpolation_fct = load_estimator.interpolation_fct
 
     if topology:
         root.info('Plot inferred transmission system topology')
         plotter = Plotter(voltage_levels)
-        plotter.plot_topology(circuits, boundary, voronoi_partitions, cities, interpolation_fct)
+        plotter.plot_topology(circuits, boundary, partition_by_station_dict, cities)
+
+    root.info('CIM model generation started ...')
+    cim_writer = CimWriter(circuits, map_centroid, population_by_station_dict)
+    cim_writer.publish('../results/cim')
 
     root.info('Took %s millies in total', str(datetime.now() - time))

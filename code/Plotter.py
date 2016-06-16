@@ -3,6 +3,9 @@ from matplotlib import cm
 import numpy as np
 cmap = cm.spectral
 from math import log
+import logging
+
+root = logging.getLogger()
 
 class Plotter:
     color_dict = dict()
@@ -23,16 +26,16 @@ class Plotter:
                     self.thickness_dict[voltage] = 1
                     self.zorder_dict[voltage] = 3
 
-    def plot_topology(self, circuits, boundary, voronoi_partitions, cities, interpolation_fct):
+    def plot_topology(self, circuits, boundary, partition_by_station_dict, cities):
         fig = plt.figure(figsize=(10, 12), facecolor='white')
         ax = plt.subplot(111)
         ax.set_axis_off()
         fig.add_axes(ax)
-        (xmin, ymin, xmax, ymax) = boundary.bounds
-        plt.xlim([xmin, xmax])
-        plt.ylim([ymin, ymax])
 
         if boundary is not None:
+            (xmin, ymin, xmax, ymax) = boundary.buffer(0.5).bounds
+            plt.xlim([xmin, xmax])
+            plt.ylim([ymin, ymax])
             if hasattr(boundary, 'geoms'):
                 for polygon in boundary.geoms:
                     Plotter.plot_polygon(polygon)
@@ -43,39 +46,41 @@ class Plotter:
             plt.plot(circuit.members[0].lon, circuit.members[0].lat, marker='o', markerfacecolor='black', linestyle="None", markersize=2, zorder=10)
             plt.plot(circuit.members[-1].lon, circuit.members[-1].lat, marker='o', markerfacecolor='black',
                      linestyle="None", markersize=2, zorder=10)
+            ax.annotate(circuit.members[0].id, (circuit.members[0].lon, circuit.members[0].lat))
+            ax.annotate(circuit.members[-1].id, (circuit.members[-1].lon, circuit.members[-1].lat))
 
             for line in circuit.members[1:-1]:
                 x,y = line.geom.xy
                 plt.plot(x, y, color=self.color_dict[line.voltage.split(';')[0]], alpha=1,
                         linewidth=self.thickness_dict[line.voltage.split(';')[0]], solid_capstyle='round', zorder=self.zorder_dict[line.voltage.split(';')[0]])
 
-        if voronoi_partitions is not None:
-            for ridge in voronoi_partitions.ridge_vertices:
-                if ridge[0] == -1 or ridge[1] == -1:
-                    continue
-                start_of_ridge = voronoi_partitions.vertices[ridge[0]]
-                end_of_ridge = voronoi_partitions.vertices[ridge[1]]
-                plt.plot(start_of_ridge[0], start_of_ridge[1], marker='o', markerfacecolor='#888888', linestyle="None", markersize=1, zorder=1)
-                plt.plot(end_of_ridge[0], end_of_ridge[1], marker='o', markerfacecolor='#888888', linestyle="None",
-                         markersize=1, zorder=1)
-                plt.plot(*zip(start_of_ridge, end_of_ridge), color='#888888', alpha=1, lw=0.5, zorder=1)
-            plt.plot([], [], color='#888888', lw=0.5, zorder=5, label='Voronoi partitions')
+        if partition_by_station_dict is not None:
+             wkt_partitions = ''
+             for station in partition_by_station_dict.keys():
+                 partition_polygon = partition_by_station_dict[station]
+                 if hasattr(partition_polygon, 'geoms'):
+                     for polygon in partition_polygon:
+                         Plotter.plot_polygon(polygon, '#888888', zorder=2)
+                 else:
+                    Plotter.plot_polygon(partition_polygon, '#888888', zorder=2)
+             plt.plot([], [], color='#888888', lw=0.5, zorder=5, label='Voronoi partitions')
+             root.debug(wkt_partitions)
 
-        if cities is not None:
-            for city in cities:
-                plt.plot(city.lon, city.lat, marker='o', markerfacecolor='#ff0000', linestyle="None",
-                         markersize=log(city.population, 10), zorder=2)
-                if city.population >= 100000:
-                    label = city.name
-                    ax.annotate(label, (city.lon, city.lat))
+        # if cities is not None:
+        #      for city in cities:
+        #          plt.plot(city.lon, city.lat, marker='o', markerfacecolor='#ff0000', linestyle="None",
+        #                  markersize=log(city.population, 10), zorder=2)
+        #          if city.population >= 100000:
+        #              label = city.name
+        #              ax.annotate(label, (city.lon, city.lat))
 
-        if interpolation_fct is not None:
-            tx = np.linspace(xmin, xmax, 500)
-            ty = np.linspace(ymin, ymax, 500)
-            xi, yi = np.meshgrid(tx, ty)
-            pi = interpolation_fct(xi, yi)
-            plt.pcolor(xi, yi, pi)
-            plt.colorbar()
+        #if boundary is not None and interpolation_fct is not None:
+        #    tx = np.linspace(xmin, xmax, 500)
+        #    ty = np.linspace(ymin, ymax, 500)
+        #    xi, yi = np.meshgrid(tx, ty)
+        #    pi = interpolation_fct(xi, yi)
+        #    plt.pcolor(xi, yi, pi)
+        #    plt.colorbar()
 
         plt.plot([], [], marker='o', markerfacecolor='black', linestyle="None", markersize=1, zorder=5, label='station')
         for voltage in self.color_dict.keys():
@@ -87,7 +92,7 @@ class Plotter:
         plt.savefig('../results/topology.png', bbox_inches='tight', pad_inches=0, dpi=600)
 
     @staticmethod
-    def plot_polygon(polygon):
+    def plot_polygon(polygon, color='#cccccc', zorder=1):
         x, y = polygon.exterior.xy
-        plt.plot(x, y, color='#cccccc', alpha=1,
-                 linewidth=2, solid_capstyle='round', zorder=1)
+        plt.plot(x, y, color=color, alpha=1,
+                 linewidth=2, solid_capstyle='round', zorder=zorder)

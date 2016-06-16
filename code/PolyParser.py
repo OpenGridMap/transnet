@@ -1,4 +1,4 @@
-from shapely.geometry import MultiPolygon, Polygon
+from shapely.geometry import MultiPolygon
 
 class PolyParser:
 

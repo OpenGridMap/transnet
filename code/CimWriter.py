@@ -8,6 +8,7 @@ from CIM14.IEC61970.Generation.Production import GeneratingUnit
 from CIM14.IEC61970.Wires import ACLineSegment, EnergyConsumer
 
 from PyCIM import cimwrite
+from LoadEstimator import LoadEstimator
 
 import uuid
 from xml.dom.minidom import parse
@@ -26,6 +27,7 @@ root = logging.getLogger()
 class CimWriter:
     circuits = None
     centroid = None
+    population_by_station_dict = ()
     id = 0
     winding_types = ['primary', 'secondary', 'tertiary']
 
@@ -40,9 +42,10 @@ class CimWriter:
     # cim uuid -> cim connectivity node object
     connectivity_by_uuid_dict = dict()
 
-    def __init__(self, circuits, centroid):
+    def __init__(self, circuits, centroid, population_by_station_dict):
         self.circuits = circuits
         self.centroid = centroid
+        self.population_by_station_dict = population_by_station_dict
 
     def publish(self, file_name):
         self.region.UUID = str(self.uuid())
@@ -223,7 +226,7 @@ class CimWriter:
         if transformer_winding is None or len(transformer_voltage.split(';')) == 1:
             transformer_winding = self.add_transformer_winding(osm_substation_id, transformer_voltage, winding_voltage, transformer)
         connectivity_node = self.connectivity_by_uuid_dict[transformer_winding.UUID]
-        load_response_characteristic = LoadResponseCharacteristic(exponentModel=False, pConstantPower=100000)
+        load_response_characteristic = LoadResponseCharacteristic(exponentModel=False, pConstantPower=LoadEstimator.estimate_load(self.population_by_station_dict[int(osm_substation_id)]))
         load_response_characteristic.UUID = str(self.uuid())
         energy_consumer = EnergyConsumer(name='L_' + osm_substation_id, LoadResponse=load_response_characteristic, BaseVoltage=self.base_voltage(int(winding_voltage)))
         energy_consumer.UUID = str(self.uuid())
