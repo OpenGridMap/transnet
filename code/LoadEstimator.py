@@ -4,7 +4,7 @@ import mysql.connector
 from City import City
 import logging
 from shapely import wkt
-from shapely.geometry import Polygon
+from shapely.geometry import Polygon, Point
 from Plotter import Plotter
 
 root = logging.getLogger()
@@ -40,9 +40,9 @@ class LoadEstimator:
             partition_polygon = Polygon(vertices_coordinates)
             polygons.append(partition_polygon)
             for station in self.stations.values():
-                if station.geom.within(partition_polygon):
-                    partition_by_station_dict[station.id] = partition_polygon.intersection(self.boundary)
-                    population_by_station_dict[station.id] = self.population_of_region(partition_polygon)
+                if Point(station.lon, station.lat).within(partition_polygon):
+                    partition_by_station_dict[str(station.id)] = partition_polygon.intersection(self.boundary)
+                    population_by_station_dict[str(station.id)] = self.population_of_region(partition_polygon)
                     break
         return partition_by_station_dict, population_by_station_dict
 
@@ -158,7 +158,6 @@ class LoadEstimator:
         per_head_power_consumption = 7.381
         load_per_head = (per_head_power_consumption * 1000) / (365 * 24)
         total_load = population * load_per_head
-        print(str(population) + ' * ' + str(load_per_head) + ' = ' + str(total_load))
         return total_load
 
 if __name__=="__main__":

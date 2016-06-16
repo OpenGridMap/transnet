@@ -46,8 +46,8 @@ class Plotter:
             plt.plot(circuit.members[0].lon, circuit.members[0].lat, marker='o', markerfacecolor='black', linestyle="None", markersize=2, zorder=10)
             plt.plot(circuit.members[-1].lon, circuit.members[-1].lat, marker='o', markerfacecolor='black',
                      linestyle="None", markersize=2, zorder=10)
-            ax.annotate(circuit.members[0].id, (circuit.members[0].lon, circuit.members[0].lat))
-            ax.annotate(circuit.members[-1].id, (circuit.members[-1].lon, circuit.members[-1].lat))
+            #ax.annotate(circuit.members[0].id, (circuit.members[0].lon, circuit.members[0].lat))
+            #ax.annotate(circuit.members[-1].id, (circuit.members[-1].lon, circuit.members[-1].lat))
 
             for line in circuit.members[1:-1]:
                 x,y = line.geom.xy
@@ -55,16 +55,15 @@ class Plotter:
                         linewidth=self.thickness_dict[line.voltage.split(';')[0]], solid_capstyle='round', zorder=self.zorder_dict[line.voltage.split(';')[0]])
 
         if partition_by_station_dict is not None:
-             wkt_partitions = ''
              for station in partition_by_station_dict.keys():
                  partition_polygon = partition_by_station_dict[station]
+                 root.debug('Plotting partition of station %s (%s)', str(station), str(partition_polygon))
                  if hasattr(partition_polygon, 'geoms'):
                      for polygon in partition_polygon:
                          Plotter.plot_polygon(polygon, '#888888', zorder=2)
                  else:
                     Plotter.plot_polygon(partition_polygon, '#888888', zorder=2)
              plt.plot([], [], color='#888888', lw=0.5, zorder=5, label='Voronoi partitions')
-             root.debug(wkt_partitions)
 
         # if cities is not None:
         #      for city in cities:

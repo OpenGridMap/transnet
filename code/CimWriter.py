@@ -226,7 +226,8 @@ class CimWriter:
         if transformer_winding is None or len(transformer_voltage.split(';')) == 1:
             transformer_winding = self.add_transformer_winding(osm_substation_id, transformer_voltage, winding_voltage, transformer)
         connectivity_node = self.connectivity_by_uuid_dict[transformer_winding.UUID]
-        load_response_characteristic = LoadResponseCharacteristic(exponentModel=False, pConstantPower=LoadEstimator.estimate_load(self.population_by_station_dict[int(osm_substation_id)]))
+        estimated_load = LoadEstimator.estimate_load(self.population_by_station_dict[str(osm_substation_id)]) if self.population_by_station_dict is not None else 100000
+        load_response_characteristic = LoadResponseCharacteristic(exponentModel=False, pConstantPower=estimated_load)
         load_response_characteristic.UUID = str(self.uuid())
         energy_consumer = EnergyConsumer(name='L_' + osm_substation_id, LoadResponse=load_response_characteristic, BaseVoltage=self.base_voltage(int(winding_voltage)))
         energy_consumer.UUID = str(self.uuid())
