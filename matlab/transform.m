@@ -1,10 +1,11 @@
-function transform()
-
+function transform(destdir)
+    destdir = ['../models/',destdir];
+    fprintf('Parsing cim model ...')
     % simplify cim model to be better readable by MATLAB
-    system('sh preparsescript.sh ../results/cim_pretty.xml matcim.xml')
+    system(['sh preparsescript.sh ',destdir,'/cim_pretty.xml ',destdir,'/matcim.xml'])
 
     % reed cim objects
-    [tree, ~] = xml_read ('matcim.xml');
+    [tree, ~] = xml_read ([destdir,'/matcim.xml']);
     baseVoltages = tree(1).BaseVoltage;
     transformers = tree(1).PowerTransformer;
     substations = tree(1).Substation;
@@ -15,6 +16,7 @@ function transform()
     generators = tree(1).SynchronousMachine;
     generatingUnits = tree(1).GeneratingUnit;
     loads = tree(1).EnergyConsumer;
+    loadResponseCharacteristics = tree(1).LoadResponseCharacteristic;
     locations = tree(1).Location;
     positionPoints = tree(1).PositionPoint;
 
@@ -70,6 +72,9 @@ function transform()
        block = add_block('block_templates/load',[mdl,'/',loads(i).IdentifiedObject_name]);
        loads(i).type = 'load';
        set_param(block, 'NominalVoltage', getBaseVoltage(baseVoltages, loads(i).ConductingEquipment_BaseVoltage.ATTRIBUTE(1).rdf_resource));
+       activePower = getActivePower(loadResponseCharacteristics, loads(i).EnergyConsumer_LoadResponse.ATTRIBUTE(1).rdf_resource);
+       set_param(block, 'ActivePower', activePower);
+       fprintf('Creating load %s with active power %s Watts\n', loads(i).IdentifiedObject_name, num2str(activePower));
        loads(i).block = block;
        loads(i).substation = findSubstationByLoad(substations, loads(i));
        blocks{length(blocks) + 1} = block;
@@ -81,6 +86,7 @@ function transform()
        set_param(block, 'Length', num2str(lines(i).Conductor_length/1000)); % in km
        positionPoint = findPositionPoint(positionPoints, locations, lines(i));
        setLatLonPosition(block, positionPoint.PositionPoint_yPosition, positionPoint.PositionPoint_xPosition, centroidPositionPoint.PositionPoint_yPosition, centroidPositionPoint.PositionPoint_xPosition);
+       set_param(block, 'ForegroundColor', getBaseVoltageColor(getBaseVoltageIndex(baseVoltages, lines(i).ConductingEquipment_BaseVoltage.ATTRIBUTE(1).rdf_resource)))
        lines(i).block = block;
        blocks{length(blocks) + 1} = block;
     end
@@ -114,10 +120,20 @@ function transform()
     
     %modelLocation = get_param(gcs,'location');
     block = add_block('block_templates/powergui',[mdl,'/powergui']);
-    setXYPosition(block, minX, minY *(-1));
+    setXYPosition(block, minX, minY *(-1))
     
-    new_mdl = 'model_complete';
-    save_system(mdl,new_mdl);    
+    % add voltage legend
+    for i = 1:length(baseVoltages)
+        voltage = baseVoltages(i).BaseVoltage_nominalVoltage;
+        color = getBaseVoltageColor(i);
+        block = add_block('block_templates/legend',[mdl,'/',int2str(voltage),' Volts Power Line']);
+        setXYPosition(block, minX, minY *(-1) + 50 * i)
+        set_param(block, 'BackgroundColor', color)
+        set_param(block, 'ForegroundColor', 'black')
+    end
+    
+    new_mdl = 'model';
+    save_system(mdl,[destdir,'/',new_mdl]);    
 end
 
 function addBus(mdl, fromEquipment, toEquipment, voltage, busNo)
@@ -249,6 +265,24 @@ function voltage = getBaseVoltage(baseVoltages, baseVoltageId)
     end
 end
 
+function index = getBaseVoltageIndex(baseVoltages, baseVoltageId)
+    for i = 1:length(baseVoltages)
+        if strcmp(baseVoltages(i).ATTRIBUTE(1).ID, baseVoltageId)
+            index = i;
+            return
+        end
+    end
+end
+
+function activePower = getActivePower(loadCharacteristics, loadCharacteristicId)
+    for i = 1:length(loadCharacteristics)
+        if strcmp(loadCharacteristics(i).ATTRIBUTE(1).ID, loadCharacteristicId)
+            activePower = num2str(loadCharacteristics(i).LoadResponseCharacteristic_pConstantPower);
+            return
+        end
+    end
+end
+
 function isPrimary = isPrimaryWinding(transformerWinding)
     isPrimary = ~isempty(strfind(transformerWinding.TransformerWinding_windingType.ATTRIBUTE(1).rdf_resource, 'primary'));
 end
@@ -373,4 +407,20 @@ function setLoadPositionAndOrientation(load, substation)
     end
     setXYPosition(load.block, substationPosition(1) + xdiff, substationPosition(2) * (-1))
     set_param(load.block, 'Orientation', loadOrientation);
+end
+
+function color = getBaseVoltageColor(voltageIndex)
+    rest = voltageIndex;
+    red = 0;
+    green = 0;
+    if floor(rest / 4) > 0
+        rest = rest - 4;
+        red = 1;
+    end
+    if floor(rest / 2) > 0
+        rest = rest - 2;
+        green = 1;
+    end
+    blue = rest;
+    color = ['[',int2str(red),',',int2str(green),',',int2str(blue),']'];
 end

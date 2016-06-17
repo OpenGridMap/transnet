@@ -42,7 +42,9 @@ class LoadEstimator:
             for station in self.stations.values():
                 if Point(station.lon, station.lat).within(partition_polygon):
                     partition_by_station_dict[str(station.id)] = partition_polygon.intersection(self.boundary)
-                    population_by_station_dict[str(station.id)] = self.population_of_region(partition_polygon)
+                    population_of_region = self.population_of_region(partition_polygon)
+                    root.info('Region of station %s has %s people', str(station.id), str(population_of_region))
+                    population_by_station_dict[str(station.id)] = population_of_region
                     break
         return partition_by_station_dict, population_by_station_dict
 
@@ -146,7 +148,7 @@ class LoadEstimator:
         return cities
 
     def population_of_region(self, region_polygon):
-        population = 0
+        population = 100 # offset
         for city in self.cities:
             if city.geom.within(region_polygon):
                 population += city.population

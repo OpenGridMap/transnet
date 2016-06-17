@@ -14,6 +14,8 @@ from Plotter import Plotter
 from InferenceValidator import InferenceValidator
 from Util import Util
 from LoadEstimator import LoadEstimator
+from os import makedirs
+from os.path import exists
 
 root = logging.getLogger()
 root.setLevel(logging.DEBUG)
@@ -298,6 +300,8 @@ if __name__ == '__main__':
     help="voltage levels in format 'level 1|...|level n', e.g. '220000|380000'")
     parser.add_option("-l", "--loadestimation", action="store_true", dest="load_estimation", \
     help="enable load estimation based on Voronoi partitions")
+    parser.add_option("-d", "--destdir", action="store", dest="destdir", \
+    help="destination of the inference results; results will be stored in directory transnet/models/<destdir>")
 
     
     (options, args) = parser.parse_args()
@@ -315,6 +319,7 @@ if __name__ == '__main__':
     topology = options.topology if options.topology else False
     voltage_levels = options.voltage_levels if options.voltage_levels else '220000|380000'
     load_estimation = options.load_estimation if options.load_estimation else False
+    destdir = '../models/' + options.destdir if options.destdir else '../results'
 
     ch = logging.StreamHandler(sys.stdout)
     if verbose:
@@ -330,6 +335,9 @@ if __name__ == '__main__':
         root.error("Could not connect to database. Please check the values of host,port,user,password, and database name.")
         parser.print_help()
         exit()
+
+    if not exists(destdir):
+        makedirs(destdir)
 
     time = datetime.now()
 
@@ -420,10 +428,10 @@ if __name__ == '__main__':
     if topology:
         root.info('Plot inferred transmission system topology')
         plotter = Plotter(voltage_levels)
-        plotter.plot_topology(circuits, boundary, partition_by_station_dict, cities)
+        plotter.plot_topology(circuits, boundary, partition_by_station_dict, None, destdir)
 
     root.info('CIM model generation started ...')
     cim_writer = CimWriter(circuits, map_centroid, population_by_station_dict)
-    cim_writer.publish('../results/cim')
+    cim_writer.publish(destdir + '/cim')
 
     root.info('Took %s millies in total', str(datetime.now() - time))

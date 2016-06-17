@@ -1,6 +1,5 @@
 import matplotlib.pyplot as plt
 from matplotlib import cm
-import numpy as np
 cmap = cm.spectral
 from math import log
 import logging
@@ -26,7 +25,7 @@ class Plotter:
                     self.thickness_dict[voltage] = 1
                     self.zorder_dict[voltage] = 3
 
-    def plot_topology(self, circuits, boundary, partition_by_station_dict, cities):
+    def plot_topology(self, circuits, boundary, partition_by_station_dict, cities, destdir):
         fig = plt.figure(figsize=(10, 12), facecolor='white')
         ax = plt.subplot(111)
         ax.set_axis_off()
@@ -54,33 +53,36 @@ class Plotter:
                 plt.plot(x, y, color=self.color_dict[line.voltage.split(';')[0]], alpha=1,
                         linewidth=self.thickness_dict[line.voltage.split(';')[0]], solid_capstyle='round', zorder=self.zorder_dict[line.voltage.split(';')[0]])
 
-        if partition_by_station_dict is not None:
-             for station in partition_by_station_dict.keys():
-                 partition_polygon = partition_by_station_dict[station]
-                 root.debug('Plotting partition of station %s (%s)', str(station), str(partition_polygon))
-                 if hasattr(partition_polygon, 'geoms'):
-                     for polygon in partition_polygon:
-                         Plotter.plot_polygon(polygon, '#888888', zorder=2)
-                 else:
-                    Plotter.plot_polygon(partition_polygon, '#888888', zorder=2)
-             plt.plot([], [], color='#888888', lw=0.5, zorder=5, label='Voronoi partitions')
+        if cities is not None:
+             for city in cities:
+                 plt.plot(city.lon, city.lat, marker='o', markerfacecolor='#ff0000', linestyle="None",
+                         markersize=log(city.population, 10), zorder=2)
+                 if city.population >= 100000:
+                     label = city.name
+                     ax.annotate(label, (city.lon, city.lat))
 
-        # if cities is not None:
-        #      for city in cities:
-        #          plt.plot(city.lon, city.lat, marker='o', markerfacecolor='#ff0000', linestyle="None",
-        #                  markersize=log(city.population, 10), zorder=2)
-        #          if city.population >= 100000:
-        #              label = city.name
-        #              ax.annotate(label, (city.lon, city.lat))
-
-        plt.plot([], [], marker='o', markerfacecolor='black', linestyle="None", markersize=1, zorder=5, label='station')
+        plt.plot([], [], marker='o', markerfacecolor='black', linestyle="None", markersize=2, zorder=5, label='station')
         for voltage in self.color_dict.keys():
             label = voltage + 'V'
             plt.plot([], [], color=self.color_dict[voltage], lw=1.3, zorder=5, label=label)
         l = plt.legend(numpoints=1, loc=2)
         l.set_zorder(5)
 
-        plt.savefig('../results/topology.png', bbox_inches='tight', pad_inches=0, dpi=600)
+        plt.savefig(destdir + '/topology.png', bbox_inches='tight', pad_inches=0, dpi=600)
+
+        # Voronoi partitions
+        if partition_by_station_dict is not None:
+            for station in partition_by_station_dict.keys():
+                partition_polygon = partition_by_station_dict[station]
+                root.info('Plotting partition of station %s (%s)', str(station), str(partition_polygon))
+                if hasattr(partition_polygon, 'geoms'):
+                    for polygon in partition_polygon:
+                        Plotter.plot_polygon(polygon, '#888888', zorder=2)
+                else:
+                    Plotter.plot_polygon(partition_polygon, '#888888', zorder=2)
+            plt.plot([], [], color='#888888', lw=2, zorder=5, label='Voronoi partitions')
+            plt.savefig(destdir + '/topology_voronoi.png', bbox_inches='tight', pad_inches=0, dpi=600)
+
 
     @staticmethod
     def plot_polygon(polygon, color='#cccccc', zorder=1):
