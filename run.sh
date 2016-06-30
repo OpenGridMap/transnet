@@ -5,12 +5,12 @@
 matlab='/Applications/MATLAB_R2016a.app/bin/matlab'
 
 # load the appropriate config file
-source 'configs/bayern.conf'
+source "$1"
 
 # run transnet
 cdir=`pwd`
 cd code
-python Transnet.py -p $pfile -D $dname -U $duser -X $dpassword -t -l -d $destdir -V $vlevels
+python Transnet.py -p "../data/$destdir/pfile.poly" -D $dname -U $duser -X $dpassword -t -l -d $destdir -V $vlevels
 cd $cdir
 
 # run matlab
