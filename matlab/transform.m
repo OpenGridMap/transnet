@@ -29,14 +29,18 @@ function transform(destdir)
 
     blocks = {};
     for i = 1:length(transformers)
-       block = add_block('block_templates/transformer',[mdl,'/',transformers(i).IdentifiedObject_name]);
+       numWindings = numWindings(transformerWindings, transformers(i));
+       if numWindings > 2
+           block = add_block('block_templates/transformer3',[mdl,'/',transformers(i).IdentifiedObject_name]);
+       else
+           block = add_block('block_templates/transformer',[mdl,'/',transformers(i).IdentifiedObject_name]);
+       end
        transformers(i).type = 'transformer';
        substation_index = findSubstationByTransformer(substations, transformers(i));
        positionPoint = findPositionPoint(positionPoints, locations, substations(substation_index));
        setLatLonPosition(block, positionPoint.PositionPoint_yPosition, positionPoint.PositionPoint_xPosition, centroidPositionPoint.PositionPoint_yPosition, centroidPositionPoint.PositionPoint_xPosition);
        transformers(i).block = block;
        substations(substation_index).block = block;
-       blocks{length(blocks) + 1} = block;
     end
     
     for i = 1:length(transformerWindings)
@@ -45,6 +49,9 @@ function transform(destdir)
        parameter = 'Winding1';
        if ~isPrimaryWinding(transformerWindings(i)) 
            parameter = 'Winding2';
+           if ~isSecondaryWinding(transformerWindings(i))
+               parameter = 'Winding3';
+           end
        end
        set_param(transformer.block, parameter, ['[',getBaseVoltage(baseVoltages, transformerWindings(i).ConductingEquipment_BaseVoltage.ATTRIBUTE(1).rdf_resource),',0.002,0.08]'])
        transformerWindings(i).block = transformer.block;
@@ -103,7 +110,7 @@ function transform(destdir)
     
     set_param(mdl, 'ZoomFactor', 'FitSystem');
     % find left bottom corner
-    position = get_param(blocks{i}, 'Position');
+    position = get_param(blocks{1}, 'Position');
     minX = position(1);
     minY = position(4);
     for i = 2:length(blocks)
@@ -230,6 +237,15 @@ function transformer = findWindingTransformer(transformerWinding, transformers)
     end
 end
 
+function numWindings = numWindings(transformerWindings, transformer)
+    numWindings = 0;
+    for i = 1:length(transformerWindings)
+        if strcmp(transformer.ATTRIBUTE(1).ID, transformerWindings(i).TransformerWinding_PowerTransformer.ATTRIBUTE(1).rdf_resource)
+            numWindings = numWindings + 1;
+        end
+    end
+end
+
 function handles = getAppropriateHandles(equipment)
     phs = get(equipment.block,'Porthandles');
     if strcmp(equipment.type, 'transformerWinding')
@@ -237,7 +253,12 @@ function handles = getAppropriateHandles(equipment)
         if isPrimaryWinding(transformerWinding)
             handles = phs.LConn;
         else
-            handles = phs.RConn;
+            if isSecondaryWinding(transformerWinding)
+                handles = phs.RConn(1:3);
+            else
+                handles = phs.RConn(4:6);
+            end
+            
         end
     elseif strcmp(equipment.type, 'generator')
         handles = phs.RConn;
@@ -285,6 +306,10 @@ end
 
 function isPrimary = isPrimaryWinding(transformerWinding)
     isPrimary = ~isempty(strfind(transformerWinding.TransformerWinding_windingType.ATTRIBUTE(1).rdf_resource, 'primary'));
+end
+
+function isSecondary = isSecondaryWinding(transformerWinding)
+    isSecondary = ~isempty(strfind(transformerWinding.TransformerWinding_windingType.ATTRIBUTE(1).rdf_resource, 'secondary'));
 end
 
 function positionPoint = findPositionPoint(positionPoints, locations, equipment)

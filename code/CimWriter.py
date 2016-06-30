@@ -118,14 +118,14 @@ class CimWriter:
         else:
             root.debug('Create CIM Substation for OSMID %s', str(osm_substation.id))
             cim_substation = Substation(name='SS_' + str(osm_substation.id), Region=self.region, Location=self.add_location(osm_substation.lat, osm_substation.lon))
-            transformer = PowerTransformer(name='T_' + str(osm_substation.id) + '_' + str(osm_substation.voltage) + '_' + CimWriter.escape_string(osm_substation.name), EquipmentContainer=cim_substation)
+            transformer = PowerTransformer(name='T_' + str(osm_substation.id) + '_' + CimWriter.escape_string(osm_substation.voltage) + '_' + CimWriter.escape_string(osm_substation.name), EquipmentContainer=cim_substation)
             cim_substation.UUID = str(self.uuid())
             transformer.UUID = str(self.uuid())
             self.cimobject_by_uuid_dict[cim_substation.UUID] = cim_substation
             self.cimobject_by_uuid_dict[transformer.UUID] = transformer
             self.uuid_by_osmid_dict[osm_substation.id] = cim_substation.UUID
         if transformer_winding is None:
-            transformer_winding = self.add_transformer_winding(osm_substation.id, osm_substation.voltage, circuit_voltage, transformer)
+            transformer_winding = self.add_transformer_winding(osm_substation.id, int(circuit_voltage), transformer)
         return self.connectivity_by_uuid_dict[transformer_winding.UUID]
 
     def generator_to_cim(self, generator, circuit_voltage):
@@ -166,40 +166,43 @@ class CimWriter:
         terminal2.UUID = str(self.uuid())
         self.cimobject_by_uuid_dict[terminal2.UUID] = terminal2
 
-    def get_winding_type(self, substation_voltage, circuit_voltage, transformer):
-        # is substation a winding station (only one voltage level)?
-        if ';' not in substation_voltage:
-            return self.winding_types[len(transformer.getTransformerWindings())]
-
-        # if substation has more voltage levels
-        i = 0
-        for station_voltage in substation_voltage.split(';'):
-            if station_voltage == circuit_voltage:
-                return self.winding_types[i]
-            i += 1
-        return None
-
     def uuid(self):
         return uuid.uuid1()
 
-    def add_transformer_winding(self, osm_substation_id, osm_substation_voltage, winding_voltage, transformer):
-        transformer_winding = TransformerWinding(name='TW_' + str(osm_substation_id) + '_' + str(winding_voltage),
+    def increase_winding_type(self, winding):
+        index = 0
+        for winding_type in self.winding_types:
+            if winding_type == winding.windingType:
+                winding.windingType = self.winding_types[index + 1]
+                break
+            index += 1
+
+    def add_transformer_winding(self, osm_substation_id, winding_voltage, transformer):
+        new_transformer_winding = TransformerWinding(name='TW_' + str(osm_substation_id) + '_' + str(winding_voltage),
                                                  b=0, x=1.0, r=1.0, connectionType='Yn',
-                                                 windingType=self.get_winding_type(osm_substation_voltage, winding_voltage, transformer),
-                                                 ratedU=int(winding_voltage), ratedS=5000000,
-                                                 PowerTransformer=transformer,
-                                                 BaseVoltage=self.base_voltage(int(winding_voltage)))
-        transformer_winding.UUID = str(self.uuid())
-        self.cimobject_by_uuid_dict[transformer_winding.UUID] = transformer_winding
-        connectivity_node = ConnectivityNode(name='CN_' + str(osm_substation_id) + '_' + winding_voltage)
+                                                 ratedU=winding_voltage, ratedS=5000000,
+                                                 BaseVoltage=self.base_voltage(winding_voltage))
+        # init with primary
+        index = 0
+        for winding in transformer.getTransformerWindings():
+            # already a primary winding with at least as high voltage as the new one
+            if winding.ratedU >= winding_voltage:
+                index += 1
+            else:
+                self.increase_winding_type(winding)
+        new_transformer_winding.windingType = self.winding_types[index]
+        new_transformer_winding.setPowerTransformer(transformer)
+        new_transformer_winding.UUID = str(self.uuid())
+        self.cimobject_by_uuid_dict[new_transformer_winding.UUID] = new_transformer_winding
+        connectivity_node = ConnectivityNode(name='CN_' + str(osm_substation_id) + '_' + str(winding_voltage))
         connectivity_node.UUID = str(self.uuid())
         self.cimobject_by_uuid_dict[connectivity_node.UUID] = connectivity_node
-        terminal = Terminal(ConnectivityNode=connectivity_node, ConductingEquipment=transformer_winding,
+        terminal = Terminal(ConnectivityNode=connectivity_node, ConductingEquipment=new_transformer_winding,
                             sequenceNumber=1)
         terminal.UUID = str(self.uuid())
         self.cimobject_by_uuid_dict[terminal.UUID] = terminal
-        self.connectivity_by_uuid_dict[transformer_winding.UUID] = connectivity_node
-        return transformer_winding
+        self.connectivity_by_uuid_dict[new_transformer_winding.UUID] = connectivity_node
+        return new_transformer_winding
 
     def attach_loads(self):
         for object in self.cimobject_by_uuid_dict.values():
@@ -207,29 +210,35 @@ class CimWriter:
                 transformer = object
                 osm_substation_id = transformer.name.split('_')[1]
                 transformer_voltage = transformer.name.split('_')[2]
-                transformer_voltage_levels = transformer_voltage.split(';')
-                if len(transformer_voltage_levels) >= 2 and int(transformer_voltage_levels[1]) > 0:
-                    transformer_lower_voltage = transformer_voltage_levels[1]
+                if transformer_voltage is None or not transformer_voltage:
+                    transformer_lower_voltage = transformer.getTransformerWindings()[0].ratedU
+                    if len(transformer.getTransformerWindings()) >= 2:
+                        for winding in transformer.getTransformerWindings()[1:-1]:
+                            transformer_lower_voltage = winding.ratedU if winding.ratedU < transformer_lower_voltage else transformer_lower_voltage
                 else:
-                    transformer_lower_voltage = transformer_voltage_levels[0]
+                    transformer_voltage_levels = transformer_voltage.split(';')
+                    if len(transformer_voltage_levels) >= 2 and int(transformer_voltage_levels[-1]) > 0:
+                        transformer_lower_voltage = int(transformer_voltage_levels[-1])
+                    else:
+                        transformer_lower_voltage = int(transformer_voltage_levels[0])
                 self.attach_load(osm_substation_id, transformer_voltage, transformer_lower_voltage, transformer)
 
     def attach_load(self, osm_substation_id, transformer_voltage, winding_voltage, transformer):
         transformer_winding = None
-        winding_voltages = []
-        for winding in transformer.getTransformerWindings():
-            winding_voltages.append(str(winding.ratedU))
-            if int(winding_voltage) == winding.ratedU:
-                transformer_winding = winding
+        if len(transformer.getTransformerWindings()) >= 2:
+            for winding in transformer.getTransformerWindings():
+                if winding_voltage == winding.ratedU:
+                    transformer_winding = winding
+                    break
         # add winding for lower voltage, if not already existing or
         # add winding if substaion is a switching station (only one voltage level)
         if transformer_winding is None or len(transformer_voltage.split(';')) == 1:
-            transformer_winding = self.add_transformer_winding(osm_substation_id, transformer_voltage, winding_voltage, transformer)
+            transformer_winding = self.add_transformer_winding(osm_substation_id, winding_voltage, transformer)
         connectivity_node = self.connectivity_by_uuid_dict[transformer_winding.UUID]
         estimated_load = LoadEstimator.estimate_load(self.population_by_station_dict[str(osm_substation_id)]) if self.population_by_station_dict is not None else 100000
         load_response_characteristic = LoadResponseCharacteristic(exponentModel=False, pConstantPower=estimated_load)
         load_response_characteristic.UUID = str(self.uuid())
-        energy_consumer = EnergyConsumer(name='L_' + osm_substation_id, LoadResponse=load_response_characteristic, BaseVoltage=self.base_voltage(int(winding_voltage)))
+        energy_consumer = EnergyConsumer(name='L_' + osm_substation_id, LoadResponse=load_response_characteristic, BaseVoltage=self.base_voltage(winding_voltage))
         energy_consumer.UUID = str(self.uuid())
         self.cimobject_by_uuid_dict[load_response_characteristic.UUID] = load_response_characteristic
         self.cimobject_by_uuid_dict[energy_consumer.UUID] = energy_consumer

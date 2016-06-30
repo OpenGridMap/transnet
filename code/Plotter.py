@@ -74,7 +74,6 @@ class Plotter:
         if partition_by_station_dict is not None:
             for station in partition_by_station_dict.keys():
                 partition_polygon = partition_by_station_dict[station]
-                root.info('Plotting partition of station %s (%s)', str(station), str(partition_polygon))
                 if hasattr(partition_polygon, 'geoms'):
                     for polygon in partition_polygon:
                         Plotter.plot_polygon(polygon, '#888888', zorder=2)

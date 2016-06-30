@@ -105,6 +105,7 @@ class Transnet:
             if node_to_continue is not None:
                 line.ref = '' if line.ref is None else line.ref
                 if line.id in station.covered_line_ids and not validate:
+                    root.debug('Relation with %s at %s already covered', str(line), str(station))
                     continue
                 root.debug('%s', str(station))
                 root.debug('%s', str(line))
@@ -147,7 +148,9 @@ class Transnet:
                 relation_copy = list(relation)
                 if line.id == from_line.id:
                     continue
+                root.debug('%s', str(line))
                 if not Util.have_common_voltage(voltage, line.voltage):
+                    root.debug('Encountered different voltage - stopping inference for this line')
                     continue
                 #if not ref:
                 #    ref = line.ref
@@ -161,7 +164,6 @@ class Transnet:
                 if node_to_continue_id in covered_nodes:
                     root.debug('Encountered loop - stopping inference for this line')
                     continue
-                root.debug('%s', str(line))
                 relation_copy.append(line)
                 if line.first_node() == node_to_continue_id:
                     node_to_continue = line.last_node()
@@ -182,6 +184,14 @@ class Transnet:
             if node.intersects(station.geom) and Util.have_common_voltage(voltage, station.voltage):
                 return station.id
         return None
+
+    @staticmethod
+    def station_crossed_by_line(station_geom, lines):
+        for line in lines.values():
+            if station_geom.intersects(line.geom):
+                return True
+        return False
+
 
     # returns list of existing relation ids for substation
     def existing_relations(self, station_id):
@@ -357,31 +367,6 @@ if __name__ == '__main__':
     lines = dict()
     substation_points = []
 
-    # create station dictionary by quering only ways (there are almost no node substations for voltage level 110kV and higher)
-    sql = "select osm_id as id, st_transform(way, 4326) as geom, power as type, name, ref, voltage, tags, ST_Y(ST_Transform(ST_Centroid(way),4326)) as lat, ST_X(ST_Transform(ST_Centroid(way),4326)) as lon from planet_osm_polygon where power ~ 'substation|station|sub_station' and voltage ~ '" + voltage_levels + "' and " + where_clause
-    transnet_instance.cur.execute(sql)
-    result = transnet_instance.cur.fetchall()
-    for (id, geom, type, name, ref, voltage, tags, lat, lon) in result:
-        polygon = wkb.loads(geom, hex=True)
-        substations[id] = Station(id, polygon, type, name, ref,
-                                    voltage.replace(',', ';') if voltage is not None else None, None, tags, lat, lon)
-        substation_points.append((lat, lon))
-    root.info('Found %s stations', str(len(result)))
-    map_centroid = MultiPoint(substation_points).centroid
-    logging.debug('Centroid lat:%lf, lon:%lf', map_centroid.x, map_centroid.y)
-
-    # add power plants with area
-    sql = "select osm_id as id, st_transform(way, 4326) as geom, power as type, name, ref, voltage, \"plant:output:electricity\" as output1, \"generator:output:electricity\" as output2, tags, ST_Y(ST_Transform(ST_Centroid(way),4326)) as lat, ST_X(ST_Transform(ST_Centroid(way),4326)) as lon from planet_osm_polygon where power ~ 'plant|generator' and " + where_clause
-    transnet_instance.cur.execute(sql)
-    result = transnet_instance.cur.fetchall()
-    for (id, geom, type, name, ref, voltage, output1, output2, tags, lat, lon) in result:
-        polygon = wkb.loads(geom, hex=True)
-        generators[id] = Station(id, polygon, type, name, ref,
-                                    voltage.replace(',', ';') if voltage is not None else None, None, tags, lat, lon)
-        generators[id].nominal_power = Transnet.parse_power(
-            output1) if output1 is not None else Transnet.parse_power(output2)
-    root.info('Found %s generators', str(len(result)))
-
     # create lines dictionary
     sql = "select l.osm_id as id, st_transform(create_line(osm_id), 4326) as geom, way as srs_geom, l.power as type, l.name, l.ref, l.voltage, l.cables, w.nodes, w.tags, st_transform(create_point(w.nodes[1]), 4326) as first_node_geom, st_transform(create_point(w.nodes[array_length(w.nodes, 1)]), 4326) as last_node_geom, ST_Y(ST_Transform(ST_Centroid(way),4326)) as lat, ST_X(ST_Transform(ST_Centroid(way),4326)) as lon from planet_osm_line l, planet_osm_ways w where l.power ~ 'line|cable|minor_line' and voltage ~ '" + voltage_levels + "' and l.osm_id = w.id and " + where_clause
     transnet_instance.cur.execute(sql)
@@ -399,6 +384,33 @@ if __name__ == '__main__':
                               voltage.replace(',', ';') if voltage is not None else None, cables, nodes, tags, lat, lon,
                               end_points_geom_dict)
     root.info('Found %s lines', str(len(result)))
+
+    # create station dictionary by quering only ways (there are almost no node substations for voltage level 110kV and higher)
+    sql = "select osm_id as id, st_transform(way, 4326) as geom, power as type, name, ref, voltage, tags, ST_Y(ST_Transform(ST_Centroid(way),4326)) as lat, ST_X(ST_Transform(ST_Centroid(way),4326)) as lon from planet_osm_polygon where power ~ 'substation|station|sub_station' and (voltage ~ '" + voltage_levels + "' or (voltage = '') is not false) and " + where_clause
+    transnet_instance.cur.execute(sql)
+    result = transnet_instance.cur.fetchall()
+    for (id, geom, type, name, ref, voltage, tags, lat, lon) in result:
+        polygon = wkb.loads(geom, hex=True)
+        if Transnet.station_crossed_by_line(polygon, lines):
+            substations[id] = Station(id, polygon, type, name, ref,
+                                        voltage.replace(',', ';') if voltage is not None else None, None, tags, lat, lon)
+            substation_points.append((lat, lon))
+    root.info('Found %s stations', str(len(substation_points)))
+    map_centroid = MultiPoint(substation_points).centroid
+    logging.debug('Centroid lat:%lf, lon:%lf', map_centroid.x, map_centroid.y)
+
+    # add power plants with area
+    sql = "select osm_id as id, st_transform(way, 4326) as geom, power as type, name, ref, voltage, \"plant:output:electricity\" as output1, \"generator:output:electricity\" as output2, tags, ST_Y(ST_Transform(ST_Centroid(way),4326)) as lat, ST_X(ST_Transform(ST_Centroid(way),4326)) as lon from planet_osm_polygon where power ~ 'plant|generator' and " + where_clause
+    transnet_instance.cur.execute(sql)
+    result = transnet_instance.cur.fetchall()
+    for (id, geom, type, name, ref, voltage, output1, output2, tags, lat, lon) in result:
+        polygon = wkb.loads(geom, hex=True)
+        if Transnet.station_crossed_by_line(polygon, lines):
+            generators[id] = Station(id, polygon, type, name, ref,
+                                        voltage.replace(',', ';') if voltage is not None else None, None, tags, lat, lon)
+            generators[id].nominal_power = Transnet.parse_power(
+                output1) if output1 is not None else Transnet.parse_power(output2)
+    root.info('Found %s generators', str(len(generators)))
 
     if boundary is not None:
         circuits = Transnet.create_relations_of_region(substations, generators, lines)
