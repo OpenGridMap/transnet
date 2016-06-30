@@ -1,4 +1,6 @@
 function transform(destdir)
+    slCharacterEncoding('UTF-8')
+    
     destdir = ['../models/',destdir];
     fprintf('Parsing cim model ...')
     % simplify cim model to be better readable by MATLAB
@@ -19,7 +21,7 @@ function transform(destdir)
     loadResponseCharacteristics = tree(1).LoadResponseCharacteristic;
     locations = tree(1).Location;
     positionPoints = tree(1).PositionPoint;
-
+    
     mdl = 'model';
     close_system('model');
     open(mdl);
@@ -140,7 +142,8 @@ function transform(destdir)
     end
     
     new_mdl = 'model';
-    save_system(mdl,[destdir,'/',new_mdl]);    
+    save_system(mdl,[destdir,'/',new_mdl]);
+    Simulink.exportToVersion(mdl,[destdir,'/',new_mdl,'_compatible.mdl'],'R2010A');
 end
 
 function addBus(mdl, fromEquipment, toEquipment, voltage, busNo)
