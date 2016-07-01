@@ -45,13 +45,13 @@ class Transnet:
 
     @staticmethod
     def determine_circuit_voltage(relation):
-        if ';' not in relation[1].voltage:
+        if ';' not in relation[1].voltage and relation[1].voltage is not None:
             return relation[1].voltage
-        if ';' not in relation[len(relation) - 2].voltage:
-            return relation[len(relation) - 2].voltage
+        if ';' not in relation[-2].voltage and relation[2].voltage is not None:
+            return relation[-2].voltage
         for line in relation[1:len(relation) - 1]:
-            if ';' not in line.voltage:
-                return voltage;
+            if ';' not in line.voltage and line.voltage is not None:
+                return line.voltage;
         first_voltage = relation[1].voltage.split(';')[0]
         root.warning('Could not determine exact voltage: Using voltage %s of %s', first_voltage, relation[1].voltage)
         return first_voltage

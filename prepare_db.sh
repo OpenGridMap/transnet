@@ -1,7 +1,9 @@
 #!/bin/sh
 
-# load the appropriate config file
-source "$1"
+if [ "$#" -ne 0 ]; then
+  # load the appropriate config file
+  source "$1"
+fi
 
 mkdir -p "data/$destdir"
 
@@ -40,4 +42,4 @@ osmosis --read-pbf file="data/$destdir/power_extract1.pbf" --read-pbf file="data
 osmosis --read-pbf file="data/$destdir/power_extract12.pbf" --read-pbf file="data/$destdir/power_extract3.pbf" --merge --write-pbf file="data/$destdir/power_extract.pbf"
 
 # import to postgresql database
-osm2pgsql -r pbf --username=$duser -d $dname -k -s -C 6000 -v --host='localhost' --port='5432' --password --style util/power.style "data/$destdir/power_extract.pbf"
+osm2pgsql -r pbf --username=$duser -d $dname -k -s -C 6000 -v --host='localhost' --port='5432' --style util/power.style "data/$destdir/power_extract.pbf"

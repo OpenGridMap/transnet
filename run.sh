@@ -4,8 +4,10 @@
 # configure the right matlab binary direction
 matlab='/Applications/MATLAB_R2016a.app/bin/matlab'
 
-# load the appropriate config file
-source "$1"
+if [ "$#" -ne 0 ]; then
+  # load the appropriate config file
+  source "$1"
+fi
 
 mkdir -p "logs/$destdir"
 
