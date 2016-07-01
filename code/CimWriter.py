@@ -54,6 +54,7 @@ class CimWriter:
         self.add_location(self.centroid.x, self.centroid.y, is_center=True)
 
         covered_connections = []
+        distinct_lines = set()
         for circuit in self.circuits:
             station1 = circuit.members[0]
             station2 = circuit.members[len(circuit.members) - 1]
@@ -83,12 +84,17 @@ class CimWriter:
             for line_wsg84 in circuit.members[1:-1]:
                 lines_wsg84.append(line_wsg84.geom)
                 lines_srs.append(line_wsg84.srs_geom)
+                distinct_lines.add(line_wsg84)
             line_wsg84 = linemerge(lines_wsg84)
             line_srs = linemerge(lines_srs)
             root.debug('Map line from (%lf,%lf) to (%lf,%lf) with length %s meters', station1.geom.centroid.y, station1.geom.centroid.x, station2.geom.centroid.y, station2.geom.centroid.x, str(line_srs.length))
             self.line_to_cim(connectivity_node1, connectivity_node2, line_srs.length, circuit.name, circuit.voltage, line_wsg84.centroid.y, line_wsg84.centroid.x)
             covered_connections.append(str(station1.id) + str(station2.id) + str(circuit.voltage))
 
+        total_line_length = 0
+        for line in distinct_lines:
+            total_line_length += line.srs_geom.length
+        root.info('The inferred net\'s length is %s meters', str(total_line_length))
         self.attach_loads()
 
         cimwrite(self.cimobject_by_uuid_dict, file_name + '.xml', encoding='utf-8')

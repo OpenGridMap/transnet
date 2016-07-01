@@ -1,6 +1,3 @@
-import sys
-import logging
-
 class Circuit:
     members = None
     voltage = None
