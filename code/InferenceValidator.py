@@ -10,14 +10,14 @@ class InferenceValidator:
     def __init__(self, cur):
         self.cur = cur
 
-    def validate(self, ssid, circuits, boundary):
+    def validate(self, ssid, circuits, boundary, voltage_levels):
         num_stations = self.num_stations(circuits)
         logging.info('In total %d stations covered with the inference', num_stations)
         sql = "select distinct(unnest(get_stations(r.parts))) from planet_osm_rels r, planet_osm_polygon s1"
         sql += ", planet_osm_polygon s2" if boundary is not None else ""
-        sql += " where s1.osm_id = " + str(ssid) + " and s1.power ~ 'substation|station|sub_station' and s1.voltage ~ '220000|380000' and ARRAY[s1.osm_id]::bigint[] <@ r.parts"
+        sql += " where s1.osm_id = " + str(ssid) + " and s1.power ~ 'substation|station|sub_station' and s1.voltage ~ '" + voltage_levels + "' and ARRAY[s1.osm_id]::bigint[] <@ r.parts"
         if boundary is not None:
-            sql += " and (s2.power ~ 'substation|station|sub_station' and s2.voltage ~ '220000|380000' or s2.power ~ 'generator|plant') and ARRAY[s2.osm_id]::bigint[] <@ r.parts and st_within(s2.way, st_transform(st_geomfromtext('" + boundary.wkt + "',4269),900913))"
+            sql += " and (s2.power ~ 'substation|station|sub_station' and s2.voltage ~ '220000|380000' or s2.power ~ 'generator|plant') and ARRAY[s2.osm_id]::bigint[] <@ r.parts and st_within(s2.way, st_transform(st_geomfromtext('" + boundary.wkt + "',4269),3857))"
         self.cur.execute(sql)
         result = self.cur.fetchall()
         if not result:
@@ -38,11 +38,11 @@ class InferenceValidator:
         logging.info('Not hit stations: %s', str(not_hit_stations))
         return hits * 1.0 / len(result)
 
-    def validate2(self, circuits, boundary):
+    def validate2(self, circuits, boundary, voltage_levels):
         logging.info("Starting inference validation")
         sql = "select id, get_stations(r.parts), hstore(r.tags)->'voltage' from planet_osm_rels r, planet_osm_polygon s1, planet_osm_polygon s2"
-        sql += " where (s1.power ~ 'substation|station|sub_station' and s1.voltage ~ '220000|380000' or s1.power ~ 'generator|plant') and ARRAY[s1.osm_id]::bigint[] <@ r.parts and st_within(s1.way, st_transform(st_geomfromtext('" + boundary.wkt + "',4269),900913))"
-        sql += " and (s2.power ~ 'substation|station|sub_station' and s2.voltage ~ '220000|380000' or s2.power ~ 'generator|plant') and ARRAY[s2.osm_id]::bigint[] <@ r.parts and st_within(s2.way, st_transform(st_geomfromtext('" + boundary.wkt + "',4269),900913))"
+        sql += " where (s1.power ~ 'substation|station|sub_station' and s1.voltage ~ '" + voltage_levels +"' or s1.power ~ 'generator|plant') and ARRAY[s1.osm_id]::bigint[] <@ r.parts and st_within(s1.way, st_transform(st_geomfromtext('" + boundary.wkt + "',4269),3857))"
+        sql += " and (s2.power ~ 'substation|station|sub_station' and s2.voltage ~ '" + voltage_levels + "' or s2.power ~ 'generator|plant') and ARRAY[s2.osm_id]::bigint[] <@ r.parts and st_within(s2.way, st_transform(st_geomfromtext('" + boundary.wkt + "',4269),3857))"
         sql += " and s1.osm_id <> s2.osm_id"
         print(sql)
         self.cur.execute(sql)

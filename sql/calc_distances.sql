@@ -13,7 +13,7 @@ BEGIN
  FOR curr_pole_id IN (select unnest(nodes) from planet_osm_ways where id = 35076222) LOOP
 	RAISE NOTICE '%', curr_pole_id;
 
-	curr_pole_geom = (select ST_SetSRID(ST_MakePoint(lon/100.0,lat/100.0),900913) from planet_osm_nodes where id = curr_pole_id);
+	curr_pole_geom = (select ST_SetSRID(ST_MakePoint(lon/100.0,lat/100.0),3857) from planet_osm_nodes where id = curr_pole_id);
 	if prev_determined = 1 then
 		curr_distance = st_distance(prev_pole_geom, curr_pole_geom);
 		RAISE NOTICE '%', curr_distance;

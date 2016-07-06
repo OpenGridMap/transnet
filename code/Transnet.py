@@ -449,13 +449,6 @@ if __name__ == '__main__':
     map_centroid = MultiPoint(substation_points).centroid
     logging.debug('Centroid lat:%lf, lon:%lf', map_centroid.x, map_centroid.y)
 
-    if validate:
-        validator = InferenceValidator(transnet_instance.cur)
-        if boundary is not None:
-            validator.validate2(all_circuits, boundary)
-        else:
-            validator.validate(ssid, all_circuits, None)
-
     root.info('Infernece took %s millies', str(datetime.now() - time))
 
     partition_by_station_dict = None
@@ -475,5 +468,12 @@ if __name__ == '__main__':
     root.info('CIM model generation started ...')
     cim_writer = CimWriter(all_circuits, map_centroid, population_by_station_dict, voltage_levels)
     cim_writer.publish(destdir + '/cim')
+
+    if validate:
+        validator = InferenceValidator(transnet_instance.cur)
+        if boundary is not None:
+            validator.validate2(all_circuits, boundary)
+        else:
+            validator.validate(ssid, all_circuits, None)
 
     root.info('Took %s in total', str(datetime.now() - time))
