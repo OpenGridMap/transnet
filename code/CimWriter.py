@@ -28,6 +28,7 @@ class CimWriter:
     circuits = None
     centroid = None
     population_by_station_dict = ()
+    voltage_levels = None
     id = 0
     winding_types = ['primary', 'secondary', 'tertiary']
 
@@ -42,10 +43,11 @@ class CimWriter:
     # cim uuid -> cim connectivity node object
     connectivity_by_uuid_dict = dict()
 
-    def __init__(self, circuits, centroid, population_by_station_dict):
+    def __init__(self, circuits, centroid, population_by_station_dict, voltage_levels):
         self.circuits = circuits
         self.centroid = centroid
         self.population_by_station_dict = population_by_station_dict
+        self.voltage_levels = voltage_levels
 
     def publish(self, file_name):
         self.region.UUID = str(self.uuid())
@@ -53,13 +55,10 @@ class CimWriter:
 
         self.add_location(self.centroid.x, self.centroid.y, is_center=True)
 
-        covered_connections = []
-        distinct_lines = set()
+        total_line_length = 0
         for circuit in self.circuits:
             station1 = circuit.members[0]
-            station2 = circuit.members[len(circuit.members) - 1]
-            if str(station1.id) + str(station2.id) + str(circuit.voltage) in covered_connections or str(station2.id) + str(station1.id) + str(circuit.voltage) in covered_connections:
-                continue
+            station2 = circuit.members[-1]
 
             if 'station' in station1.type:
                 connectivity_node1 = self.substation_to_cim(station1, circuit.voltage)
@@ -80,21 +79,17 @@ class CimWriter:
                 continue
 
             lines_wsg84 = []
-            lines_srs = []
+            line_length = 0
             for line_wsg84 in circuit.members[1:-1]:
                 lines_wsg84.append(line_wsg84.geom)
-                lines_srs.append(line_wsg84.srs_geom)
-                distinct_lines.add(line_wsg84)
+                line_length += line_wsg84.length
             line_wsg84 = linemerge(lines_wsg84)
-            line_srs = linemerge(lines_srs)
-            root.debug('Map line from (%lf,%lf) to (%lf,%lf) with length %s meters', station1.geom.centroid.y, station1.geom.centroid.x, station2.geom.centroid.y, station2.geom.centroid.x, str(line_srs.length))
-            self.line_to_cim(connectivity_node1, connectivity_node2, line_srs.length, circuit.name, circuit.voltage, line_wsg84.centroid.y, line_wsg84.centroid.x)
-            covered_connections.append(str(station1.id) + str(station2.id) + str(circuit.voltage))
+            total_line_length += line_length
+            root.debug('Map line from (%lf,%lf) to (%lf,%lf) with length %s meters', station1.geom.centroid.y, station1.geom.centroid.x, station2.geom.centroid.y, station2.geom.centroid.x, str(line_length))
+            self.line_to_cim(connectivity_node1, connectivity_node2, line_length, circuit.name, circuit.voltage, line_wsg84.centroid.y, line_wsg84.centroid.x)
 
-        total_line_length = 0
-        for line in distinct_lines:
-            total_line_length += line.srs_geom.length
         root.info('The inferred net\'s length is %s meters', str(total_line_length))
+
         self.attach_loads()
 
         cimwrite(self.cimobject_by_uuid_dict, file_name + '.xml', encoding='utf-8')
