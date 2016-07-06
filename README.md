@@ -14,7 +14,26 @@ The Transnet project consists of a set of Python and Matlab scripts for the auto
 |Psycopg2|2.6.1|Python module for PostgreSQL support|
 |PyCIM|15.13.4|Python module for CIM modeling|
 
-## Setup Transnet Project:
+## Setup Transnet Project (Ubuntu 12.04):
+Checkout the Transnet project:
+```
+git clone https://github.com/OpenGridMap/transnet transnet
+```
+### Setup Python With Conda
+```
+# create transnet environment
+conda create --name transnet shapely
+# install required python packages
+conda install --name transnet psycopg2
+conda install -c auto PyCIM
+conda install --name transnet scipy
+conda install --name transnet -c anaconda mysql-connector-python
+conda install --name transnet matplotlib
+conda install --name transnet gdal
+# switch to transnet workspace
+source activate transnet
+```
+### Setup Python Without Conda (on Ubuntu)
 Transnet requires Python-2.7, which can be installed as follows:
 ```
 sudo apt-get install python-2.7
@@ -24,12 +43,8 @@ http://qgis.org/en/site/forusers/alldownloads.html#linux
 
 A few additional Python packages have to be installed:
 ```
-sudo apt-get install python-psycopg2 python-shapely
+sudo apt-get install python-psycopg2 python-shapely scipy mysql-connector matplotlib gdal
 easy_install PyCIM
-```
-Finally checkout the Transnet project:
-```
-git clone https://github.com/OpenGridMap/transnet transnet
 ```
 
 ## Data Preparation
@@ -139,7 +154,7 @@ sudo make install
 ```
 Import data extract from above into database:
 ```
-osm2pgsql -r pbf --username='postgres' -d power_de -k -s -C 6000 -v --host='localhost' --port='5432' --password --style transnet/util/power.style Downloads/power_extract.pbf
+osm2pgsql -r pbf --username='postgres' -d power_de -E 3857 -k -s -C 6000 -v --host='localhost' --port='5432' --password --style transnet/util/power.style Downloads/power_extract.pbf
 ```
 If you are having problems with the maximal connection configuration like
 ```
