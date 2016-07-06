@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # launch a complete Transnet run
 
 # configure the right matlab binary direction

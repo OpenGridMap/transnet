@@ -1,13 +1,13 @@
-#!/bin/sh
+#!/bin/bash
 # launch a complete Transnet run
 
 # select continent
-curl -s "http://download.geofabrik.de" | grep '<td class="subregion"' | sed -E 's/.*<a href="\.\/([-a-z]*)\.html.*<\/a><\/td>/\1/g'
+wget -qO- "http://download.geofabrik.de" | grep '<td class="subregion"' | sed -E 's/.*<a href="\.\/([-a-z]*)\.html.*<\/a><\/td>/\1/g'
 echo 'Please enter the high-level region you want to do the inference for:'
 read continent
 
 # select country
-curl -s "http://download.geofabrik.de/$continent.html" | grep -e '<tr onMouseOver=.*<td class="subregion"' | sed -E 's/.*<a href="([-a-z]*\/)?([-a-z]*).html">([-A-Za-z \(\)\,]*)<\/a><\/td>/\2 (\3)/g'
+wget -qO- "http://download.geofabrik.de/$continent.html" | grep -e '<tr onMouseOver=.*<td class="subregion"' | sed -E 's/.*<a href="([-a-z]*\/)?([-a-z]*).html">([-A-Za-z \(\)\,]*)<\/a><\/td>/\2 (\3)/g'
 echo 'Please enter the region you want to do the inference for:'
 read country
 
