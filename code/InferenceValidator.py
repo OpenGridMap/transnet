@@ -48,7 +48,7 @@ class InferenceValidator:
         self.cur.execute(sql)
         result = self.cur.fetchall()
         num_eligible_relations = len(result)
-        hits = 0;
+        hits = 0
         not_hit_connections = []
         covered_relations = []
         for (id, stations, voltage) in result:

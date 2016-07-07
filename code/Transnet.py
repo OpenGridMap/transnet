@@ -104,9 +104,9 @@ class Transnet:
                 covered_nodes = [line.last_node()]
             if node_to_continue is not None:
                 line.ref = '' if line.ref is None else line.ref
-                # if line.id in station.covered_line_ids and not validate:
-                #     root.debug('Relation with %s at %s already covered', str(line), str(station))
-                #     continue
+                if line.id in station.covered_line_ids and not validate:
+                    root.debug('Relation with %s at %s already covered', str(line), str(station))
+                    continue
                 root.debug('%s', str(station))
                 root.debug('%s', str(line))
                 station.covered_line_ids.append(line.id)
@@ -131,14 +131,10 @@ class Transnet:
         elif station_id and station_id != start_station.id: # if a node is within another station --> FOUND THE 2nd ENDPOINT
             station = stations[station_id]
             root.debug('%s', str(station))
-            # if from_line.id in station.covered_line_ids and not validate:
-            #     root.debug('Relation with %s at %s already covered', str(from_line), str(station))
-            #     return []
-            if from_line.id in station.covered_stations_by_start_line and station.covered_stations_by_start_line[from_line.id] == start_station.id and not validate:
-                root.debug('Relation from %s to %s at line %s already covered', str(start_station.id), str(station.id), str(from_line))
+            if from_line.id in station.covered_line_ids and not validate:
+                root.debug('Relation with %s at %s already covered', str(from_line), str(station))
                 return []
             station.covered_line_ids.append(from_line.id)
-            station.covered_stations_by_start_line[from_line.id] = start_station.id
             relation.append(station)
             root.debug('Could obtain relation')
             return [list(relation)]
@@ -155,15 +151,6 @@ class Transnet:
                 if not Util.have_common_voltage(voltage, line.voltage):
                     root.debug('Encountered different voltage - stopping inference for this line')
                     continue
-                #if not ref:
-                #    ref = line.ref
-                #    if ref:
-                #        for r in ref.split(';'):
-                #            relations.extend(Transnet.infer_relation(stations, lines, relation_copy, node_to_continue_id, line.voltage, r,
-                #                                    line.name, from_line, covered_nodes))
-                #        return relations
-                #if not Transnet.ref_matches(ref, line.ref):
-                #    continue
                 if node_to_continue_id in covered_nodes:
                     root.debug('Encountered loop - stopping inference for this line')
                     continue
@@ -222,16 +209,6 @@ class Transnet:
                 close_components[component.id] = component
         return close_components
 
-    # compares the ref/name tokens like 303;304 in the power line tags
-    @staticmethod
-    def ref_matches(circuit_ref, line_ref):
-        if line_ref is None:
-            return True
-        for r in line_ref.split(';'):
-            if Transnet.have_equal_characters(r.strip(), circuit_ref):
-                return True
-        return False
-
     # sometimes refs are modeled with 12A or A12, which is the same
     @staticmethod
     def have_equal_characters(str1, str2):
@@ -244,7 +221,7 @@ class Transnet:
     def parse_power(power_string):
         if power_string is None:
             return None
-        power_string = power_string.replace(',', '.')
+        power_string = power_string.replace(',', '.').replace('W', '')
         try:
             if 'k' in power_string:
                 tokens = power_string.split('k')
@@ -265,7 +242,7 @@ class Transnet:
                 tokens = power_string.split('G')
                 return float(tokens[0].strip()) * 1000000000
             else:
-                return float(power_string)
+                return float(power_string.strip())
         except ValueError:
             root.debug('Could not extract power from string %s', power_string)
             return None
@@ -286,9 +263,12 @@ class Transnet:
         root.info('Remove duplicates from %s circuits', str(len(circuits)))
         covered_connections = []
         filtered_circuits = []
+        total_line_length = 0
         for circuit in circuits:
             station1 = circuit.members[0]
             station2 = circuit.members[- 1]
+            for line in circuit.members[1:-1]:
+                total_line_length += line.length
             if str(station1.id) + str(station2.id) + str(circuit.voltage) in covered_connections or str(
                     station2.id) + str(
                     station1.id) + str(circuit.voltage) in covered_connections:
@@ -296,6 +276,7 @@ class Transnet:
             covered_connections.append(str(station1.id) + str(station2.id) + str(circuit.voltage))
             filtered_circuits.append(circuit)
         root.info('%s circuits remain', str(len(filtered_circuits)))
+        root.info('Line length with duplicates is %s meters', str(total_line_length))
         return filtered_circuits
 
 if __name__ == '__main__':
@@ -472,8 +453,8 @@ if __name__ == '__main__':
     if validate:
         validator = InferenceValidator(transnet_instance.cur)
         if boundary is not None:
-            validator.validate2(all_circuits, boundary)
+            validator.validate2(all_circuits, boundary, voltage_levels)
         else:
-            validator.validate(ssid, all_circuits, None)
+            validator.validate(ssid, all_circuits, voltage_levels)
 
     root.info('Took %s in total', str(datetime.now() - time))
