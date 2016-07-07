@@ -103,8 +103,7 @@ class Transnet:
                 node_to_continue = line.first_node()
                 covered_nodes = [line.last_node()]
             if node_to_continue is not None:
-                line.ref = '' if line.ref is None else line.ref
-                if line.id in station.covered_line_ids and not validate:
+                if line.id in station.covered_line_ids:
                     root.debug('Relation with %s at %s already covered', str(line), str(station))
                     continue
                 root.debug('%s', str(station))
@@ -131,7 +130,7 @@ class Transnet:
         elif station_id and station_id != start_station.id: # if a node is within another station --> FOUND THE 2nd ENDPOINT
             station = stations[station_id]
             root.debug('%s', str(station))
-            if from_line.id in station.covered_line_ids and not validate:
+            if from_line.id in station.covered_line_ids:
                 root.debug('Relation with %s at %s already covered', str(from_line), str(station))
                 return []
             station.covered_line_ids.append(from_line.id)
@@ -366,7 +365,6 @@ if __name__ == '__main__':
 
         # create lines dictionary
         sql = "select l.osm_id as id, st_transform(create_line(l.osm_id), 4326) as geom, l.way as srs_geom, l.power as type, l.name, l.ref, l.voltage, l.cables, w.nodes, w.tags, st_transform(create_point(w.nodes[1]), 4326) as first_node_geom, st_transform(create_point(w.nodes[array_length(w.nodes, 1)]), 4326) as last_node_geom, ST_Y(ST_Transform(ST_Centroid(l.way),4326)) as lat, ST_X(ST_Transform(ST_Centroid(l.way),4326)) as lon, st_length(st_transform(l.way, 4326), true) as spheric_length from planet_osm_line l, planet_osm_ways w where l.osm_id >= 0 and l.power ~ 'line|cable|minor_line' and l.voltage ~ '" + voltage_level + "' and l.osm_id = w.id and " + where_clause
-        print sql
         transnet_instance.cur.execute(sql)
         result = transnet_instance.cur.fetchall()
         for (id, geom, srs_geom, type, name, ref, voltage, cables, nodes, tags, first_node_geom, last_node_geom, lat, lon, length) in result:
