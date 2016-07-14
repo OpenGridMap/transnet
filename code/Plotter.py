@@ -55,11 +55,11 @@ class Plotter:
 
         if cities is not None:
              for city in cities:
-                 plt.plot(city.lon, city.lat, marker='o', markerfacecolor='#ff0000', linestyle="None",
-                         markersize=log(city.population, 10), zorder=2)
-                 if city.population >= 100000:
-                     label = city.name
-                     ax.annotate(label, (city.lon, city.lat))
+                if city.geom.within(boundary):
+                    plt.plot(city.lon, city.lat, marker='o', markerfacecolor='#ff0000', linestyle="None", markersize=log(city.population, 10), zorder=2)
+                    if city.population >= 200000 and 'DEUTSCHLAND' not in city.name:
+                        label = city.name
+                        ax.annotate(label, (city.lon, city.lat))
 
         plt.plot([], [], marker='o', markerfacecolor='black', linestyle="None", markersize=2, zorder=5, label='station')
         for voltage in self.color_dict.keys():
