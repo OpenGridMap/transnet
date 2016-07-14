@@ -154,7 +154,7 @@ class Transnet:
                 if line.id == from_line.id:
                     continue
                 root.debug('%s', str(line))
-                if line.first_node() == node_to_continue_id:
+                if from_line.end_point_dict[node_to_continue_id].intersects(line.end_point_dict[line.first_node()]):
                     new_node_to_continue_id = line.last_node()
                 else:
                     new_node_to_continue_id = line.first_node()
