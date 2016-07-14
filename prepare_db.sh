@@ -19,7 +19,7 @@ fi
 if [ ! -z ${pfile_url+x} ]
   then
         echo "Downloading $pfile_url"
-        wget "pfile_url" -O "data/$destdir/pfile.poly"
+        wget "$pfile_url" -O "data/$destdir/pfile.poly"
         pfile="data/$destdir/pfile.poly"
   else
 	echo "Using poly file $pfile"
