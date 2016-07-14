@@ -217,6 +217,7 @@ class CimWriter:
                         for winding in transformer.getTransformerWindings()[1:-1]:
                             transformer_lower_voltage = winding.ratedU if winding.ratedU < transformer_lower_voltage else transformer_lower_voltage
                 else:
+                    transformer_voltage = transformer_voltage.replace(';fixme','') # Ukraine fix
                     transformer_voltage_levels = transformer_voltage.split(';')
                     if len(transformer_voltage_levels) >= 2 and int(transformer_voltage_levels[-1]) > 0:
                         transformer_lower_voltage = int(transformer_voltage_levels[-1])

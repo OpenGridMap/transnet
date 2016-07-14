@@ -26,6 +26,8 @@ validator = None
 
 class Transnet:
 
+    covered_nodes = None
+
     def __init__(self, database, user, host, port, password):
         self.connection = {'database':database, 'user':user, 'host':host, 'port':port}
         self.connect_to_DB(password)
@@ -101,14 +103,14 @@ class Transnet:
         # find lines that cross the station's area - note that the end point of the line has to be within the substation for valid crossing
         relations = []
         for line in lines.values():
-            node_to_continue = None
+            node_to_continue_id = None
             if Transnet.node_in_any_station(line.end_point_dict[line.first_node()], [station]):
-                node_to_continue = line.last_node()
-                covered_nodes = [line.first_node()]
+                node_to_continue_id = line.last_node()
             elif Transnet.node_in_any_station(line.end_point_dict[line.last_node()], [station]):
-                node_to_continue = line.first_node()
-                covered_nodes = [line.last_node()]
-            if node_to_continue is not None:
+                node_to_continue_id = line.first_node()
+            if node_to_continue_id is not None:
+                Transnet.covered_nodes = set(line.nodes)
+                Transnet.covered_nodes.remove(node_to_continue_id)
                 if line.id in station.covered_line_ids:
                     root.debug('Relation with %s at %s already covered', str(line), str(station))
                     continue
@@ -118,7 +120,7 @@ class Transnet:
                 # init new circuit
                 relation = [station, line]
                 relations.extend(
-                    Transnet.infer_relation(stations, lines, relation, node_to_continue, line, covered_nodes))
+                    Transnet.infer_relation(stations, lines, relation, node_to_continue_id, line))
         return relations
 
     # recursive function that infers electricity circuits
@@ -126,12 +128,12 @@ class Transnet:
     # line - line of circuit
     # stations - all known stations
     @staticmethod
-    def infer_relation(stations, lines, relation, node_to_continue_id, from_line, covered_nodes):
+    def infer_relation(stations, lines, relation, node_to_continue_id, from_line):
         relation = list(relation) # make a copy
         start_station = relation[0]
         station_id = Transnet.node_in_any_station(from_line.end_point_dict[node_to_continue_id], stations.values())
         if station_id and station_id == start_station.id: # if node to continue is at the starting station --> LOOP
-            root.debug('Encountered loop')
+            root.debug('Encountered loop: %s', Transnet.to_overpass_string(relation))
             return []
         elif station_id and station_id != start_station.id: # if a node is within another station --> FOUND THE 2nd ENDPOINT
             station = stations[station_id]
@@ -149,25 +151,36 @@ class Transnet:
         relations = []
         for line in lines.values():
             if from_line.end_point_dict[node_to_continue_id].intersects(line.geom):
-                relation_copy = list(relation)
                 if line.id == from_line.id:
                     continue
                 root.debug('%s', str(line))
-                if node_to_continue_id in covered_nodes:
-                    root.debug('Encountered loop - stopping inference for this line')
-                    continue
-                relation_copy.append(line)
                 if line.first_node() == node_to_continue_id:
-                    node_to_continue = line.last_node()
+                    new_node_to_continue_id = line.last_node()
                 else:
-                    node_to_continue = line.first_node()
-                covered_nodes_new = list(covered_nodes)
-                covered_nodes_new.append(node_to_continue_id)
-                relations.extend(Transnet.infer_relation(stations, lines, relation_copy, node_to_continue, line, covered_nodes_new))
+                    new_node_to_continue_id = line.first_node()
+                if new_node_to_continue_id in Transnet.covered_nodes:
+                    relation.append(line)
+                    root.debug('Encountered loop - stopping inference at line (%s): %s', str(line.id),
+                               Transnet.to_overpass_string(relation))
+                    relation.remove(line)
+                    Transnet.covered_nodes.update(line.nodes)
+                    continue
+                relation_copy = list(relation)
+                relation_copy.append(line)
+                Transnet.covered_nodes.update(line.nodes)
+                Transnet.covered_nodes.remove(new_node_to_continue_id)
+                relations.extend(Transnet.infer_relation(stations, lines, relation_copy, new_node_to_continue_id, line))
 
         if not relations:
             root.debug('Could not obtain circuit')
         return relations
+
+    @staticmethod
+    def to_overpass_string(relation):
+        overpass = ''
+        for member in relation:
+            overpass += 'way(' + str(member.id) + ');'
+        return overpass
 
     # returns if node is in station
     @staticmethod
