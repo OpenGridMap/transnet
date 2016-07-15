@@ -210,6 +210,7 @@ class CimWriter:
             if isinstance(object, PowerTransformer):
                 transformer = object
                 osm_substation_id = transformer.name.split('_')[1]
+                root.info('Attach load to substation %s', osm_substation_id)
                 transformer_voltage = transformer.name.split('_')[2]
                 if transformer_voltage is None or not transformer_voltage:
                     transformer_lower_voltage = transformer.getTransformerWindings()[0].ratedU
