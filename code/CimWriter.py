@@ -217,13 +217,26 @@ class CimWriter:
                         for winding in transformer.getTransformerWindings()[1:-1]:
                             transformer_lower_voltage = winding.ratedU if winding.ratedU < transformer_lower_voltage else transformer_lower_voltage
                 else:
-                    transformer_voltage = transformer_voltage.replace(';fixme','') # Ukraine fix
-                    transformer_voltage_levels = transformer_voltage.split(';')
-                    if len(transformer_voltage_levels) >= 2 and int(transformer_voltage_levels[-1]) > 0:
-                        transformer_lower_voltage = int(transformer_voltage_levels[-1])
+                    transformer_voltage_levels = CimWriter.get_valid_voltage_levels(transformer_voltage)
+                    if len(transformer_voltage_levels) >= 2:
+                        transformer_lower_voltage = transformer_voltage_levels[-1]
                     else:
-                        transformer_lower_voltage = int(transformer_voltage_levels[0])
+                        transformer_lower_voltage = transformer_voltage_levels[0]
                 self.attach_load(osm_substation_id, transformer_voltage, transformer_lower_voltage, transformer)
+
+    @staticmethod
+    def get_valid_voltage_levels(voltage_string):
+        voltage_levels = []
+        voltage_level_candidates = voltage_string.split(';')
+        # restrict to at most 3 windings
+        for voltage_level_candidate in voltage_level_candidates[:3]:
+            try:
+                voltage_level = int(voltage_level_candidate)
+            except ValueError:
+                continue
+            voltage_levels.append(voltage_level)
+        return voltage_levels
+
 
     def attach_load(self, osm_substation_id, transformer_voltage, winding_voltage, transformer):
         transformer_winding = None
