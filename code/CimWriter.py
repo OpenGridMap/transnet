@@ -102,7 +102,7 @@ class CimWriter:
         for match in matches:
             pretty_xml_as_string = pretty_xml_as_string.replace(match, unichr(int(match[2:len(match)], 16)))
         pretty_file = io.open(file_name + '_pretty.xml', 'w', encoding='utf8')
-        pretty_file.write(pretty_xml_as_string)
+        pretty_file.write(unicode(pretty_xml_as_string))
         pretty_file.close()
 
     def substation_to_cim(self, osm_substation, circuit_voltage):
@@ -211,35 +211,17 @@ class CimWriter:
                 transformer = object
                 osm_substation_id = transformer.name.split('_')[1]
                 root.info('Attach load to substation %s', osm_substation_id)
-                transformer_voltage = transformer.name.split('_')[2]
-                if transformer_voltage is None or not transformer_voltage:
-                    transformer_lower_voltage = transformer.getTransformerWindings()[0].ratedU
-                    if len(transformer.getTransformerWindings()) >= 2:
-                        for winding in transformer.getTransformerWindings()[1:-1]:
-                            transformer_lower_voltage = winding.ratedU if winding.ratedU < transformer_lower_voltage else transformer_lower_voltage
-                else:
-                    transformer_voltage_levels = CimWriter.get_valid_voltage_levels(transformer_voltage)
-                    if len(transformer_voltage_levels) >= 2:
-                        transformer_lower_voltage = transformer_voltage_levels[-1]
-                    else:
-                        transformer_lower_voltage = transformer_voltage_levels[0]
-                self.attach_load(osm_substation_id, transformer_voltage, transformer_lower_voltage, transformer)
+                transformer_lower_voltage = CimWriter.determine_load_voltage(transformer)
+                self.attach_load(osm_substation_id, transformer_lower_voltage, transformer)
 
     @staticmethod
-    def get_valid_voltage_levels(voltage_string):
-        voltage_levels = []
-        voltage_level_candidates = voltage_string.split(';')
-        # restrict to at most 3 windings
-        for voltage_level_candidate in voltage_level_candidates[:3]:
-            try:
-                voltage_level = int(voltage_level_candidate)
-            except ValueError:
-                continue
-            voltage_levels.append(voltage_level)
-        return voltage_levels
+    def determine_load_voltage(transformer):
+        transformer_lower_voltage = transformer.getTransformerWindings()[0].ratedU
+        for winding in transformer.getTransformerWindings():
+            transformer_lower_voltage = winding.ratedU if winding.ratedU < transformer_lower_voltage else transformer_lower_voltage
+        return transformer_lower_voltage
 
-
-    def attach_load(self, osm_substation_id, transformer_voltage, winding_voltage, transformer):
+    def attach_load(self, osm_substation_id, winding_voltage, transformer):
         transformer_winding = None
         if len(transformer.getTransformerWindings()) >= 2:
             for winding in transformer.getTransformerWindings():
@@ -248,7 +230,7 @@ class CimWriter:
                     break
         # add winding for lower voltage, if not already existing or
         # add winding if substaion is a switching station (only one voltage level)
-        if transformer_winding is None or len(transformer_voltage.split(';')) == 1:
+        if transformer_winding is None:
             transformer_winding = self.add_transformer_winding(osm_substation_id, winding_voltage, transformer)
         connectivity_node = self.connectivity_by_uuid_dict[transformer_winding.UUID]
         estimated_load = LoadEstimator.estimate_load(self.population_by_station_dict[str(osm_substation_id)]) if self.population_by_station_dict is not None else 100000

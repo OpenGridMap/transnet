@@ -23,7 +23,7 @@ function transform(destdir)
     positionPoints = tree(1).PositionPoint;
     
     mdl = 'model';
-    close_system('model');
+    close_system('model', 0);
     open(mdl);
     
     centroidPositionPoint = findCentroidPositionPoint(positionPoints);
@@ -65,7 +65,8 @@ function transform(destdir)
        voltage = getBaseVoltage(baseVoltages, generators(i).ConductingEquipment_BaseVoltage.ATTRIBUTE(1).rdf_resource);
        set_param(block, 'Voltage', voltage);
        set_param(block, 'BaseVoltage', voltage);
-       if isprop(generators(i), 'SynchronousMachine_ratedS')  
+       generator = generators(i);
+       if isfield(generators(i), 'SynchronousMachine_ratedS')  
            nominalPower = generators(i).SynchronousMachine_ratedS;
            if ~isempty(nominalPower) && isnumeric(nominalPower)
               set_param(block, 'Pref', num2str(nominalPower)); 
@@ -367,7 +368,7 @@ function substation = findSubstationByLoad(substations, load)
 end
 
 function setLatLonPosition(block, lat, lon, latCenter, lonCenter)
-   [x,y] = Spherical2AzimuthalEquidistant((lat), (lon), latCenter, lonCenter, 10000, 10000, 400000);
+   [x,y] = Spherical2AzimuthalEquidistant((lat), (lon), latCenter, lonCenter, 0, 0, 400000);
    setXYPosition(block, x, y);
 end
 
