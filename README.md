@@ -39,16 +39,12 @@ Create a PostGIS-enabled database template:
 ```
 sudo -u postgres createdb -U postgres -h localhost transnet_template
 sudo -u postgres psql -d transnet_template -U postgres -q -h localhost -c "CREATE EXTENSION postgis;"
-sudo -u postgres psql -d transnet_template -U postgres -h localhost -f transnet/sql/transnet_functions.sql
 sudo -u postgres psql -d transnet_template -U postgres -q -h localhost -c "CREATE EXTENSION hstore;"
-```
-Create a database using the template:
-```
-sudo -u postgres psql -U postgres -d transnet_template -h localhost -c "CREATE DATABASE power_de WITH TEMPLATE = transnet_template;"
+sudo -u postgres psql -d transnet_template -U postgres -h localhost -f transnet/sql/transnet_functions.sql
 ```
 ## Data Preparation
-The data is filtered for power-relevant data by the tool _osmosis_ and the import to the PostgreSQL database is done with the tool osm2pgsql.
-Install the tool osmosis:
+The data is filtered for power-relevant data by the _osmosis_ tool and the import to the PostgreSQL database is done with the _osm2pgsql_ tool.
+Install the tool _osmosis_:
 ```
 sudo apt-get install osmosis
 ```
