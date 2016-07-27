@@ -19,7 +19,7 @@ source activate transnet
 conda install psycopg2
 conda install -c auto PyCIM
 conda install scipy
-conda install -c anaconda mysql-connector-python
+conda install -c anaconda mysql-connector-python=2.0.3
 conda install matplotlib
 conda install gdal
 ```
