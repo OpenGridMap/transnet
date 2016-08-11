@@ -42,9 +42,9 @@ class Plotter:
                 Plotter.plot_polygon(boundary)
 
         for circuit in circuits:
-            plt.plot(circuit.members[0].lon, circuit.members[0].lat, marker='o', markerfacecolor='black', linestyle="None", markersize=2, zorder=10)
+            plt.plot(circuit.members[0].lon, circuit.members[0].lat, marker='o', markerfacecolor='black', linestyle="None", markersize=5, zorder=10)
             plt.plot(circuit.members[-1].lon, circuit.members[-1].lat, marker='o', markerfacecolor='black',
-                     linestyle="None", markersize=2, zorder=10)
+                     linestyle="None", markersize=5, zorder=10)
             #ax.annotate(circuit.members[0].id, (circuit.members[0].lon, circuit.members[0].lat))
             #ax.annotate(circuit.members[-1].id, (circuit.members[-1].lon, circuit.members[-1].lat))
 
@@ -61,7 +61,7 @@ class Plotter:
                         label = city.name
                         ax.annotate(label, (city.lon, city.lat))
 
-        plt.plot([], [], marker='o', markerfacecolor='black', linestyle="None", markersize=2, zorder=5, label='station')
+        plt.plot([], [], marker='o', markerfacecolor='black', linestyle="None", markersize=5, zorder=5, label='station')
         for voltage in self.color_dict.keys():
             label = voltage + 'V'
             plt.plot([], [], color=self.color_dict[voltage], lw=1.3, zorder=5, label=label)
