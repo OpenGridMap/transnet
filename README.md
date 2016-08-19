@@ -83,7 +83,7 @@ Finally, for the execution of Transnet (later on) you can choose from various ar
 Once the config file is ready, prepare the database with the following command:
 ```
 cd transnet
-./prepared_db.sh configs/austria.conf
+./prepare_db.sh configs/austria.conf
 ```
 Note: The execution will request you for the database password once again. If you want to disable such requests, specify a .passfile in your home directory according to https://www.postgresql.org/docs/9.1/static/libpq-pgpass.html.
 

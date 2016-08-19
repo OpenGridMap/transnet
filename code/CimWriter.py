@@ -34,7 +34,7 @@ class CimWriter:
 
     base_voltages_dict = dict()
 
-    region = SubGeographicalRegion(Region=GeographicalRegion(name='DE'))
+    region = SubGeographicalRegion(Region=GeographicalRegion(name='EU'))
 
     # osm id -> cim uuid
     uuid_by_osmid_dict = dict()
@@ -155,7 +155,7 @@ class CimWriter:
             self.cimobject_by_uuid_dict[generating_unit.UUID] = generating_unit
             self.cimobject_by_uuid_dict[synchronous_machine.UUID] = synchronous_machine
             self.uuid_by_osmid_dict[generator.id] = generating_unit.UUID
-            connectivity_node = ConnectivityNode(name='CN' + str(generator.id))
+            connectivity_node = ConnectivityNode(name='CN_' + str(generator.id) + '_' + circuit_voltage)
             connectivity_node.UUID = str(self.uuid())
             self.cimobject_by_uuid_dict[connectivity_node.UUID] = connectivity_node
             terminal = Terminal(ConnectivityNode=connectivity_node, ConductingEquipment=synchronous_machine,

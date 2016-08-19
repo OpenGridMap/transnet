@@ -13,7 +13,8 @@ read country
 
 export ddump_url="http://download.geofabrik.de/$continent/$country-latest.osm.pbf"
 export pfile_url="http://download.geofabrik.de/$continent/$country.poly"
-export dname="$country"
+dname=`echo $country | tr - _`
+export dname="$dname"
 export destdir="$country"
 
 echo "Please specify the voltage levels in Volts you want to do the inference for, e.g. '220000|380000'"
