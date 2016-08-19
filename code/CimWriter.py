@@ -1,5 +1,5 @@
-
-from CIM14.ENTSOE.Equipment.Core import BaseVoltage, GeographicalRegion, SubGeographicalRegion, ConnectivityNode, Terminal
+from CIM14.ENTSOE.Equipment.Core import BaseVoltage, GeographicalRegion, SubGeographicalRegion, ConnectivityNode, \
+    Terminal
 from CIM14.ENTSOE.Equipment.Wires import PowerTransformer, SynchronousMachine, TransformerWinding
 from CIM14.ENTSOE.Equipment.LoadModel import LoadResponseCharacteristic
 from CIM14.IEC61968.Common import Location, PositionPoint
@@ -85,8 +85,10 @@ class CimWriter:
                 line_length += line_wsg84.length
             line_wsg84 = linemerge(lines_wsg84)
             total_line_length += line_length
-            root.debug('Map line from (%lf,%lf) to (%lf,%lf) with length %s meters', station1.geom.centroid.y, station1.geom.centroid.x, station2.geom.centroid.y, station2.geom.centroid.x, str(line_length))
-            self.line_to_cim(connectivity_node1, connectivity_node2, line_length, circuit.name, circuit.voltage, line_wsg84.centroid.y, line_wsg84.centroid.x)
+            root.debug('Map line from (%lf,%lf) to (%lf,%lf) with length %s meters', station1.geom.centroid.y,
+                       station1.geom.centroid.x, station2.geom.centroid.y, station2.geom.centroid.x, str(line_length))
+            self.line_to_cim(connectivity_node1, connectivity_node2, line_length, circuit.name, circuit.voltage,
+                             line_wsg84.centroid.y, line_wsg84.centroid.x)
 
         root.info('The inferred net\'s length is %s meters', str(total_line_length))
 
@@ -110,16 +112,20 @@ class CimWriter:
         if self.uuid_by_osmid_dict.has_key(osm_substation.id):
             root.debug('Substation with OSMID %s already covered', str(osm_substation.id))
             cim_substation = self.cimobject_by_uuid_dict[self.uuid_by_osmid_dict[osm_substation.id]]
-            transformer = cim_substation.getEquipments()[0] # TODO check if there is actually one equipment
+            transformer = cim_substation.getEquipments()[0]  # TODO check if there is actually one equipment
             for winding in transformer.getTransformerWindings():
                 if int(circuit_voltage) == winding.ratedU:
-                    root.debug('Transformer of Substation with OSMID %s already has winding for voltage %s', str(osm_substation.id), circuit_voltage)
+                    root.debug('Transformer of Substation with OSMID %s already has winding for voltage %s',
+                               str(osm_substation.id), circuit_voltage)
                     transformer_winding = winding
                     break
         else:
             root.debug('Create CIM Substation for OSMID %s', str(osm_substation.id))
-            cim_substation = Substation(name='SS_' + str(osm_substation.id), Region=self.region, Location=self.add_location(osm_substation.lat, osm_substation.lon))
-            transformer = PowerTransformer(name='T_' + str(osm_substation.id) + '_' + CimWriter.escape_string(osm_substation.voltage) + '_' + CimWriter.escape_string(osm_substation.name), EquipmentContainer=cim_substation)
+            cim_substation = Substation(name='SS_' + str(osm_substation.id), Region=self.region,
+                                        Location=self.add_location(osm_substation.lat, osm_substation.lon))
+            transformer = PowerTransformer(name='T_' + str(osm_substation.id) + '_' + CimWriter.escape_string(
+                osm_substation.voltage) + '_' + CimWriter.escape_string(osm_substation.name),
+                                           EquipmentContainer=cim_substation)
             cim_substation.UUID = str(self.uuid())
             transformer.UUID = str(self.uuid())
             self.cimobject_by_uuid_dict[cim_substation.UUID] = cim_substation
@@ -135,11 +141,15 @@ class CimWriter:
             generating_unit = self.cimobject_by_uuid_dict[self.uuid_by_osmid_dict[generator.id]]
         else:
             root.debug('Create CIM Generator for OSMID %s', str(generator.id))
-            generating_unit = GeneratingUnit(name='G_' + str(generator.id), maxOperatingP=generator.nominal_power, minOperatingP=0,
-                                             nominalP='' if generator.nominal_power is None else generator.nominal_power, Location=self.add_location(generator.lat, generator.lon))
-            synchronous_machine = SynchronousMachine(name='G_' + str(generator.id) + '_' + CimWriter.escape_string(generator.name), operatingMode='generator', qPercent=0, x=0.01,
-                                                     r=0.01, ratedS='' if generator.nominal_power is None else generator.nominal_power, type='generator',
-                                                     GeneratingUnit=generating_unit, BaseVoltage=self.base_voltage(int(circuit_voltage)))
+            generating_unit = GeneratingUnit(name='G_' + str(generator.id), maxOperatingP=generator.nominal_power,
+                                             minOperatingP=0,
+                                             nominalP='' if generator.nominal_power is None else generator.nominal_power,
+                                             Location=self.add_location(generator.lat, generator.lon))
+            synchronous_machine = SynchronousMachine(
+                name='G_' + str(generator.id) + '_' + CimWriter.escape_string(generator.name),
+                operatingMode='generator', qPercent=0, x=0.01,
+                r=0.01, ratedS='' if generator.nominal_power is None else generator.nominal_power, type='generator',
+                GeneratingUnit=generating_unit, BaseVoltage=self.base_voltage(int(circuit_voltage)))
             generating_unit.UUID = str(self.uuid())
             synchronous_machine.UUID = str(self.uuid())
             self.cimobject_by_uuid_dict[generating_unit.UUID] = generating_unit
@@ -156,8 +166,11 @@ class CimWriter:
         return self.connectivity_by_uuid_dict[generating_unit.UUID]
 
     def line_to_cim(self, connectivity_node1, connectivity_node2, length, name, circuit_voltage, lat, lon):
-        line = ACLineSegment(name=CimWriter.escape_string(name) + '_' + connectivity_node1.name + '_' + connectivity_node2.name, bch=0, r=0.3257, x=0.3153, r0=0.5336,
-                             x0=0.88025, length=length, BaseVoltage=self.base_voltage(int(circuit_voltage)), Location=self.add_location(lat, lon))
+        line = ACLineSegment(
+            name=CimWriter.escape_string(name) + '_' + connectivity_node1.name + '_' + connectivity_node2.name, bch=0,
+            r=0.3257, x=0.3153, r0=0.5336,
+            x0=0.88025, length=length, BaseVoltage=self.base_voltage(int(circuit_voltage)),
+            Location=self.add_location(lat, lon))
         line.UUID = str(self.uuid())
         self.cimobject_by_uuid_dict[line.UUID] = line
         terminal1 = Terminal(ConnectivityNode=connectivity_node1, ConductingEquipment=line, sequenceNumber=1)
@@ -180,9 +193,9 @@ class CimWriter:
 
     def add_transformer_winding(self, osm_substation_id, winding_voltage, transformer):
         new_transformer_winding = TransformerWinding(name='TW_' + str(osm_substation_id) + '_' + str(winding_voltage),
-                                                 b=0, x=1.0, r=1.0, connectionType='Yn',
-                                                 ratedU=winding_voltage, ratedS=5000000,
-                                                 BaseVoltage=self.base_voltage(winding_voltage))
+                                                     b=0, x=1.0, r=1.0, connectionType='Yn',
+                                                     ratedU=winding_voltage, ratedS=5000000,
+                                                     BaseVoltage=self.base_voltage(winding_voltage))
         # init with primary
         index = 0
         for winding in transformer.getTransformerWindings():
@@ -233,10 +246,12 @@ class CimWriter:
         if transformer_winding is None:
             transformer_winding = self.add_transformer_winding(osm_substation_id, winding_voltage, transformer)
         connectivity_node = self.connectivity_by_uuid_dict[transformer_winding.UUID]
-        estimated_load = LoadEstimator.estimate_load(self.population_by_station_dict[str(osm_substation_id)]) if self.population_by_station_dict is not None else 100000
+        estimated_load = LoadEstimator.estimate_load(self.population_by_station_dict[str(
+            osm_substation_id)]) if self.population_by_station_dict is not None else 100000
         load_response_characteristic = LoadResponseCharacteristic(exponentModel=False, pConstantPower=estimated_load)
         load_response_characteristic.UUID = str(self.uuid())
-        energy_consumer = EnergyConsumer(name='L_' + osm_substation_id, LoadResponse=load_response_characteristic, BaseVoltage=self.base_voltage(winding_voltage))
+        energy_consumer = EnergyConsumer(name='L_' + osm_substation_id, LoadResponse=load_response_characteristic,
+                                         BaseVoltage=self.base_voltage(winding_voltage))
         energy_consumer.UUID = str(self.uuid())
         self.cimobject_by_uuid_dict[load_response_characteristic.UUID] = load_response_characteristic
         self.cimobject_by_uuid_dict[energy_consumer.UUID] = energy_consumer
@@ -268,7 +283,6 @@ class CimWriter:
         location.UUID = str(self.uuid())
         self.cimobject_by_uuid_dict[location.UUID] = location
         return location
-
 
     @staticmethod
     def convert_mercator_to_wgs84(mercLat, mercLon):

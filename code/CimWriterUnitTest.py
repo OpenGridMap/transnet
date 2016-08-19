@@ -4,7 +4,6 @@ from CIM14.ENTSOE.Equipment.Wires import PowerTransformer, TransformerWinding
 
 
 class CimWriterUnitTest(unittest.TestCase):
-
     def test_determine_load_voltage(self):
         tw1 = TransformerWinding(ratedU=380000)
         tw2 = TransformerWinding(ratedU=220000)

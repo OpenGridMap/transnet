@@ -2,7 +2,7 @@
 # launch a complete Transnet run
 
 # configure the right matlab binary direction
-matlab='/Applications/MATLAB_R2016a.app/bin/matlab'
+matlab='/usr/local/MATLAB/R2016a/bin/matlab'
 
 if [ "$#" -ne 0 ]; then
   # load the appropriate config file
