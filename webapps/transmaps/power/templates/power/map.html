@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% load staticfiles %}
+
+
+{% block styles %}
+    <link href="{% static "bower_components/leaflet/dist/leaflet.css" %}" rel="stylesheet">
+    <link href="{% static "css/maps.css" %}" rel="stylesheet">
+{% endblock styles %}
+
+
+{% block content %}
+
+    <h1 class="map-header">Grids Extracted by TransNet</h1>
+
+    <div class="map-container">
+        <div id="trans-map" data-lines-url="{% url 'lines' %}" data-stations-url="{% url 'stations' %}"></div>
+    </div>
+{% endblock content %}
+
+
+{% block scripts %}
+    <script src="{% static "bower_components/leaflet/dist/leaflet.js" %}"></script>
+     <script src="{% static "js/maps.js" %}"></script>
+{% endblock scripts %}

@@ -1,1 +1,10 @@
-﻿select * from (select osm_id, distance_between_stations(osm_id) as distance, line_distance_between_stations(osm_id) as line_distance, voltage from _analysis_rels WHERE num_stations = 2 and incomplete = 'no') m where distance is not null and line_distance is not null and distance > 0 and line_distance > 0 and (voltage = 110000 or voltage = 220000 or voltage = 380000 or voltage = 400000)
+﻿SELECT *
+FROM (SELECT
+        osm_id,
+        distance_between_stations(osm_id)      AS distance,
+        line_distance_between_stations(osm_id) AS line_distance,
+        voltage
+      FROM _analysis_rels
+      WHERE num_stations = 2 AND incomplete = 'no') m
+WHERE distance IS NOT NULL AND line_distance IS NOT NULL AND distance > 0 AND line_distance > 0 AND
+      (voltage = 110000 OR voltage = 220000 OR voltage = 380000 OR voltage = 400000)
