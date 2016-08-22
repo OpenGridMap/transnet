@@ -10,51 +10,50 @@ $(document).ready(function () {
         id: 'mapbox.streets'
     }).addTo(trans_map)
 
-    var layer1 = L.geoJson()
-    var layer2 = L.geoJson()
 
-    trans_map.addLayer(layer1)
-    trans_map.addLayer(layer2)
+    function onEachFeature(feature, layer) {
+        if (feature.properties) {
+            var popUpContent = 'name : ' + feature.properties.name + '<br>'
+                + 'voltage : ' + feature.properties.voltage + '<br>'
+                + 'lon : ' + feature.properties.lon + '<br>'
+                + 'lat : ' + feature.properties.lat + '<br>'
+                + 'type : ' + feature.properties.power_type + '<br>'
 
-    var popup = L.popup();
-
-    layer1.on('click', onMapClick);
-
-    function onMapClick(e) {
-        console.log(e)
-        popup
-            .setLatLng(e.latlng)
-            .setContent("You clicked the map at " + e.latlng.toString())
-            .openOn(trans_map);
+            layer.bindPopup(popUpContent);
+        }
     }
 
     $.getJSON(map_div.data('lines-url'), function (data) {
-        layer1.addData(data)
-        layer1.setStyle(function (feature) {
-            switch (feature.properties.voltage) {
-                case '400000':
-                    return {color: "#ff8533"}
-                case '380000':
-                    return {color: "#ffd633"}
-                case '275000':
-                    return {color: "#3399ff"}
-                case '22000':
-                    return {color: "#009933"}
+        L.geoJson(data, {
+            onEachFeature: onEachFeature,
+            style: function (feature) {
+                switch (feature.properties.voltage) {
+                    case '400000':
+                        return {color: "#ff8533"}
+                    case '380000':
+                        return {color: "#ffd633"}
+                    case '275000':
+                        return {color: "#3399ff"}
+                    case '22000':
+                        return {color: "#009933"}
+                }
             }
-        })
-
+        }).addTo(trans_map)
     })
 
     $.getJSON(map_div.data('stations-url'), function (data) {
-        layer2.addData(data)
-        layer2.setStyle(function (feature) {
-            switch (feature.properties.power_type) {
-                case 'substation':
-                    return {color: "#e60000"}
-                case 'generator':
-                    return {color: "#ff0000"}
+        L.geoJson(data, {
+            onEachFeature: onEachFeature,
+            style: function (feature) {
+                switch (feature.properties.power_type) {
+                    case 'substation':
+                        return {color: "#e60000"}
+                    case 'generator':
+                        return {color: "#ff0000"}
+                }
             }
-        })
+        }).addTo(trans_map)
     })
+
 })
 
