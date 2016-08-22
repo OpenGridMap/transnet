@@ -29,13 +29,13 @@ $(document).ready(function () {
             style: function (feature) {
                 switch (feature.properties.voltage) {
                     case '400000':
-                        return {color: "#ff8533"}
+                        return {color: "#990033"}
                     case '380000':
-                        return {color: "#ffd633"}
+                        return {color: "#333300"}
                     case '275000':
-                        return {color: "#3399ff"}
+                        return {color: "#000066"}
                     case '22000':
-                        return {color: "#009933"}
+                        return {color: "#660066"}
                 }
             }
         }).addTo(trans_map)
