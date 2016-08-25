@@ -33,7 +33,7 @@ class Transnet:
 
     def __init__(self, database, export_database, user, host, port, password):
         self.connection = {'database': database, 'user': user, 'host': host, 'port': port}
-        self.export_connection = {'database': export_database, 'user': user, 'host': host, 'port': port}
+        #self.export_connection = {'database': export_database, 'user': user, 'host': host, 'port': port}
         self.connect_to_DB(password)
 
     def get_connection_data(self):
@@ -42,8 +42,8 @@ class Transnet:
     def connect_to_DB(self, password):
         self.conn = psycopg2.connect(password=password, **self.connection)
         self.cur = self.conn.cursor()
-        self.conn_export = psycopg2.connect(password=password, **self.export_connection)
-        self.cur_export = self.conn_export.cursor()
+        #self.conn_export = psycopg2.connect(password=password, **self.export_connection)
+        #self.cur_export = self.conn_export.cursor()
 
     def reconnect_to_DB(self):
         msg = "Please enter the database password for \n\t database=%s, user=%s, host=%s, port=%port \nto reconnect to the database: " \
@@ -429,7 +429,7 @@ if __name__ == '__main__':
     all_circuits = []
     all_substations = dict()
     all_generators = dict()
-    substation_points = []
+    equipment_points = []
     length_found_lines = 0
 
     for voltage_level in voltage_levels.split('|'):
@@ -441,7 +441,6 @@ if __name__ == '__main__':
 
         # create lines dictionary
         sql = "SELECT l.osm_id AS id, st_transform(create_line(l.osm_id), 4326) AS geom, l.way AS srs_geom, l.power AS type, l.name, l.ref, l.voltage, l.cables, w.nodes, w.tags, st_transform(create_point(w.nodes[1]), 4326) AS first_node_geom, st_transform(create_point(w.nodes[array_length(w.nodes, 1)]), 4326) AS last_node_geom, ST_Y(ST_Transform(ST_Centroid(l.way),4326)) AS lat, ST_X(ST_Transform(ST_Centroid(l.way),4326)) AS lon, st_length(st_transform(l.way, 4326), TRUE) AS spheric_length FROM planet_osm_line l, planet_osm_ways w WHERE l.osm_id >= 0 AND l.power ~ 'line|cable|minor_line' AND l.voltage ~ '" + voltage_level + "' AND l.osm_id = w.id AND " + where_clause
-        print(sql)
         transnet_instance.cur.execute(sql)
         result = transnet_instance.cur.fetchall()
         for (
@@ -457,10 +456,11 @@ if __name__ == '__main__':
             end_points_geom_dict = dict()
             end_points_geom_dict[nodes[0]] = first_node
             end_points_geom_dict[nodes[-1]] = last_node
-            lines[id] = Line(id, line, srs_line, type, name.replace(',', ';') if name is not None else None,
+            lines[id] = Line(id, line, srs_line, type, name.replace(',', ';').replace('/', ';') if name is not None else None,
                              ref.replace(',', ';') if ref is not None else None,
                              voltage.replace(',', ';') if voltage is not None else None, cables, nodes, tags, lat, lon,
                              end_points_geom_dict, length, raw_geom)
+            equipment_points.append((lat, lon))
         root.info('Found %s lines', str(len(result)))
 
         # create station dictionary by quering only ways (there are almost no node substations for voltage level 110kV and higher)
@@ -472,13 +472,13 @@ if __name__ == '__main__':
                 polygon = wkb.loads(geom, hex=True)
                 raw_geom = geom
                 substations[id] = Station(id, polygon, type, name, ref,
-                                          voltage.replace(',', ';') if voltage is not None else None, None, tags, lat,
+                                          voltage.replace(',', ';').replace('/', ';') if voltage is not None else None, None, tags, lat,
                                           lon, raw_geom)
-                substation_points.append((lat, lon))
+                equipment_points.append((lat, lon))
             else:
                 substations[id] = all_substations[id]
 
-        root.info('Found %s stations', str(len(substation_points)))
+        root.info('Found %s stations', str(len(equipment_points)))
 
         # add power plants with area
         sql = "SELECT DISTINCT(p.osm_id) AS id, st_transform(p.way, 4326) AS geom, p.power AS type, p.name, p.ref, p.voltage, p.\"plant:output:electricity\" AS output1, p.\"generator:output:electricity\" AS output2, p.tags, ST_Y(ST_Transform(ST_Centroid(p.way),4326)) AS lat, ST_X(ST_Transform(ST_Centroid(p.way),4326)) AS lon FROM planet_osm_line l, planet_osm_polygon p WHERE l.osm_id >= 0 AND p.osm_id >= 0 AND p.power ~ 'plant|generator' AND st_intersects(l.way, p.way) AND l.power ~ 'line|cable|minor_line' AND l.voltage ~ '" + voltage_level + "' AND " + where_clause
@@ -489,10 +489,11 @@ if __name__ == '__main__':
                 polygon = wkb.loads(geom, hex=True)
                 raw_geom = geom
                 generators[id] = Station(id, polygon, type, name, ref,
-                                         voltage.replace(',', ';') if voltage is not None else None, None, tags, lat,
+                                         voltage.replace(',', ';').replace('/', ';') if voltage is not None else None, None, tags, lat,
                                          lon, raw_geom)
                 generators[id].nominal_power = Transnet.parse_power(
                     output1) if output1 is not None else Transnet.parse_power(output2)
+                equipment_points.append((lat, lon))
             else:
                 generators[id] = all_generators[id]
         root.info('Found %s generators', str(len(generators)))
@@ -508,12 +509,13 @@ if __name__ == '__main__':
         all_circuits.extend(circuits)
 
     root.info('Total length of all found lines is %s meters', str(length_found_lines))
-    map_centroid = MultiPoint(substation_points).centroid
+    equipments_multipoint = MultiPoint(equipment_points)
+    map_centroid = equipments_multipoint.centroid
     logging.debug('Centroid lat:%lf, lon:%lf', map_centroid.x, map_centroid.y)
     all_circuits = Transnet.remove_duplicates(all_circuits)
     root.info('Infernece took %s millies', str(datetime.now() - time))
 
-    transnet_instance.export_to_db(all_circuits, dbname)
+    #transnet_instance.export_to_db(all_circuits, dbname)
 
     partition_by_station_dict = None
     population_by_station_dict = None
@@ -527,7 +529,7 @@ if __name__ == '__main__':
     if topology:
         root.info('Plot inferred transmission system topology')
         plotter = Plotter(voltage_levels)
-        plotter.plot_topology(all_circuits, boundary, partition_by_station_dict, cities, destdir)
+        plotter.plot_topology(all_circuits, equipments_multipoint, partition_by_station_dict, cities, destdir)
 
     # root.info('CIM model generation started ...')
     # cim_writer = CimWriter(all_circuits, map_centroid, population_by_station_dict, voltage_levels)
