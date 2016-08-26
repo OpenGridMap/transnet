@@ -16,6 +16,7 @@ conda create --name transnet shapely
 # change to transnet environment
 source activate transnet
 # install required python packages
+conda install --channel https://conda.anaconda.org/IOOS cartopy
 conda install psycopg2
 conda install -c auto PyCIM
 conda install scipy
@@ -86,6 +87,13 @@ cd transnet
 ./prepare_db.sh configs/austria.conf
 ```
 Note: The execution will request you for the database password once again. If you want to disable such requests, specify a .passfile in your home directory according to https://www.postgresql.org/docs/9.1/static/libpq-pgpass.html.
+
+## MySQL Database
+The administrative data for the load estimation is derived from OpenGeoDB. To provide OpenGeoDB locally, we set up a local MySQL database and import an OpenGeoDB dump.
+```
+sudo apt-get install mysql
+TBC
+```
 
 ### Run Transnet
 Once you have set up the database, you are ready to go to run Transnet with the _run.sh_ script. Before that, make sure that you have configured the right path to your MATLAB installation in _run.sh_.

@@ -41,21 +41,11 @@ class Plotter:
 
         ax = plt.axes(projection=ccrs.PlateCarree())
         ax.set_extent([xmin, xmax + sidebar_width, ymin, ymax])
-        ax.stock_img()
-        ax.coastlines(resolution='10m', color='gray')
-        ax.add_feature(cfeature.BORDERS, color='gray')
-
-        #if hasattr(boundary, 'geoms'):
-        #    for polygon in boundary.geoms:
-        #        Plotter.plot_polygon(polygon)
-        #else:
-        #    Plotter.plot_polygon(boundary)
-
 
         for circuit in circuits:
-            plt.plot(circuit.members[0].lon, circuit.members[0].lat, marker='o', markerfacecolor='black',
+            plt.plot(circuit.members[0].lon, circuit.members[0].lat, marker='s', markerfacecolor='black',
                      linestyle="None", markersize=1, zorder=10, transform=ccrs.PlateCarree())
-            plt.plot(circuit.members[-1].lon, circuit.members[-1].lat, marker='o', markerfacecolor='black',
+            plt.plot(circuit.members[-1].lon, circuit.members[-1].lat, marker='s', markerfacecolor='black',
                      linestyle="None", markersize=1, zorder=10, transform=ccrs.PlateCarree())
             # ax.annotate(circuit.members[0].id, (circuit.members[0].lon, circuit.members[0].lat))
             # ax.annotate(circuit.members[-1].id, (circuit.members[-1].lon, circuit.members[-1].lat))
@@ -90,6 +80,43 @@ class Plotter:
         l.set_zorder(11)
 
         plt.savefig(destdir + '/topology.png', bbox_inches='tight', pad_inches=0, dpi=600)
+
+        ax.stock_img()
+        plt.savefig(destdir + '/topology_geographical.png', bbox_inches='tight', pad_inches=0, dpi=600)
+
+        #ax.coastlines(resolution='10m', color='#cccccc')
+        #ax.add_feature(cfeature.BORDERS)
+
+        countries = cfeature.NaturalEarthFeature(
+            category='cultural',
+            name='admin_0_countries',
+            scale='10m',
+            facecolor='none')
+        states_provinces = cfeature.NaturalEarthFeature(
+            category='cultural',
+            name='admin_1_states_provinces_shp',
+            scale='10m',
+            facecolor='none')
+        places = cfeature.NaturalEarthFeature(
+            category='cultural',
+            name='populated_places_simple',
+            scale='10m')
+
+
+        #ax.add_feature(cfeature.LAND)
+        ax.add_feature(states_provinces, edgecolor='#ffffff', linewidth=0.3)
+        ax.add_feature(countries, edgecolor='#333333', linewidth=0.5)
+
+        kw = dict(resolution='50m', category='cultural', name='populated_places_simple')
+        places_shp = shpreader.natural_earth(**kw)
+        shp = shpreader.Reader(places_shp)
+        for record, place in zip(shp.records(), shp.geometries()):
+            name = record.attributes['name'].decode('latin-1')
+            plt.plot(place.x, place.y, marker='o', markerfacecolor='#ff0000', linestyle="None",
+                         markersize=2, zorder=11)
+            ax.annotate(name, (place.x, place.y), fontsize=4)
+
+        plt.savefig(destdir + '/topology_administrative.png', bbox_inches='tight', pad_inches=0, dpi=600)
 
         # Voronoi partitions
         if partition_by_station_dict is not None:
