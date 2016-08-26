@@ -9,10 +9,10 @@ from Circuit import Circuit
 from Line import Line
 from Station import Station
 from CimWriter import CimWriter
+from CSVWriter import CSVWriter
 from PolyParser import PolyParser
 from Plotter import Plotter
 from InferenceValidator import InferenceValidator
-from Util import Util
 from LoadEstimator import LoadEstimator
 from os import makedirs
 from os.path import exists
@@ -534,6 +534,10 @@ if __name__ == '__main__':
     root.info('CIM model generation started ...')
     cim_writer = CimWriter(all_circuits, map_centroid, population_by_station_dict, voltage_levels)
     cim_writer.publish(destdir + '/cim')
+
+    root.info('CSV generation started ...')
+    csv_writer = CSVWriter(all_circuits)
+    csv_writer.publish(destdir + '/csv')
 
     if validate:
         validator = InferenceValidator(transnet_instance.cur)

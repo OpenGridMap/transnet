@@ -58,7 +58,7 @@ class Plotter:
 
         if cities is not None:
             for city in cities:
-                if city.geom.within(equpipments_multipoint.buffer(0.2).bounds):
+                if city.lon < xmax and city.lon > xmin and city.lat < ymax and city.lat > ymin:
                     plt.plot(city.lon, city.lat, marker='s', markerfacecolor='#ff0000', linestyle="None",
                              markersize=log(city.population, 10), zorder=1.5)
                     if city.population >= 200000 and 'DEUTSCHLAND' not in city.name:
