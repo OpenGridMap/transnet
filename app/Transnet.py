@@ -456,9 +456,9 @@ if __name__ == '__main__':
             end_points_geom_dict = dict()
             end_points_geom_dict[nodes[0]] = first_node
             end_points_geom_dict[nodes[-1]] = last_node
-            lines[id] = Line(id, line, srs_line, type, name.replace(',', ';').replace('/', ';') if name is not None else None,
+            lines[id] = Line(id, line, srs_line, type, name.replace(',', ';') if name is not None else None,
                              ref.replace(',', ';') if ref is not None else None,
-                             voltage.replace(',', ';') if voltage is not None else None, cables, nodes, tags, lat, lon,
+                             voltage.replace(',', ';').replace('/', ';') if voltage is not None else None, cables, nodes, tags, lat, lon,
                              end_points_geom_dict, length, raw_geom)
             equipment_points.append((lat, lon))
         root.info('Found %s lines', str(len(result)))
