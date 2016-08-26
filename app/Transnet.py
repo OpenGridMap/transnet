@@ -520,20 +520,20 @@ if __name__ == '__main__':
     partition_by_station_dict = None
     population_by_station_dict = None
     cities = None
-    # if load_estimation:
-    #     root.info('Start partitioning into Voronoi-partions')
-    #     load_estimator = LoadEstimator(all_substations, boundary)
-    #     partition_by_station_dict, population_by_station_dict = load_estimator.partition()
-    #     cities = load_estimator.cities
+    if load_estimation:
+         root.info('Start partitioning into Voronoi-partions')
+         load_estimator = LoadEstimator(all_substations, boundary)
+         partition_by_station_dict, population_by_station_dict = load_estimator.partition()
+         cities = load_estimator.cities
 
     if topology:
         root.info('Plot inferred transmission system topology')
         plotter = Plotter(voltage_levels)
         plotter.plot_topology(all_circuits, equipments_multipoint, partition_by_station_dict, cities, destdir)
 
-    # root.info('CIM model generation started ...')
-    # cim_writer = CimWriter(all_circuits, map_centroid, population_by_station_dict, voltage_levels)
-    # cim_writer.publish(destdir + '/cim')
+    root.info('CIM model generation started ...')
+    cim_writer = CimWriter(all_circuits, map_centroid, population_by_station_dict, voltage_levels)
+    cim_writer.publish(destdir + '/cim')
 
     if validate:
         validator = InferenceValidator(transnet_instance.cur)
