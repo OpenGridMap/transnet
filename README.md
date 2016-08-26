@@ -90,10 +90,8 @@ Note: The execution will request you for the database password once again. If yo
 
 ## MySQL Database
 The administrative data for the load estimation is derived from OpenGeoDB. To provide OpenGeoDB locally, we set up a local MySQL database and import an OpenGeoDB dump.
-```
-sudo apt-get install mysql
-TBC
-```
+Here is a guide that lists the required steps to set up a OpenGeoDB locally:
+http://opengeodb.giswiki.org/wiki/Datenbank_erstellen
 
 ### Run Transnet
 Once you have set up the database, you are ready to go to run Transnet with the _run.sh_ script. Before that, make sure that you have configured the right path to your MATLAB installation in _run.sh_.
