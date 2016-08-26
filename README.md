@@ -6,7 +6,7 @@ Checkout the Transnet project:
 ```
 git clone https://github.com/OpenGridMap/transnet transnet
 ```
-### Setup Python With Conda
+## Setup Python With Conda
 Download and install miniconda for Python-2.7 (http://conda.pydata.org/miniconda.html)
 ```
 # dismiss yes/no installation dialogs
@@ -25,8 +25,8 @@ conda install matplotlib
 conda install gdal
 ```
 
-### Database Setup
-## PostgreSQL + PostGIS setup
+## Database Setup
+### PostgreSQL + PostGIS setup
 Transnet relies on a local PostgreSQL + PostGIS installation, which is the host of power-relevant OSM data.
 To install PostgreSQL + PostGIS open a terminal and install the tool _osm2pgsql_, which should also install the required PostgreSQL + PostGIS database:
 ```
@@ -43,7 +43,7 @@ sudo -u postgres psql -d transnet_template -U postgres -q -h localhost -c "CREAT
 sudo -u postgres psql -d transnet_template -U postgres -q -h localhost -c "CREATE EXTENSION hstore;"
 sudo -u postgres psql -d transnet_template -U postgres -h localhost -f transnet/sql/transnet_functions.sql
 ```
-## Data Preparation
+### Data Preparation
 The data is filtered for power-relevant data by the _osmosis_ tool and the import to the PostgreSQL database is done with the _osm2pgsql_ tool.
 Install the tool _osmosis_:
 ```
@@ -88,12 +88,12 @@ cd transnet
 ```
 Note: The execution will request you for the database password once again. If you want to disable such requests, specify a .passfile in your home directory according to https://www.postgresql.org/docs/9.1/static/libpq-pgpass.html.
 
-## MySQL Database
+### MySQL Database
 The administrative data for the load estimation is derived from OpenGeoDB. To provide OpenGeoDB locally, we set up a local MySQL database and import an OpenGeoDB dump.
 Here is a guide that lists the required steps to set up a OpenGeoDB locally:
 http://opengeodb.giswiki.org/wiki/Datenbank_erstellen
 
-### Run Transnet
+## Run Transnet
 Once you have set up the database, you are ready to go to run Transnet with the _run.sh_ script. Before that, make sure that you have configured the right path to your MATLAB installation in _run.sh_.
 To run Transnet for a specific region (in this case Austria), enter the following command:
 ```
