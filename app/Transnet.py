@@ -33,7 +33,7 @@ class Transnet:
 
     def __init__(self, database, export_database, user, host, port, password):
         self.connection = {'database': database, 'user': user, 'host': host, 'port': port}
-        #self.export_connection = {'database': export_database, 'user': user, 'host': host, 'port': port}
+        # self.export_connection = {'database': export_database, 'user': user, 'host': host, 'port': port}
         self.connect_to_DB(password)
 
     def get_connection_data(self):
@@ -42,8 +42,8 @@ class Transnet:
     def connect_to_DB(self, password):
         self.conn = psycopg2.connect(password=password, **self.connection)
         self.cur = self.conn.cursor()
-        #self.conn_export = psycopg2.connect(password=password, **self.export_connection)
-        #self.cur_export = self.conn_export.cursor()
+        # self.conn_export = psycopg2.connect(password=password, **self.export_connection)
+        # self.cur_export = self.conn_export.cursor()
 
     def reconnect_to_DB(self):
         msg = "Please enter the database password for \n\t database=%s, user=%s, host=%s, port=%port \nto reconnect to the database: " \
@@ -334,6 +334,18 @@ class Transnet:
         self.cur_export.execute(insert_sql)
         self.conn_export.commit()
 
+    def export_to_json(self, circuits, country):
+        root.info('Exporting circuits to DB')
+        self.cur_export.execute("DELETE FROM power_line WHERE country='{0}';".format(country))
+        self.cur_export.execute("DELETE FROM power_station WHERE country='{0}';".format(country))
+        self.conn_export.commit()
+
+        for circuit in circuits:
+            self.insert_station(circuit.members[0], country)
+            self.insert_station(circuit.members[- 1], country)
+            for line in circuit.members[1:-1]:
+                self.insert_line(line, country)
+
 
 if __name__ == '__main__':
 
@@ -458,7 +470,8 @@ if __name__ == '__main__':
             end_points_geom_dict[nodes[-1]] = last_node
             lines[id] = Line(id, line, srs_line, type, name.replace(',', ';') if name is not None else None,
                              ref.replace(',', ';') if ref is not None else None,
-                             voltage.replace(',', ';').replace('/', ';') if voltage is not None else None, cables, nodes, tags, lat, lon,
+                             voltage.replace(',', ';').replace('/', ';') if voltage is not None else None, cables,
+                             nodes, tags, lat, lon,
                              end_points_geom_dict, length, raw_geom)
             equipment_points.append((lat, lon))
         root.info('Found %s lines', str(len(result)))
@@ -472,7 +485,8 @@ if __name__ == '__main__':
                 polygon = wkb.loads(geom, hex=True)
                 raw_geom = geom
                 substations[id] = Station(id, polygon, type, name, ref,
-                                          voltage.replace(',', ';').replace('/', ';') if voltage is not None else None, None, tags, lat,
+                                          voltage.replace(',', ';').replace('/', ';') if voltage is not None else None,
+                                          None, tags, lat,
                                           lon, raw_geom)
                 equipment_points.append((lat, lon))
             else:
@@ -489,7 +503,8 @@ if __name__ == '__main__':
                 polygon = wkb.loads(geom, hex=True)
                 raw_geom = geom
                 generators[id] = Station(id, polygon, type, name, ref,
-                                         voltage.replace(',', ';').replace('/', ';') if voltage is not None else None, None, tags, lat,
+                                         voltage.replace(',', ';').replace('/', ';') if voltage is not None else None,
+                                         None, tags, lat,
                                          lon, raw_geom)
                 generators[id].nominal_power = Transnet.parse_power(
                     output1) if output1 is not None else Transnet.parse_power(output2)
@@ -515,16 +530,18 @@ if __name__ == '__main__':
     all_circuits = Transnet.remove_duplicates(all_circuits)
     root.info('Infernece took %s millies', str(datetime.now() - time))
 
-    #transnet_instance.export_to_db(all_circuits, dbname)
+    # transnet_instance.export_to_db(all_circuits, dbname)
+
+    transnet_instance.export_to_json(all_circuits, dbname)
 
     partition_by_station_dict = None
     population_by_station_dict = None
     cities = None
     if load_estimation:
-         root.info('Start partitioning into Voronoi-partions')
-         load_estimator = LoadEstimator(all_substations, boundary)
-         partition_by_station_dict, population_by_station_dict = load_estimator.partition()
-         cities = load_estimator.cities
+        root.info('Start partitioning into Voronoi-partions')
+        load_estimator = LoadEstimator(all_substations, boundary)
+        partition_by_station_dict, population_by_station_dict = load_estimator.partition()
+        cities = load_estimator.cities
 
     if topology:
         root.info('Plot inferred transmission system topology')
