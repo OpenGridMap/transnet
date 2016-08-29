@@ -34,7 +34,9 @@ $(document).ready(function () {
                         return {color: "#333300"}
                     case '275000':
                         return {color: "#000066"}
-                    case '22000':
+                    case '225000':
+                        return {color: "#ff3399"}
+                    case '220000':
                         return {color: "#660066"}
                 }
             }
