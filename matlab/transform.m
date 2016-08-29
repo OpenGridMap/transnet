@@ -368,7 +368,7 @@ function substation = findSubstationByLoad(substations, load)
 end
 
 function setLatLonPosition(block, lat, lon, latCenter, lonCenter)
-   [x,y] = Spherical2AzimuthalEquidistant((lat), (lon), latCenter, lonCenter, 0, 0, 400000);
+   [x,y] = Spherical2AzimuthalEquidistant((lat), (lon), latCenter, lonCenter, 0, 0, 200000);
    setXYPosition(block, x, y);
 end
 
