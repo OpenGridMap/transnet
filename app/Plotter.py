@@ -116,7 +116,7 @@ class Plotter:
         plt.savefig(destdir + '/topology_administrative.png', bbox_inches='tight', pad_inches=0, dpi=600)
 
         # Voronoi partitions
-        if partition_by_station_dict is not None:
+        if partition_by_station_dict:
             for station in partition_by_station_dict.keys():
                 partition_polygon = partition_by_station_dict[station]
                 if hasattr(partition_polygon, 'geoms'):
@@ -126,6 +126,8 @@ class Plotter:
                     Plotter.plot_polygon(partition_polygon, '#888888', zorder=2)
             plt.plot([], [], color='#888888', lw=2, zorder=5, label='Voronoi partitions')
             plt.savefig(destdir + '/topology_voronoi.png', bbox_inches='tight', pad_inches=0, dpi=600)
+
+        plt.close()
 
     @staticmethod
     def plot_polygon(polygon, color='#cccccc', zorder=1):
