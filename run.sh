@@ -2,7 +2,7 @@
 # launch a complete Transnet run
 
 # configure the right matlab binary direction
-matlab='/home/leimhofe/matlab/installation/bin/matlab'
+matlab='/usr/local/bin/matlab'
 
 if [ "$#" -ne 0 ]; then
   # load the appropriate config file

@@ -532,7 +532,7 @@ if __name__ == '__main__':
 
     # transnet_instance.export_to_db(all_circuits, dbname)
 
-    transnet_instance.export_to_json(all_circuits, dbname)
+    # transnet_instance.export_to_json(all_circuits, dbname)
 
     partition_by_station_dict = None
     population_by_station_dict = None
