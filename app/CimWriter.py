@@ -46,7 +46,6 @@ class CimWriter:
         self.centroid = centroid
         self.population_by_station_dict = population_by_station_dict
         self.voltage_levels = voltage_levels
-        self.id = 0
         self.base_voltages_dict = dict()
         self.uuid_by_osmid_dict = dict()
         self.cimobject_by_uuid_dict = OrderedDict()

@@ -138,6 +138,7 @@ class Transnet:
 
             # create lines dictionary
             sql = "SELECT l.osm_id AS id, st_transform(create_line(l.osm_id), 4326) AS geom, l.way AS srs_geom, l.power AS type, l.name, l.ref, l.voltage, l.cables, w.nodes, w.tags, st_transform(create_point(w.nodes[1]), 4326) AS first_node_geom, st_transform(create_point(w.nodes[array_length(w.nodes, 1)]), 4326) AS last_node_geom, ST_Y(ST_Transform(ST_Centroid(l.way),4326)) AS lat, ST_X(ST_Transform(ST_Centroid(l.way),4326)) AS lon, st_length(st_transform(l.way, 4326), TRUE) AS spheric_length FROM planet_osm_line l, planet_osm_ways w WHERE l.osm_id >= 0 AND l.power ~ 'line|cable|minor_line' AND l.voltage ~ '" + voltage_level + "' AND l.osm_id = w.id AND " + where_clause
+
             self.cur.execute(sql)
             result = self.cur.fetchall()
             for (
@@ -164,6 +165,7 @@ class Transnet:
 
             # create station dictionary by quering only ways (there are almost no node substations for voltage level 110kV and higher)
             sql = "SELECT DISTINCT(p.osm_id) AS id, st_transform(p.way, 4326) AS geom, p.power AS type, p.name, p.ref, p.voltage, p.tags, ST_Y(ST_Transform(ST_Centroid(p.way),4326)) AS lat, ST_X(ST_Transform(ST_Centroid(p.way),4326)) AS lon FROM planet_osm_line l, planet_osm_polygon p WHERE l.osm_id >= 0 AND p.osm_id >= 0 AND p.power ~ 'substation|station|sub_station' AND (p.voltage ~ '" + self.voltage_levels + "' OR (p.voltage = '') IS NOT FALSE) AND st_intersects(l.way, p.way) AND l.power ~ 'line|cable|minor_line' AND l.voltage ~ '" + voltage_level + "' AND " + where_clause
+
             self.cur.execute(sql)
             result = self.cur.fetchall()
             for (id, geom, type, name, ref, voltage, tags, lat, lon) in result:
@@ -183,6 +185,7 @@ class Transnet:
 
             # add power plants with area
             sql = "SELECT DISTINCT(p.osm_id) AS id, st_transform(p.way, 4326) AS geom, p.power AS type, p.name, p.ref, p.voltage, p.\"plant:output:electricity\" AS output1, p.\"generator:output:electricity\" AS output2, p.tags, ST_Y(ST_Transform(ST_Centroid(p.way),4326)) AS lat, ST_X(ST_Transform(ST_Centroid(p.way),4326)) AS lon FROM planet_osm_line l, planet_osm_polygon p WHERE l.osm_id >= 0 AND p.osm_id >= 0 AND p.power ~ 'plant|generator' AND st_intersects(l.way, p.way) AND l.power ~ 'line|cable|minor_line' AND l.voltage ~ '" + voltage_level + "' AND " + where_clause
+
             self.cur.execute(sql)
             result = self.cur.fetchall()
             for (id, geom, type, name, ref, voltage, output1, output2, tags, lat, lon) in result:
@@ -614,6 +617,6 @@ if __name__ == '__main__':
                                      load_estimation=load_estimation, destdir=destdir, continent=continent, root=root)
         transnet_instance.run()
     except Exception as e:
-        root.error(e.message)
+        root.error(e)
         parser.print_help()
         exit()
