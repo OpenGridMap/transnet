@@ -9,6 +9,7 @@ class Way:
     tags = None
     lat = None
     lon = None
+    raw_geom = None
 
     def __init__(self, id, geom, type, name, ref, voltage, nodes, tags, lat, lon, raw_geom):
         self.id = id

@@ -1,27 +1,25 @@
+import io
+import logging
+import re
+import uuid
+from collections import OrderedDict
+from string import maketrans
+from xml.dom.minidom import parse
+
+import ogr
+import osr
 from CIM14.ENTSOE.Equipment.Core import BaseVoltage, GeographicalRegion, SubGeographicalRegion, ConnectivityNode, \
     Terminal
-from CIM14.ENTSOE.Equipment.Wires import PowerTransformer, SynchronousMachine, TransformerWinding
 from CIM14.ENTSOE.Equipment.LoadModel import LoadResponseCharacteristic
+from CIM14.ENTSOE.Equipment.Wires import PowerTransformer, SynchronousMachine, TransformerWinding
 from CIM14.IEC61968.Common import Location, PositionPoint
 from CIM14.IEC61970.Core import Substation
 from CIM14.IEC61970.Generation.Production import GeneratingUnit
 from CIM14.IEC61970.Wires import ACLineSegment, EnergyConsumer
-
 from PyCIM import cimwrite
-from LoadEstimator import LoadEstimator
-
-import uuid
-from xml.dom.minidom import parse
-from string import maketrans
-from collections import OrderedDict
 from shapely.ops import linemerge
-import ogr
-import osr
-import logging
-import re
-import io
 
-root = logging.getLogger()
+from LoadEstimator import LoadEstimator
 
 
 class CimWriter:
@@ -31,7 +29,7 @@ class CimWriter:
     voltage_levels = None
     id = 0
     winding_types = ['primary', 'secondary', 'tertiary']
-
+    root = logging.getLogger()
     base_voltages_dict = dict()
 
     region = SubGeographicalRegion(Region=GeographicalRegion(name='EU'))
@@ -48,6 +46,12 @@ class CimWriter:
         self.centroid = centroid
         self.population_by_station_dict = population_by_station_dict
         self.voltage_levels = voltage_levels
+        self.id = 0
+        self.base_voltages_dict = dict()
+        self.uuid_by_osmid_dict = dict()
+        self.cimobject_by_uuid_dict = OrderedDict()
+        self.connectivity_by_uuid_dict = dict()
+        self.root = logging.getLogger()
 
     def publish(self, file_name):
         self.region.UUID = str(self.uuid())
@@ -65,7 +69,7 @@ class CimWriter:
             elif 'plant' in station1.type or 'generator' in station1.type:
                 connectivity_node1 = self.generator_to_cim(station1, circuit.voltage)
             else:
-                root.error('Invalid circuit! - Skip circuit')
+                self.root.error('Invalid circuit! - Skip circuit')
                 circuit.print_circuit()
                 continue
 
@@ -74,7 +78,7 @@ class CimWriter:
             elif 'plant' in station2.type or 'generator' in station2.type:
                 connectivity_node2 = self.generator_to_cim(station2, circuit.voltage)
             else:
-                root.error('Invalid circuit! - Skip circuit')
+                self.root.error('Invalid circuit! - Skip circuit')
                 circuit.print_circuit()
                 continue
 
@@ -85,12 +89,13 @@ class CimWriter:
                 line_length += line_wsg84.length
             line_wsg84 = linemerge(lines_wsg84)
             total_line_length += line_length
-            root.debug('Map line from (%lf,%lf) to (%lf,%lf) with length %s meters', station1.geom.centroid.y,
-                       station1.geom.centroid.x, station2.geom.centroid.y, station2.geom.centroid.x, str(line_length))
+            self.root.debug('Map line from (%lf,%lf) to (%lf,%lf) with length %s meters', station1.geom.centroid.y,
+                            station1.geom.centroid.x, station2.geom.centroid.y, station2.geom.centroid.x,
+                            str(line_length))
             self.line_to_cim(connectivity_node1, connectivity_node2, line_length, circuit.name, circuit.voltage,
                              line_wsg84.centroid.y, line_wsg84.centroid.x)
 
-        root.info('The inferred net\'s length is %s meters', str(total_line_length))
+            # self.root.info('The inferred net\'s length is %s meters', str(total_line_length))
 
         self.attach_loads()
 
@@ -110,17 +115,17 @@ class CimWriter:
     def substation_to_cim(self, osm_substation, circuit_voltage):
         transformer_winding = None
         if self.uuid_by_osmid_dict.has_key(osm_substation.id):
-            root.debug('Substation with OSMID %s already covered', str(osm_substation.id))
+            self.root.debug('Substation with OSMID %s already covered', str(osm_substation.id))
             cim_substation = self.cimobject_by_uuid_dict[self.uuid_by_osmid_dict[osm_substation.id]]
             transformer = cim_substation.getEquipments()[0]  # TODO check if there is actually one equipment
             for winding in transformer.getTransformerWindings():
                 if int(circuit_voltage) == winding.ratedU:
-                    root.debug('Transformer of Substation with OSMID %s already has winding for voltage %s',
-                               str(osm_substation.id), circuit_voltage)
+                    self.root.debug('Transformer of Substation with OSMID %s already has winding for voltage %s',
+                                    str(osm_substation.id), circuit_voltage)
                     transformer_winding = winding
                     break
         else:
-            root.debug('Create CIM Substation for OSMID %s', str(osm_substation.id))
+            self.root.debug('Create CIM Substation for OSMID %s', str(osm_substation.id))
             cim_substation = Substation(name='SS_' + str(osm_substation.id), Region=self.region,
                                         Location=self.add_location(osm_substation.lat, osm_substation.lon))
             transformer = PowerTransformer(name='T_' + str(osm_substation.id) + '_' + CimWriter.escape_string(
@@ -137,10 +142,10 @@ class CimWriter:
 
     def generator_to_cim(self, generator, circuit_voltage):
         if self.uuid_by_osmid_dict.has_key(generator.id):
-            root.debug('Generator with OSMID %s already covered', str(generator.id))
+            self.root.debug('Generator with OSMID %s already covered', str(generator.id))
             generating_unit = self.cimobject_by_uuid_dict[self.uuid_by_osmid_dict[generator.id]]
         else:
-            root.debug('Create CIM Generator for OSMID %s', str(generator.id))
+            self.root.debug('Create CIM Generator for OSMID %s', str(generator.id))
             generating_unit = GeneratingUnit(name='G_' + str(generator.id), maxOperatingP=generator.nominal_power,
                                              minOperatingP=0,
                                              nominalP='' if generator.nominal_power is None else generator.nominal_power,
@@ -223,7 +228,7 @@ class CimWriter:
             if isinstance(object, PowerTransformer):
                 transformer = object
                 osm_substation_id = transformer.name.split('_')[1]
-                root.info('Attach load to substation %s', osm_substation_id)
+                # self.root.info('Attach load to substation %s', osm_substation_id)
                 transformer_lower_voltage = CimWriter.determine_load_voltage(transformer)
                 self.attach_load(osm_substation_id, transformer_lower_voltage, transformer)
 

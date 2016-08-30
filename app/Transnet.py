@@ -1,27 +1,29 @@
-import psycopg2
-from optparse import OptionParser
-from shapely import wkb, wkt
-from shapely.geometry import MultiPoint
-from datetime import datetime
+import json
 import logging
 import sys
-from Circuit import Circuit
-from Line import Line
-from Station import Station
-from CimWriter import CimWriter
-from CSVWriter import CSVWriter
-from PolyParser import PolyParser
-from Plotter import Plotter
-from InferenceValidator import InferenceValidator
-from LoadEstimator import LoadEstimator
+import urllib
+from datetime import datetime
+from optparse import OptionParser
 from os import makedirs
 from os.path import exists
+from os.path import isfile
+
+import psycopg2
+from shapely import wkb, wkt
+from shapely.geometry import MultiPoint
+
+from CSVWriter import CSVWriter
+from CimWriter import CimWriter
+from Circuit import Circuit
+from InferenceValidator import InferenceValidator
+from Line import Line
+from LoadEstimator import LoadEstimator
+from Plotter import Plotter
+from PolyParser import PolyParser
+from Station import Station
 
 root = logging.getLogger()
 root.setLevel(logging.DEBUG)
-
-validate = False
-validator = None
 
 
 class Transnet:
@@ -30,11 +32,34 @@ class Transnet:
     cur = None
     conn_export = None
     cur_export = None
+    ssid = None
+    poly = None
+    bpoly = None
+    verbose = None
+    validate = None
+    topology = None
+    voltage_levels = None
+    load_estimation = None
+    destdir = None
+    continent = None
+    root = None
 
-    def __init__(self, database, export_database, user, host, port, password):
+    def __init__(self, database, export_database, user, host, port, password, ssid, poly, bpoly, verbose, validate,
+                 topology, voltage_levels, load_estimation, destdir, continent, root):
         self.connection = {'database': database, 'user': user, 'host': host, 'port': port}
         # self.export_connection = {'database': export_database, 'user': user, 'host': host, 'port': port}
         self.connect_to_DB(password)
+        self.ssid = ssid
+        self.poly = poly
+        self.bpoly = bpoly
+        self.verbose = verbose
+        self.validate = validate
+        self.topology = topology
+        self.voltage_levels = voltage_levels
+        self.load_estimation = load_estimation
+        self.destdir = destdir
+        self.continent = continent
+        self.root = root
 
     def get_connection_data(self):
         return self.connection
@@ -52,6 +77,184 @@ class Transnet:
         password = raw_input(msg)
         self.connect_to_DB(self, password)
 
+    def run(self):
+        if self.continent:
+            with open('meta/world.json') as world_file:
+                world = json.load(world_file)
+                for country in world[continent]:
+                    self.voltage_levels = world[continent][country]['voltages']
+                    self.prepare_poly(continent, country)
+                    self.poly = '../data/{0}/{1}/pfile.poly'.format(continent, country)
+                    self.destdir = '../models/{0}/{1}/'.format(continent, country)
+                    Transnet.reset_params()
+                    self.modeling()
+        else:
+            self.modeling()
+
+    def prepare_poly(self, continent, country):
+        if not isfile('../data/{0}/{1}/pfile.poly'.format(continent, country)):
+            makedirs('../data/{0}/{1}/'.format(continent, country))
+            self.root.info('Downloading poly for {0}'.format(country))
+            urllib.URLopener().retrieve('http://download.geofabrik.de/{0}/{1}.poly'.format(continent, country),
+                                        '../data/{0}/{1}/pfile.poly'.format(continent, country))
+
+    @staticmethod
+    def reset_params():
+        Transnet.covered_nodes = None
+
+    def modeling(self):
+        # create dest dir
+        if not exists(self.destdir):
+            makedirs(self.destdir)
+
+        time = datetime.now()
+
+        # build location where clause for succeeding queries
+        boundary = None
+        if self.poly:
+            poly_parser = PolyParser()
+            boundary = poly_parser.poly_to_polygon(self.poly)
+            where_clause = "st_intersects(l.way, st_transform(st_geomfromtext('" + boundary.wkt + "',4269),3857))"
+        elif self.bpoly:
+            boundary = wkt.loads(self.bpoly)
+            where_clause = "st_intersects(l.way, st_transform(st_geomfromtext('" + boundary.wkt + "',4269),3857))"
+        else:
+            where_clause = "st_distance(l.way, (select way from planet_osm_polygon where osm_id = " + str(
+                self.ssid) + ")) <= 300000"
+
+        # do inference for each voltage level
+        all_circuits = []
+        all_substations = dict()
+        all_generators = dict()
+        equipment_points = []
+        length_found_lines = 0
+
+        for voltage_level in self.voltage_levels.split('|'):
+            root.info('Infer net for voltage level %sV', voltage_level)
+
+            substations = dict()
+            generators = dict()
+            lines = dict()
+
+            # create lines dictionary
+            sql = "SELECT l.osm_id AS id, st_transform(create_line(l.osm_id), 4326) AS geom, l.way AS srs_geom, l.power AS type, l.name, l.ref, l.voltage, l.cables, w.nodes, w.tags, st_transform(create_point(w.nodes[1]), 4326) AS first_node_geom, st_transform(create_point(w.nodes[array_length(w.nodes, 1)]), 4326) AS last_node_geom, ST_Y(ST_Transform(ST_Centroid(l.way),4326)) AS lat, ST_X(ST_Transform(ST_Centroid(l.way),4326)) AS lon, st_length(st_transform(l.way, 4326), TRUE) AS spheric_length FROM planet_osm_line l, planet_osm_ways w WHERE l.osm_id >= 0 AND l.power ~ 'line|cable|minor_line' AND l.voltage ~ '" + voltage_level + "' AND l.osm_id = w.id AND " + where_clause
+            self.cur.execute(sql)
+            result = self.cur.fetchall()
+            for (
+                    id, geom, srs_geom, type, name, ref, voltage, cables, nodes, tags, first_node_geom, last_node_geom,
+                    lat,
+                    lon,
+                    length) in result:
+                line = wkb.loads(geom, hex=True)
+                raw_geom = geom
+                srs_line = wkb.loads(srs_geom, hex=True)
+                length_found_lines += length
+                first_node = wkb.loads(first_node_geom, hex=True)
+                last_node = wkb.loads(last_node_geom, hex=True)
+                end_points_geom_dict = dict()
+                end_points_geom_dict[nodes[0]] = first_node
+                end_points_geom_dict[nodes[-1]] = last_node
+                lines[id] = Line(id, line, srs_line, type, name.replace(',', ';') if name is not None else None,
+                                 ref.replace(',', ';') if ref is not None else None,
+                                 voltage.replace(',', ';').replace('/', ';') if voltage is not None else None, cables,
+                                 nodes, tags, lat, lon,
+                                 end_points_geom_dict, length, raw_geom)
+                equipment_points.append((lat, lon))
+            root.info('Found %s lines', str(len(result)))
+
+            # create station dictionary by quering only ways (there are almost no node substations for voltage level 110kV and higher)
+            sql = "SELECT DISTINCT(p.osm_id) AS id, st_transform(p.way, 4326) AS geom, p.power AS type, p.name, p.ref, p.voltage, p.tags, ST_Y(ST_Transform(ST_Centroid(p.way),4326)) AS lat, ST_X(ST_Transform(ST_Centroid(p.way),4326)) AS lon FROM planet_osm_line l, planet_osm_polygon p WHERE l.osm_id >= 0 AND p.osm_id >= 0 AND p.power ~ 'substation|station|sub_station' AND (p.voltage ~ '" + self.voltage_levels + "' OR (p.voltage = '') IS NOT FALSE) AND st_intersects(l.way, p.way) AND l.power ~ 'line|cable|minor_line' AND l.voltage ~ '" + voltage_level + "' AND " + where_clause
+            self.cur.execute(sql)
+            result = self.cur.fetchall()
+            for (id, geom, type, name, ref, voltage, tags, lat, lon) in result:
+                if id not in all_substations:
+                    polygon = wkb.loads(geom, hex=True)
+                    raw_geom = geom
+                    substations[id] = Station(id, polygon, type, name, ref,
+                                              voltage.replace(',', ';').replace('/',
+                                                                                ';') if voltage is not None else None,
+                                              None, tags, lat,
+                                              lon, raw_geom)
+                    equipment_points.append((lat, lon))
+                else:
+                    substations[id] = all_substations[id]
+
+            root.info('Found %s stations', str(len(equipment_points)))
+
+            # add power plants with area
+            sql = "SELECT DISTINCT(p.osm_id) AS id, st_transform(p.way, 4326) AS geom, p.power AS type, p.name, p.ref, p.voltage, p.\"plant:output:electricity\" AS output1, p.\"generator:output:electricity\" AS output2, p.tags, ST_Y(ST_Transform(ST_Centroid(p.way),4326)) AS lat, ST_X(ST_Transform(ST_Centroid(p.way),4326)) AS lon FROM planet_osm_line l, planet_osm_polygon p WHERE l.osm_id >= 0 AND p.osm_id >= 0 AND p.power ~ 'plant|generator' AND st_intersects(l.way, p.way) AND l.power ~ 'line|cable|minor_line' AND l.voltage ~ '" + voltage_level + "' AND " + where_clause
+            self.cur.execute(sql)
+            result = self.cur.fetchall()
+            for (id, geom, type, name, ref, voltage, output1, output2, tags, lat, lon) in result:
+                if id not in all_generators:
+                    polygon = wkb.loads(geom, hex=True)
+                    raw_geom = geom
+                    generators[id] = Station(id, polygon, type, name, ref,
+                                             voltage.replace(',', ';').replace('/',
+                                                                               ';') if voltage is not None else None,
+                                             None, tags, lat,
+                                             lon, raw_geom)
+                    generators[id].nominal_power = Transnet.parse_power(
+                        output1) if output1 is not None else Transnet.parse_power(output2)
+                    equipment_points.append((lat, lon))
+                else:
+                    generators[id] = all_generators[id]
+            root.info('Found %s generators', str(len(generators)))
+
+            if boundary is not None:
+                circuits = Transnet.create_relations_of_region(substations, generators, lines, voltage_level)
+            else:
+                stations = substations.copy()
+                stations.update(generators)
+                circuits = Transnet.create_relations(stations, lines, self.ssid, voltage_level)
+            all_generators.update(generators)
+            all_substations.update(substations)
+            all_circuits.extend(circuits)
+
+        root.info('Total length of all found lines is %s meters', str(length_found_lines))
+        equipments_multipoint = MultiPoint(equipment_points)
+        map_centroid = equipments_multipoint.centroid
+        logging.debug('Centroid lat:%lf, lon:%lf', map_centroid.x, map_centroid.y)
+        all_circuits = Transnet.remove_duplicates(all_circuits)
+        root.info('Inference took %s millies', str(datetime.now() - time))
+
+        # transnet_instance.export_to_db(all_circuits, dbname)
+
+        # transnet_instance.export_to_json(all_circuits, dbname)
+
+        partition_by_station_dict = None
+        population_by_station_dict = None
+        cities = None
+        if self.load_estimation:
+            root.info('Start partitioning into Voronoi-partions')
+            load_estimator = LoadEstimator(all_substations, boundary)
+            partition_by_station_dict, population_by_station_dict = load_estimator.partition()
+            cities = load_estimator.cities
+
+        if self.topology:
+            root.info('Plot inferred transmission system topology')
+            plotter = Plotter(self.voltage_levels)
+            plotter.plot_topology(all_circuits, equipments_multipoint, partition_by_station_dict, cities, self.destdir)
+
+        root.info('CIM model generation started ...')
+        cim_writer = CimWriter(all_circuits, map_centroid, population_by_station_dict, self.voltage_levels)
+        cim_writer.publish(self.destdir + '/cim')
+
+        root.info('CSV generation started ...')
+        csv_writer = CSVWriter(all_circuits)
+        csv_writer.publish(self.destdir + '/csv')
+
+        if validate:
+            validator = InferenceValidator(self.cur)
+            if boundary is not None:
+                all_stations = all_substations.copy()
+                all_stations.update(all_generators)
+                validator.validate2(all_circuits, all_stations, boundary, self.voltage_levels)
+            else:
+                validator.validate(self.ssid, all_circuits, self.voltage_levels)
+
+        root.info('Took %s in total', str(datetime.now() - time))
+
     @staticmethod
     def determine_circuit_voltage(relation):
         if ';' not in relation[1].voltage and relation[1].voltage is not None:
@@ -67,7 +270,7 @@ class Transnet:
 
     @staticmethod
     def create_relations(stations, lines, ssid, voltage):
-        root.info('\nStart inference for Substation %s', str(ssid))
+        # root.info('\nStart inference for Substation %s', str(ssid))
         station_id = long(ssid)
 
         relations = []
@@ -86,15 +289,15 @@ class Transnet:
                 station2.add_connected_station(station1.id, voltage)
 
                 circuit = Circuit(relation, voltage, first_line.name, first_line.ref)
-                print('Circuit ' + str(i))
-                circuit.print_circuit()
+                # print('Circuit ' + str(i))
+                # circuit.print_circuit()
                 circuits.append(circuit)
                 i += 1
         num_valid_circuits = len(circuits)
-        if num_valid_circuits > 0:
-            None
-        else:
-            root.info('Could not obtain any circuit')
+        # if num_valid_circuits > 0:
+        #     None
+        # else:
+        #     root.info('Could not obtain any circuit')
 
         # for circuit in circuits:
         #    circuit.print_overpass()
@@ -179,8 +382,8 @@ class Transnet:
                 Transnet.covered_nodes.remove(new_node_to_continue_id)
                 relations.extend(Transnet.infer_relation(stations, lines, relation_copy, new_node_to_continue_id, line))
 
-        if not relations:
-            root.debug('Could not obtain circuit')
+        # if not relations:
+        #     root.debug('Could not obtain circuit')
         return relations
 
     @staticmethod
@@ -335,16 +538,7 @@ class Transnet:
         self.conn_export.commit()
 
     def export_to_json(self, circuits, country):
-        root.info('Exporting circuits to DB')
-        self.cur_export.execute("DELETE FROM power_line WHERE country='{0}';".format(country))
-        self.cur_export.execute("DELETE FROM power_station WHERE country='{0}';".format(country))
-        self.conn_export.commit()
-
-        for circuit in circuits:
-            self.insert_station(circuit.members[0], country)
-            self.insert_station(circuit.members[- 1], country)
-            for line in circuit.members[1:-1]:
-                self.insert_line(line, country)
+        pass
 
 
 if __name__ == '__main__':
@@ -381,6 +575,9 @@ if __name__ == '__main__':
                       help="enable load estimation based on Voronoi partitions")
     parser.add_option("-d", "--destdir", action="store", dest="destdir", \
                       help="destination of the inference results; results will be stored in directory transnet/models/<destdir>")
+    parser.add_option("-c", "--continent", action="store", dest="continent", \
+                      help="name of continent, options: 'africa', 'antarctica', 'asia', "
+                           "'australia-oceania', 'central-america', 'europe', 'north-america', 'south-america' ")
 
     (options, args) = parser.parse_args()
     # get connection data via command line or set to default values
@@ -399,8 +596,9 @@ if __name__ == '__main__':
     voltage_levels = options.voltage_levels if options.voltage_levels else '220000|380000'
     load_estimation = options.load_estimation if options.load_estimation else False
     destdir = '../models/' + options.destdir if options.destdir else '../results'
+    continent = options.continent if options.continent else None
 
-    # configure looging
+    # configure logging
     ch = logging.StreamHandler(sys.stdout)
     if verbose:
         ch.setLevel(logging.DEBUG)
@@ -408,161 +606,14 @@ if __name__ == '__main__':
         ch.setLevel(logging.INFO)
     root.addHandler(ch)
 
-    # Connect to DB 
+    # Connect to DB
     try:
-        transnet_instance = Transnet(database=dbname, export_database=export_dbname, user=dbuser, port=dbport,
-                                     host=dbhost, password=dbpwrd)
-    except:
-        root.error(
-            "Could not connect to database. Please check the values of host,port,user,password, and database name.")
+        transnet_instance = Transnet(database=dbname, export_database=export_dbname, host=dbhost, port=dbport,
+                                     user=dbuser, password=dbpwrd, ssid=ssid, poly=poly, bpoly=bpoly, verbose=verbose,
+                                     validate=validate, topology=topology, voltage_levels=voltage_levels,
+                                     load_estimation=load_estimation, destdir=destdir, continent=continent, root=root)
+        transnet_instance.run()
+    except Exception as e:
+        root.error(e.message)
         parser.print_help()
         exit()
-
-    # create dest dir
-    if not exists(destdir):
-        makedirs(destdir)
-
-    time = datetime.now()
-
-    # build location where clause for succeeding queries
-    boundary = None
-    if poly is not None:
-        poly_parser = PolyParser()
-        boundary = poly_parser.poly_to_polygon(poly)
-        where_clause = "st_intersects(l.way, st_transform(st_geomfromtext('" + boundary.wkt + "',4269),3857))"
-    elif bpoly is not None:
-        boundary = wkt.loads(bpoly)
-        where_clause = "st_intersects(l.way, st_transform(st_geomfromtext('" + boundary.wkt + "',4269),3857))"
-    else:
-        where_clause = "st_distance(l.way, (select way from planet_osm_polygon where osm_id = " + str(
-            ssid) + ")) <= 300000"
-
-    # do inference for each voltage level
-    all_circuits = []
-    all_substations = dict()
-    all_generators = dict()
-    equipment_points = []
-    length_found_lines = 0
-
-    for voltage_level in voltage_levels.split('|'):
-        root.info('Infer net for voltage level %sV', voltage_level)
-
-        substations = dict()
-        generators = dict()
-        lines = dict()
-
-        # create lines dictionary
-        sql = "SELECT l.osm_id AS id, st_transform(create_line(l.osm_id), 4326) AS geom, l.way AS srs_geom, l.power AS type, l.name, l.ref, l.voltage, l.cables, w.nodes, w.tags, st_transform(create_point(w.nodes[1]), 4326) AS first_node_geom, st_transform(create_point(w.nodes[array_length(w.nodes, 1)]), 4326) AS last_node_geom, ST_Y(ST_Transform(ST_Centroid(l.way),4326)) AS lat, ST_X(ST_Transform(ST_Centroid(l.way),4326)) AS lon, st_length(st_transform(l.way, 4326), TRUE) AS spheric_length FROM planet_osm_line l, planet_osm_ways w WHERE l.osm_id >= 0 AND l.power ~ 'line|cable|minor_line' AND l.voltage ~ '" + voltage_level + "' AND l.osm_id = w.id AND " + where_clause
-        transnet_instance.cur.execute(sql)
-        result = transnet_instance.cur.fetchall()
-        for (
-                id, geom, srs_geom, type, name, ref, voltage, cables, nodes, tags, first_node_geom, last_node_geom, lat,
-                lon,
-                length) in result:
-            line = wkb.loads(geom, hex=True)
-            raw_geom = geom
-            srs_line = wkb.loads(srs_geom, hex=True)
-            length_found_lines += length
-            first_node = wkb.loads(first_node_geom, hex=True)
-            last_node = wkb.loads(last_node_geom, hex=True)
-            end_points_geom_dict = dict()
-            end_points_geom_dict[nodes[0]] = first_node
-            end_points_geom_dict[nodes[-1]] = last_node
-            lines[id] = Line(id, line, srs_line, type, name.replace(',', ';') if name is not None else None,
-                             ref.replace(',', ';') if ref is not None else None,
-                             voltage.replace(',', ';').replace('/', ';') if voltage is not None else None, cables,
-                             nodes, tags, lat, lon,
-                             end_points_geom_dict, length, raw_geom)
-            equipment_points.append((lat, lon))
-        root.info('Found %s lines', str(len(result)))
-
-        # create station dictionary by quering only ways (there are almost no node substations for voltage level 110kV and higher)
-        sql = "SELECT DISTINCT(p.osm_id) AS id, st_transform(p.way, 4326) AS geom, p.power AS type, p.name, p.ref, p.voltage, p.tags, ST_Y(ST_Transform(ST_Centroid(p.way),4326)) AS lat, ST_X(ST_Transform(ST_Centroid(p.way),4326)) AS lon FROM planet_osm_line l, planet_osm_polygon p WHERE l.osm_id >= 0 AND p.osm_id >= 0 AND p.power ~ 'substation|station|sub_station' AND (p.voltage ~ '" + voltage_levels + "' OR (p.voltage = '') IS NOT FALSE) AND st_intersects(l.way, p.way) AND l.power ~ 'line|cable|minor_line' AND l.voltage ~ '" + voltage_level + "' AND " + where_clause
-        transnet_instance.cur.execute(sql)
-        result = transnet_instance.cur.fetchall()
-        for (id, geom, type, name, ref, voltage, tags, lat, lon) in result:
-            if id not in all_substations:
-                polygon = wkb.loads(geom, hex=True)
-                raw_geom = geom
-                substations[id] = Station(id, polygon, type, name, ref,
-                                          voltage.replace(',', ';').replace('/', ';') if voltage is not None else None,
-                                          None, tags, lat,
-                                          lon, raw_geom)
-                equipment_points.append((lat, lon))
-            else:
-                substations[id] = all_substations[id]
-
-        root.info('Found %s stations', str(len(equipment_points)))
-
-        # add power plants with area
-        sql = "SELECT DISTINCT(p.osm_id) AS id, st_transform(p.way, 4326) AS geom, p.power AS type, p.name, p.ref, p.voltage, p.\"plant:output:electricity\" AS output1, p.\"generator:output:electricity\" AS output2, p.tags, ST_Y(ST_Transform(ST_Centroid(p.way),4326)) AS lat, ST_X(ST_Transform(ST_Centroid(p.way),4326)) AS lon FROM planet_osm_line l, planet_osm_polygon p WHERE l.osm_id >= 0 AND p.osm_id >= 0 AND p.power ~ 'plant|generator' AND st_intersects(l.way, p.way) AND l.power ~ 'line|cable|minor_line' AND l.voltage ~ '" + voltage_level + "' AND " + where_clause
-        transnet_instance.cur.execute(sql)
-        result = transnet_instance.cur.fetchall()
-        for (id, geom, type, name, ref, voltage, output1, output2, tags, lat, lon) in result:
-            if id not in all_generators:
-                polygon = wkb.loads(geom, hex=True)
-                raw_geom = geom
-                generators[id] = Station(id, polygon, type, name, ref,
-                                         voltage.replace(',', ';').replace('/', ';') if voltage is not None else None,
-                                         None, tags, lat,
-                                         lon, raw_geom)
-                generators[id].nominal_power = Transnet.parse_power(
-                    output1) if output1 is not None else Transnet.parse_power(output2)
-                equipment_points.append((lat, lon))
-            else:
-                generators[id] = all_generators[id]
-        root.info('Found %s generators', str(len(generators)))
-
-        if boundary is not None:
-            circuits = Transnet.create_relations_of_region(substations, generators, lines, voltage_level)
-        else:
-            stations = substations.copy()
-            stations.update(generators)
-            circuits = Transnet.create_relations(stations, lines, ssid, voltage_level)
-        all_generators.update(generators)
-        all_substations.update(substations)
-        all_circuits.extend(circuits)
-
-    root.info('Total length of all found lines is %s meters', str(length_found_lines))
-    equipments_multipoint = MultiPoint(equipment_points)
-    map_centroid = equipments_multipoint.centroid
-    logging.debug('Centroid lat:%lf, lon:%lf', map_centroid.x, map_centroid.y)
-    all_circuits = Transnet.remove_duplicates(all_circuits)
-    root.info('Infernece took %s millies', str(datetime.now() - time))
-
-    # transnet_instance.export_to_db(all_circuits, dbname)
-
-    # transnet_instance.export_to_json(all_circuits, dbname)
-
-    partition_by_station_dict = None
-    population_by_station_dict = None
-    cities = None
-    if load_estimation:
-        root.info('Start partitioning into Voronoi-partions')
-        load_estimator = LoadEstimator(all_substations, boundary)
-        partition_by_station_dict, population_by_station_dict = load_estimator.partition()
-        cities = load_estimator.cities
-
-    if topology:
-        root.info('Plot inferred transmission system topology')
-        plotter = Plotter(voltage_levels)
-        plotter.plot_topology(all_circuits, equipments_multipoint, partition_by_station_dict, cities, destdir)
-
-    root.info('CIM model generation started ...')
-    cim_writer = CimWriter(all_circuits, map_centroid, population_by_station_dict, voltage_levels)
-    cim_writer.publish(destdir + '/cim')
-
-    root.info('CSV generation started ...')
-    csv_writer = CSVWriter(all_circuits)
-    csv_writer.publish(destdir + '/csv')
-
-    if validate:
-        validator = InferenceValidator(transnet_instance.cur)
-        if boundary is not None:
-            all_stations = all_substations.copy()
-            all_stations.update(all_generators)
-            validator.validate2(all_circuits, all_stations, boundary, voltage_levels)
-        else:
-            validator.validate(ssid, all_circuits, voltage_levels)
-
-    root.info('Took %s in total', str(datetime.now() - time))

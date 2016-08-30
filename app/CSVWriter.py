@@ -1,7 +1,7 @@
 import csv
 
-class CSVWriter:
 
+class CSVWriter:
     circuits = None
 
     def __init__(self, circuits):
@@ -29,7 +29,11 @@ class CSVWriter:
                     if station not in id_by_station_dict:
                         station_id = station_counter
                         id_by_station_dict[station] = station_id
-                        nodes_writer.writerow([str(station_id), str(station.lon), str(station.lat), str(station.name), str(station.id), str(station.voltage)])
+                        nodes_writer.writerow(
+                            [str(station_id), str(station.lon), str(station.lat), str(station.name), str(station.id),
+                             str(station.voltage)])
                         station_counter += 1
-                lines_writer.writerow([str(line_counter), str(id_by_station_dict[station1]), str(id_by_station_dict[station2]), str(line_length), str(circuit.voltage)])
+                lines_writer.writerow(
+                    [str(line_counter), str(id_by_station_dict[station1]), str(id_by_station_dict[station2]),
+                     str(line_length), str(circuit.voltage)])
                 line_counter += 1

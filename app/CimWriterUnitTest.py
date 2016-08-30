@@ -1,6 +1,8 @@
 import unittest
-from CimWriter import CimWriter
+
 from CIM14.ENTSOE.Equipment.Wires import PowerTransformer, TransformerWinding
+
+from CimWriter import CimWriter
 
 
 class CimWriterUnitTest(unittest.TestCase):

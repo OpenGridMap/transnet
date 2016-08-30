@@ -1,11 +1,13 @@
-import psycopg2
+from datetime import datetime
 from optparse import OptionParser
+
+import psycopg2
+from shapely import wkb
+
+from CimWriter import CimWriter
 from Circuit import Circuit
 from Line import Line
 from Station import Station
-from shapely import wkb
-from datetime import datetime
-from CimWriter import CimWriter
 from Transnet import Transnet
 
 
@@ -141,11 +143,10 @@ if __name__ == '__main__':
     # Connect to DB 
     try:
         CimWriterTest_instance = CimWriterTest(database=dbname, user=dbuser, port=dbport, host=dbhost, password=dbpwrd)
+        time = datetime.now()
+        CimWriterTest_instance.retrieve_relations()
+        print('Took ' + str(datetime.now() - time) + ' millies')
     except:
         print "Could not connect to database. Please check the values of host,port,user,password, and database name."
         parser.print_help()
         exit()
-
-    time = datetime.now()
-    CimWriterTest_instance.retrieve_relations()
-    print('Took ' + str(datetime.now() - time) + ' millies')

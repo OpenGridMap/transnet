@@ -1,24 +1,26 @@
+import logging
+
+import mysql.connector
 import numpy as np
 from scipy.spatial import Voronoi
-import mysql.connector
-from City import City
-import logging
 from shapely import wkt
 from shapely.geometry import Polygon, Point
-from Plotter import Plotter
 
-root = logging.getLogger()
+from City import City
+from Plotter import Plotter
 
 
 class LoadEstimator:
     stations = None
     boundary = None
     cities = None
+    root = logging.getLogger()
 
     def __init__(self, stations, boundary):
         self.stations = stations
         self.boundary = boundary
         self.cities = self.find_cities()
+        self.root = logging.getLogger()
 
     def partition(self):
         partition_by_station_dict = dict()
@@ -42,7 +44,7 @@ class LoadEstimator:
                 if Point(station.lon, station.lat).within(partition_polygon):
                     partition_by_station_dict[str(station.id)] = partition_polygon.intersection(self.boundary)
                     population_of_region = self.population_of_region(partition_polygon)
-                    root.info('Region of station %s has %s people', str(station.id), str(population_of_region))
+                    self.root.info('Region of station %s has %s people', str(station.id), str(population_of_region))
                     population_by_station_dict[str(station.id)] = population_of_region
                     break
         return partition_by_station_dict, population_by_station_dict
@@ -136,8 +138,8 @@ class LoadEstimator:
         cnx = mysql.connector.connect(user='root', database='opengeodb')
         cursor = cnx.cursor()
         query = (
-        "select i.int_val, c.lon, c.lat, t.text_val from geodb_intdata i, geodb_coordinates c, geodb_textdata t where"
-        " i.int_type = 600700000 and i.loc_id = c.loc_id and c.loc_id = t.loc_id and t.text_type = 500100002 and lat >= %s and lat <= %s and lon >= %s and lon <= %s")
+            "select i.int_val, c.lon, c.lat, t.text_val from geodb_intdata i, geodb_coordinates c, geodb_textdata t where"
+            " i.int_type = 600700000 and i.loc_id = c.loc_id and c.loc_id = t.loc_id and t.text_type = 500100002 and lat >= %s and lat <= %s and lon >= %s and lon <= %s")
         cursor.execute(query, (str(ymin), str(ymax), str(xmin), str(xmax)))
         cities = []
         for (population, lon, lat, name) in cursor:
@@ -169,6 +171,7 @@ if __name__ == "__main__":
     load_estimator = LoadEstimator(dict(), bayern_bounding_polygon)
     cities = load_estimator.cities
     interpolation_fct = load_estimator.interpolation_fct
+    root = logging.getLogger()
     root.info('Plot inferred transmission system topology')
     plotter = Plotter('')
     plotter.plot_topology([], bayern_bounding_polygon, None, cities, interpolation_fct)

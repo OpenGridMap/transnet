@@ -1,25 +1,29 @@
-import matplotlib.pyplot as plt
-from matplotlib import cm
+import logging
+from math import log
+
 import cartopy.crs as ccrs
 import cartopy.feature as cfeature
 import cartopy.io.shapereader as shpreader
-from matplotlib.offsetbox import AnchoredText
-import matplotlib.patches as patches
 import matplotlib.image as image
-
-cmap = cm.spectral
-from math import log
-import logging
-
-root = logging.getLogger()
+import matplotlib.patches as patches
+import matplotlib.pyplot as plt
+from matplotlib import cm
+from matplotlib.offsetbox import AnchoredText
 
 
 class Plotter:
     color_dict = dict()
     thickness_dict = dict()
     zorder_dict = dict()
+    root = None
 
     def __init__(self, voltage_levels):
+        cmap = cm.spectral
+        self.color_dict = dict()
+        self.thickness_dict = dict()
+        self.zorder_dict = dict()
+        self.root = logging.getLogger()
+        self.root.info('Plotting Voltages %s' % str(voltage_levels))
         if voltage_levels:
             for voltage in voltage_levels.split('|'):
                 self.color_dict[voltage] = cmap(int(255 * ((int(voltage) - 110000) / 340000.0)))
@@ -33,12 +37,12 @@ class Plotter:
                     self.thickness_dict[voltage] = 0.5
                     self.zorder_dict[voltage] = 3
 
-    def plot_topology(self, circuits, equpipments_multipoint, partition_by_station_dict, cities, destdir):
+    def plot_topology(self, circuits, equipments_multipoint, partition_by_station_dict, cities, destdir):
 
-        (ymin, xmin, ymax, xmax) = equpipments_multipoint.buffer(0.2).bounds
+        (ymin, xmin, ymax, xmax) = equipments_multipoint.buffer(0.2).bounds
         sidebar_width = (xmax - xmin) * 0.4
         sidebar_height = ymax - ymin
-
+        self.root.info('Plotting Voltages %s' % str((ymin, xmin, ymax, xmax)))
         ax = plt.axes(projection=ccrs.PlateCarree())
         ax.set_extent([xmin, xmax + sidebar_width, ymin, ymax])
 
@@ -68,11 +72,15 @@ class Plotter:
         # sidebar
         ax.add_patch(patches.Rectangle((xmax, ymin), sidebar_width, sidebar_height, facecolor="white", zorder=10))
         im = image.imread('../util/logo2.png')
-        ax.imshow(im, aspect='auto', extent=(xmax+sidebar_width/4, xmax+3*sidebar_width/4, ymax-sidebar_height/3, ymax-sidebar_height/2), zorder=11)
+        ax.imshow(im, aspect='auto', extent=(
+            xmax + sidebar_width / 4, xmax + 3 * sidebar_width / 4, ymax - sidebar_height / 3,
+            ymax - sidebar_height / 2),
+                  zorder=11)
         text = AnchoredText('(c) OpenGridMap', loc=1, prop={'size': 12}, frameon=True, borderpad=0.8)
         text.set_zorder(11)
         ax.add_artist(text)
-        plt.plot([], [], marker='s', markerfacecolor='black', linestyle="None", markersize=1, zorder=11, label='station')
+        plt.plot([], [], marker='s', markerfacecolor='black', linestyle="None", markersize=1, zorder=11,
+                 label='station')
         for voltage in self.color_dict.keys():
             label = voltage + 'V'
             plt.plot([], [], color=self.color_dict[voltage], lw=self.thickness_dict[voltage], zorder=11, label=label)
@@ -103,7 +111,7 @@ class Plotter:
             if place.x < xmax and place.x > xmin and place.y < ymax and place.y > ymin:
                 name = record.attributes['name'].decode('latin-1')
                 plt.plot(place.x, place.y, marker='o', markerfacecolor='#ff0000', linestyle="None",
-                             markersize=2, zorder=11)
+                         markersize=2, zorder=11)
                 ax.annotate(name, (place.x, place.y), fontsize=4)
         plt.savefig(destdir + '/topology_administrative.png', bbox_inches='tight', pad_inches=0, dpi=600)
 

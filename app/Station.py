@@ -13,6 +13,7 @@ class Station(Way):
         Way.__init__(self, id, geom, type, name, ref, voltage, nodes, tags, lat, lon, raw_geom)
         self.covered_line_ids = []
         self.connected_stations = dict()
+        self.nominal_power = None
 
     def __str__(self):
         return 'Station - ' + Way.__str__(self)

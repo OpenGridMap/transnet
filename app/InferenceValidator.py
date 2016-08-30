@@ -1,11 +1,10 @@
 import logging
+
 from Util import Util
 
 
 class InferenceValidator:
     cur = None
-
-    root = logging.getLogger()
 
     def __init__(self, cur):
         self.cur = cur
