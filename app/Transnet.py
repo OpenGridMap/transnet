@@ -7,6 +7,10 @@ from optparse import OptionParser
 from os import makedirs
 from os.path import exists
 from os.path import isfile
+from os.path import dirname
+from os.path import join
+from os import walk
+from subprocess import call
 
 import psycopg2
 from shapely import wkb, wkt
@@ -79,10 +83,10 @@ class Transnet:
 
     def run(self):
         if self.continent:
-            with open('meta/world.json') as world_file:
-                world = json.load(world_file)
-                for country in world[continent]:
-                    self.voltage_levels = world[continent][country]['voltages']
+            with open('meta/{0}.json'.format(continent)) as continent_file:
+                continent_json = json.load(continent_file)
+                for country in continent_json:
+                    self.voltage_levels = continent_json[country]['voltages']
                     self.prepare_poly(continent, country)
                     self.poly = '../data/{0}/{1}/pfile.poly'.format(continent, country)
                     self.destdir = '../models/{0}/{1}/'.format(continent, country)
@@ -543,6 +547,25 @@ class Transnet:
     def export_to_json(self, circuits, country):
         pass
 
+    @staticmethod
+    def run_matlab_for_continent(matlab, continent_folder, root_log):
+        dirs = [x[0] for x in walk(join(dirname(__file__), '../models/{0}/'.format(continent_folder)))]
+        matlab_dir = join(dirname(__file__), '../matlab')
+        for dir in dirs[1:]:
+            try:
+                country = dir.split('/')[-1]
+                log_dir = join(dirname(__file__), '../logs/{0}/{1}'.format(continent_folder, country))
+                if not exists(log_dir):
+                    makedirs(log_dir)
+
+                command = 'cd {0} && {1} -r "transform {2}/{3};quit;"| tee ../logs/{2}/{3}/transnet_matlab.log' \
+                    .format(matlab_dir, matlab, continent, country)
+                root_log.info('running MATLAB modeling for {0}'.format(country))
+                return_code = call(command, shell=True)
+                root_log.info('MATLAB return code {0}'.format(return_code))
+            except Exception as e:
+                root_log.error(e)
+
 
 if __name__ == '__main__':
 
@@ -581,6 +604,8 @@ if __name__ == '__main__':
     parser.add_option("-c", "--continent", action="store", dest="continent", \
                       help="name of continent, options: 'africa', 'antarctica', 'asia', "
                            "'australia-oceania', 'central-america', 'europe', 'north-america', 'south-america' ")
+    parser.add_option("-m", "--matlab", action="store", dest="matlab", \
+                      help="run matlab for all countries in continent modeling")
 
     (options, args) = parser.parse_args()
     # get connection data via command line or set to default values
@@ -591,15 +616,16 @@ if __name__ == '__main__':
     dbuser = options.dbuser if options.dbuser else 'lej'
     dbpwrd = options.dbpwrd if options.dbpwrd else 'OpenGridMap'
     ssid = options.ssid if options.ssid else '23025610'
-    poly = options.poly if options.poly else None
-    bpoly = options.bounding_polygon if options.bounding_polygon else None
+    poly = options.poly
+    bpoly = options.bounding_polygon
     verbose = options.verbose if options.verbose else False
     validate = options.evaluate if options.evaluate else False
     topology = options.topology if options.topology else False
     voltage_levels = options.voltage_levels if options.voltage_levels else '220000|380000'
     load_estimation = options.load_estimation if options.load_estimation else False
     destdir = '../models/' + options.destdir if options.destdir else '../results'
-    continent = options.continent if options.continent else None
+    continent = options.continent
+    matlab = options.matlab
 
     # configure logging
     ch = logging.StreamHandler(sys.stdout)
@@ -608,6 +634,10 @@ if __name__ == '__main__':
     else:
         ch.setLevel(logging.INFO)
     root.addHandler(ch)
+
+    if matlab and continent:
+        Transnet.run_matlab_for_continent(matlab, continent, root)
+        exit()
 
     # Connect to DB
     try:
