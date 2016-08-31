@@ -47,9 +47,11 @@ class Transnet:
     destdir = None
     continent = None
     root = None
+    db_name = None
 
     def __init__(self, database, export_database, user, host, port, password, ssid, poly, bpoly, verbose, validate,
                  topology, voltage_levels, load_estimation, destdir, continent, root):
+        self.db_name = database
         self.connection = {'database': database, 'user': user, 'host': host, 'port': port}
         # self.export_connection = {'database': export_database, 'user': user, 'host': host, 'port': port}
         self.connect_to_DB(password)
@@ -86,14 +88,18 @@ class Transnet:
             with open('meta/{0}.json'.format(continent)) as continent_file:
                 continent_json = json.load(continent_file)
                 for country in continent_json:
-                    self.voltage_levels = continent_json[country]['voltages']
-                    self.prepare_poly(continent, country)
-                    self.poly = '../data/{0}/{1}/pfile.poly'.format(continent, country)
-                    self.destdir = '../models/{0}/{1}/'.format(continent, country)
-                    Transnet.reset_params()
-                    self.modeling()
+                    try:
+                        self.voltage_levels = continent_json[country]['voltages']
+                        if self.voltage_levels:
+                            self.prepare_poly(continent, country)
+                            self.poly = '../data/{0}/{1}/pfile.poly'.format(continent, country)
+                            self.destdir = '../models/{0}/{1}/'.format(continent, country)
+                            Transnet.reset_params()
+                            self.modeling(country)
+                    except Exception as e:
+                        root.error(e)
         else:
-            self.modeling()
+            self.modeling(self.db_name)
 
     def prepare_poly(self, continent, country):
         if not isfile('../data/{0}/{1}/pfile.poly'.format(continent, country)):
@@ -106,7 +112,7 @@ class Transnet:
     def reset_params():
         Transnet.covered_nodes = None
 
-    def modeling(self):
+    def modeling(self, country_name):
         # create dest dir
         if not exists(self.destdir):
             makedirs(self.destdir)
@@ -226,8 +232,6 @@ class Transnet:
         root.info('Inference took %s millies', str(datetime.now() - time))
 
         # transnet_instance.export_to_db(all_circuits, dbname)
-
-        # transnet_instance.export_to_json(all_circuits, dbname)
 
         partition_by_station_dict = None
         population_by_station_dict = None
@@ -544,9 +548,6 @@ class Transnet:
         self.cur_export.execute(insert_sql)
         self.conn_export.commit()
 
-    def export_to_json(self, circuits, country):
-        pass
-
     @staticmethod
     def run_matlab_for_continent(matlab, continent_folder, root_log):
         dirs = [x[0] for x in walk(join(dirname(__file__), '../models/{0}/'.format(continent_folder)))]
@@ -565,6 +566,44 @@ class Transnet:
                 root_log.info('MATLAB return code {0}'.format(return_code))
             except Exception as e:
                 root_log.error(e)
+
+    @staticmethod
+    def try_parse_int(string):
+        try:
+            return int(string)
+        except ValueError:
+            return 0
+
+    def prepare_planet_json(self, continent):
+
+        with open('meta/{0}.json'.format(continent), 'r+') as continent_file:
+            continent_json = json.load(continent_file)
+            for country in continent_json:
+                self.prepare_poly(continent, country)
+                poly_parser = PolyParser()
+                boundary = poly_parser.poly_to_polygon('../data/{0}/{1}/pfile.poly'.format(continent, country))
+                where_clause = "st_intersects(l.way, st_transform(st_geomfromtext('" + boundary.wkt + "',4269),3857))"
+                voltages = set()
+                voltages_string = ''
+                first_round = True
+                sql = "SELECT DISTINCT(voltage) AS voltage, count(*) AS num FROM planet_osm_line  l WHERE " + where_clause + " GROUP BY voltage ORDER BY num DESC"
+                self.cur.execute(sql)
+                result = self.cur.fetchall()
+                for (voltage, num) in result:
+                    if num > 30 and voltage:
+                        raw_voltages = [Transnet.try_parse_int(x) for x in str(voltage).strip().split(';')]
+                        voltages = voltages.union(set(raw_voltages))
+                for voltage in sorted(voltages):
+                    if voltage > 130000:
+                        if first_round:
+                            voltages_string += str(voltage)
+                            first_round = False
+                        else:
+                            voltages_string += '|' + str(voltage)
+                continent_json[country]['voltages'] = voltages_string
+            continent_file.seek(0)
+            continent_file.write(json.dumps(continent_json, indent=4))
+            continent_file.truncate()
 
 
 if __name__ == '__main__':
@@ -606,6 +645,8 @@ if __name__ == '__main__':
                            "'australia-oceania', 'central-america', 'europe', 'north-america', 'south-america' ")
     parser.add_option("-m", "--matlab", action="store", dest="matlab", \
                       help="run matlab for all countries in continent modeling")
+    parser.add_option("-j", "--preparejson", action="store_true", dest="prepare_json", \
+                      help="prepare json files of planet")
 
     (options, args) = parser.parse_args()
     # get connection data via command line or set to default values
@@ -645,7 +686,10 @@ if __name__ == '__main__':
                                      user=dbuser, password=dbpwrd, ssid=ssid, poly=poly, bpoly=bpoly, verbose=verbose,
                                      validate=validate, topology=topology, voltage_levels=voltage_levels,
                                      load_estimation=load_estimation, destdir=destdir, continent=continent, root=root)
-        transnet_instance.run()
+        if options.prepare_json and continent:
+            transnet_instance.prepare_planet_json(continent)
+        else:
+            transnet_instance.run()
     except Exception as e:
         root.error(e)
         parser.print_help()
