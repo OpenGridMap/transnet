@@ -2,7 +2,7 @@ function transform(destdir)
     diary logs;
     try
         slCharacterEncoding('UTF-8')
-
+        disp(destdir)
         destdir = ['../models/',destdir];
         fprintf('Parsing cim model ...')
         % simplify cim model to be better readable by MATLAB
