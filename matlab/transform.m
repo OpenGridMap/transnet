@@ -1,150 +1,158 @@
 function transform(destdir)
-    slCharacterEncoding('UTF-8')
-    
-    destdir = ['../models/',destdir];
-    fprintf('Parsing cim model ...')
-    % simplify cim model to be better readable by MATLAB
-    system(['sh preparsescript.sh ',destdir,'/cim_pretty.xml ',destdir,'/matcim.xml'])
+    diary logs;
+    try
+        slCharacterEncoding('UTF-8')
+        disp(destdir)
+        destdir = ['../models/',destdir];
+        fprintf('Parsing cim model ...')
+        % simplify cim model to be better readable by MATLAB
+        system(['sh preparsescript.sh ',destdir,'/cim_pretty.xml ',destdir,'/matcim.xml'])
 
-    % reed cim objects
-    [tree, ~] = xml_read ([destdir,'/matcim.xml']);
-    baseVoltages = tree(1).BaseVoltage;
-    transformers = tree(1).PowerTransformer;
-    substations = tree(1).Substation;
-    transformerWindings = tree(1).TransformerWinding;
-    connectivityNodes = tree(1).ConnectivityNode;
-    terminals = tree(1).Terminal;
-    lines = tree(1).ACLineSegment;
-    generators = tree(1).SynchronousMachine;
-    generatingUnits = tree(1).GeneratingUnit;
-    loads = tree(1).EnergyConsumer;
-    loadResponseCharacteristics = tree(1).LoadResponseCharacteristic;
-    locations = tree(1).Location;
-    positionPoints = tree(1).PositionPoint;
-    
-    mdl = 'model';
-    close_system('model', 0);
-    open(mdl);
-    
-    centroidPositionPoint = findCentroidPositionPoint(positionPoints);
-    fprintf('Center position is \tlat=%f and lon=%f\n', centroidPositionPoint.PositionPoint_yPosition, centroidPositionPoint.PositionPoint_xPosition);
+        % reed cim objects
+        [tree, ~] = xml_read ([destdir,'/matcim.xml']);
 
-    blocks = {};
-    for i = 1:length(transformers)
-       numWindings = numWindings(transformerWindings, transformers(i));
-       if numWindings > 2
-           block = add_block('block_templates/transformer3',[mdl,'/',transformers(i).IdentifiedObject_name]);
-       else
-           block = add_block('block_templates/transformer',[mdl,'/',transformers(i).IdentifiedObject_name]);
-       end
-       transformers(i).type = 'transformer';
-       substation_index = findSubstationByTransformer(substations, transformers(i));
-       positionPoint = findPositionPoint(positionPoints, locations, substations(substation_index));
-       setLatLonPosition(block, positionPoint.PositionPoint_yPosition, positionPoint.PositionPoint_xPosition, centroidPositionPoint.PositionPoint_yPosition, centroidPositionPoint.PositionPoint_xPosition);
-       transformers(i).block = block;
-       substations(substation_index).block = block;
-    end
-    
-    for i = 1:length(transformerWindings)
-       transformerWindings(i).type = 'transformerWinding';
-       transformer = findWindingTransformer(transformerWindings(i), transformers);
-       parameter = 'Winding1';
-       if ~isPrimaryWinding(transformerWindings(i)) 
-           parameter = 'Winding2';
-           if ~isSecondaryWinding(transformerWindings(i))
-               parameter = 'Winding3';
+        baseVoltages = tree(1).BaseVoltage;
+        transformers = tree(1).PowerTransformer;
+        substations = tree(1).Substation;
+        transformerWindings = tree(1).TransformerWinding;
+        connectivityNodes = tree(1).ConnectivityNode;
+        terminals = tree(1).Terminal;
+        lines = tree(1).ACLineSegment;
+        generators = tree(1).SynchronousMachine;
+        generatingUnits = tree(1).GeneratingUnit;
+        loads = tree(1).EnergyConsumer;
+        loadResponseCharacteristics = tree(1).LoadResponseCharacteristic;
+        locations = tree(1).Location;
+        positionPoints = tree(1).PositionPoint;
+
+
+        mdl = 'model';
+        close_system('model', 0);
+        open(mdl);
+
+        centroidPositionPoint = findCentroidPositionPoint(positionPoints);
+        fprintf('Center position is \tlat=%f and lon=%f\n', centroidPositionPoint.PositionPoint_yPosition, centroidPositionPoint.PositionPoint_xPosition);
+
+        blocks = {};
+        for i = 1:length(transformers)
+           numWindings = numWindings(transformerWindings, transformers(i));
+           if numWindings > 2
+               block = add_block('block_templates/transformer3',[mdl,'/',transformers(i).IdentifiedObject_name]);
+           else
+               block = add_block('block_templates/transformer',[mdl,'/',transformers(i).IdentifiedObject_name]);
            end
-       end
-       set_param(transformer.block, parameter, ['[',getBaseVoltage(baseVoltages, transformerWindings(i).ConductingEquipment_BaseVoltage.ATTRIBUTE(1).rdf_resource),',0.002,0.08]'])
-       transformerWindings(i).block = transformer.block;
-    end
-    
-    for i = 1:length(generators)
-       block = add_block('block_templates/generator',[mdl,'/',generators(i).IdentifiedObject_name]);
-       generators(i).type = 'generator';
-       voltage = getBaseVoltage(baseVoltages, generators(i).ConductingEquipment_BaseVoltage.ATTRIBUTE(1).rdf_resource);
-       set_param(block, 'Voltage', voltage);
-       set_param(block, 'BaseVoltage', voltage);
-       generator = generators(i);
-       if isfield(generators(i), 'SynchronousMachine_ratedS')  
-           nominalPower = generators(i).SynchronousMachine_ratedS;
-           if ~isempty(nominalPower) && isnumeric(nominalPower)
-              set_param(block, 'Pref', num2str(nominalPower)); 
+           transformers(i).type = 'transformer';
+           substation_index = findSubstationByTransformer(substations, transformers(i));
+           positionPoint = findPositionPoint(positionPoints, locations, substations(substation_index));
+           setLatLonPosition(block, positionPoint.PositionPoint_yPosition, positionPoint.PositionPoint_xPosition, centroidPositionPoint.PositionPoint_yPosition, centroidPositionPoint.PositionPoint_xPosition);
+           transformers(i).block = block;
+           substations(substation_index).block = block;
+        end
+
+        for i = 1:length(transformerWindings)
+           transformerWindings(i).type = 'transformerWinding';
+           transformer = findWindingTransformer(transformerWindings(i), transformers);
+           parameter = 'Winding1';
+           if ~isPrimaryWinding(transformerWindings(i)) 
+               parameter = 'Winding2';
+               if ~isSecondaryWinding(transformerWindings(i))
+                   parameter = 'Winding3';
+               end
            end
-       end
-       positionPoint = findPositionPoint(positionPoints, locations, findGeneratingUnit(generatingUnits, generators(i)));
-       setLatLonPosition(block, positionPoint.PositionPoint_yPosition, positionPoint.PositionPoint_xPosition, centroidPositionPoint.PositionPoint_yPosition, centroidPositionPoint.PositionPoint_xPosition);
-       generators(i).block = block;
-       blocks{length(blocks) + 1} = block;
-    end
-    
-    for i = 1:length(loads)
-       block = add_block('block_templates/load',[mdl,'/',loads(i).IdentifiedObject_name]);
-       loads(i).type = 'load';
-       set_param(block, 'NominalVoltage', getBaseVoltage(baseVoltages, loads(i).ConductingEquipment_BaseVoltage.ATTRIBUTE(1).rdf_resource));
-       activePower = getActivePower(loadResponseCharacteristics, loads(i).EnergyConsumer_LoadResponse.ATTRIBUTE(1).rdf_resource);
-       set_param(block, 'ActivePower', activePower);
-       fprintf('Creating load %s with active power %s Watts\n', loads(i).IdentifiedObject_name, num2str(activePower));
-       loads(i).block = block;
-       loads(i).substation = findSubstationByLoad(substations, loads(i));
-       blocks{length(blocks) + 1} = block;
-    end
-    
-    for i = 1:length(lines)
-       block = add_block('block_templates/line',[mdl,'/',lines(i).IdentifiedObject_name]);
-       lines(i).type = 'line';
-       set_param(block, 'Length', num2str(lines(i).Conductor_length/1000)); % in km
-       positionPoint = findPositionPoint(positionPoints, locations, lines(i));
-       setLatLonPosition(block, positionPoint.PositionPoint_yPosition, positionPoint.PositionPoint_xPosition, centroidPositionPoint.PositionPoint_yPosition, centroidPositionPoint.PositionPoint_xPosition);
-       set_param(block, 'ForegroundColor', getBaseVoltageColor(getBaseVoltageIndex(baseVoltages, lines(i).ConductingEquipment_BaseVoltage.ATTRIBUTE(1).rdf_resource)))
-       lines(i).block = block;
-       blocks{length(blocks) + 1} = block;
-    end
-    
-    for i = 1:length(connectivityNodes)
-       equipments = {};
-       matchingTerminals = getTerminals(connectivityNodes(i), terminals);
-       for j = 1:length(matchingTerminals)
-           equipments{length(equipments) + 1} = findEquipmentByTerminal(matchingTerminals{j}, transformerWindings, generators, loads, lines);
-       end
-       connectEquipments(mdl, equipments);
-       addBus(mdl, equipments{1}, equipments{2}, getBaseVoltage(baseVoltages, equipments{1}.ConductingEquipment_BaseVoltage.ATTRIBUTE(1).rdf_resource), num2str(i));  
-    end
-    
-    set_param(mdl, 'ZoomFactor', 'FitSystem');
-    % find left bottom corner
-    position = get_param(blocks{1}, 'Position');
-    minX = position(1);
-    minY = position(4);
-    for i = 2:length(blocks)
-        position = get_param(blocks{i}, 'Position');
-        left = position(1);
-        bottom = position(4);
-        if left < minX
-            minX = left;
+           set_param(transformer.block, parameter, ['[',getBaseVoltage(baseVoltages, transformerWindings(i).ConductingEquipment_BaseVoltage.ATTRIBUTE(1).rdf_resource),',0.002,0.08]'])
+           transformerWindings(i).block = transformer.block;
         end
-        if bottom < minY
-            minY = bottom;
+
+        for i = 1:length(generators)
+           block = add_block('block_templates/generator',[mdl,'/',generators(i).IdentifiedObject_name]);
+           generators(i).type = 'generator';
+           voltage = getBaseVoltage(baseVoltages, generators(i).ConductingEquipment_BaseVoltage.ATTRIBUTE(1).rdf_resource);
+           set_param(block, 'Voltage', voltage);
+           set_param(block, 'BaseVoltage', voltage);
+           generator = generators(i);
+           if isfield(generators(i), 'SynchronousMachine_ratedS')  
+               nominalPower = generators(i).SynchronousMachine_ratedS;
+               if ~isempty(nominalPower) && isnumeric(nominalPower)
+                  set_param(block, 'Pref', num2str(nominalPower)); 
+               end
+           end
+           positionPoint = findPositionPoint(positionPoints, locations, findGeneratingUnit(generatingUnits, generators(i)));
+           setLatLonPosition(block, positionPoint.PositionPoint_yPosition, positionPoint.PositionPoint_xPosition, centroidPositionPoint.PositionPoint_yPosition, centroidPositionPoint.PositionPoint_xPosition);
+           generators(i).block = block;
+           blocks{length(blocks) + 1} = block;
         end
-    end
-    
-    %modelLocation = get_param(gcs,'location');
-    block = add_block('block_templates/powergui',[mdl,'/powergui']);
-    setXYPosition(block, minX, minY *(-1))
-    
-    % add voltage legend
-    for i = 1:length(baseVoltages)
-        voltage = baseVoltages(i).BaseVoltage_nominalVoltage;
-        color = getBaseVoltageColor(i);
-        block = add_block('block_templates/legend',[mdl,'/',int2str(voltage),' Volts Power Line']);
-        setXYPosition(block, minX, minY *(-1) + 50 * i)
-        set_param(block, 'BackgroundColor', color)
-        set_param(block, 'ForegroundColor', 'black')
-    end
-    
-    new_mdl = 'model';
-    save_system(mdl,[destdir,'/',new_mdl]);
-    Simulink.exportToVersion(mdl,[destdir,'/',new_mdl,'_compatible.mdl'],'R2010A');
+
+        for i = 1:length(loads)
+           block = add_block('block_templates/load',[mdl,'/',loads(i).IdentifiedObject_name]);
+           loads(i).type = 'load';
+           set_param(block, 'NominalVoltage', getBaseVoltage(baseVoltages, loads(i).ConductingEquipment_BaseVoltage.ATTRIBUTE(1).rdf_resource));
+           activePower = getActivePower(loadResponseCharacteristics, loads(i).EnergyConsumer_LoadResponse.ATTRIBUTE(1).rdf_resource);
+           set_param(block, 'ActivePower', activePower);
+           fprintf('Creating load %s with active power %s Watts\n', loads(i).IdentifiedObject_name, num2str(activePower));
+           loads(i).block = block;
+           loads(i).substation = findSubstationByLoad(substations, loads(i));
+           blocks{length(blocks) + 1} = block;
+        end
+
+        for i = 1:length(lines)
+           block = add_block('block_templates/line',[mdl,'/',lines(i).IdentifiedObject_name]);
+           lines(i).type = 'line';
+           set_param(block, 'Length', num2str(lines(i).Conductor_length/1000)); % in km
+           positionPoint = findPositionPoint(positionPoints, locations, lines(i));
+           setLatLonPosition(block, positionPoint.PositionPoint_yPosition, positionPoint.PositionPoint_xPosition, centroidPositionPoint.PositionPoint_yPosition, centroidPositionPoint.PositionPoint_xPosition);
+           set_param(block, 'ForegroundColor', getBaseVoltageColor(getBaseVoltageIndex(baseVoltages, lines(i).ConductingEquipment_BaseVoltage.ATTRIBUTE(1).rdf_resource)))
+           lines(i).block = block;
+           blocks{length(blocks) + 1} = block;
+        end
+
+        for i = 1:length(connectivityNodes)
+           equipments = {};
+           matchingTerminals = getTerminals(connectivityNodes(i), terminals);
+           for j = 1:length(matchingTerminals)
+               equipments{length(equipments) + 1} = findEquipmentByTerminal(matchingTerminals{j}, transformerWindings, generators, loads, lines);
+           end
+           connectEquipments(mdl, equipments);
+           addBus(mdl, equipments{1}, equipments{2}, getBaseVoltage(baseVoltages, equipments{1}.ConductingEquipment_BaseVoltage.ATTRIBUTE(1).rdf_resource), num2str(i));  
+        end
+
+        set_param(mdl, 'ZoomFactor', 'FitSystem');
+        % find left bottom corner
+        position = get_param(blocks{1}, 'Position');
+        minX = position(1);
+        minY = position(4);
+        for i = 2:length(blocks)
+            position = get_param(blocks{i}, 'Position');
+            left = position(1);
+            bottom = position(4);
+            if left < minX
+                minX = left;
+            end
+            if bottom < minY
+                minY = bottom;
+            end
+        end
+
+        %modelLocation = get_param(gcs,'location');
+        block = add_block('block_templates/powergui',[mdl,'/powergui']);
+        setXYPosition(block, minX, minY *(-1))
+
+        % add voltage legend
+        for i = 1:length(baseVoltages)
+            voltage = baseVoltages(i).BaseVoltage_nominalVoltage;
+            color = getBaseVoltageColor(i);
+            block = add_block('block_templates/legend',[mdl,'/',int2str(voltage),' Volts Power Line']);
+            setXYPosition(block, minX, minY *(-1) + 50 * i)
+            set_param(block, 'BackgroundColor', color)
+            set_param(block, 'ForegroundColor', 'black')
+        end
+
+        new_mdl = 'model';
+        save_system(mdl,[destdir,'/',new_mdl]);
+        Simulink.exportToVersion(mdl,[destdir,'/',new_mdl,'_compatible.mdl'],'R2010A');
+    catch e
+        disp(e.message);        
+    end 
+    diary off;
 end
 
 function addBus(mdl, fromEquipment, toEquipment, voltage, busNo)

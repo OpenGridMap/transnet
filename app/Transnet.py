@@ -7,6 +7,10 @@ from optparse import OptionParser
 from os import makedirs
 from os.path import exists
 from os.path import isfile
+from os.path import dirname
+from os.path import join
+from os import walk
+from subprocess import call
 
 import psycopg2
 from shapely import wkb, wkt
@@ -43,9 +47,11 @@ class Transnet:
     destdir = None
     continent = None
     root = None
+    db_name = None
 
     def __init__(self, database, export_database, user, host, port, password, ssid, poly, bpoly, verbose, validate,
                  topology, voltage_levels, load_estimation, destdir, continent, root):
+        self.db_name = database
         self.connection = {'database': database, 'user': user, 'host': host, 'port': port}
         # self.export_connection = {'database': export_database, 'user': user, 'host': host, 'port': port}
         self.connect_to_DB(password)
@@ -79,17 +85,21 @@ class Transnet:
 
     def run(self):
         if self.continent:
-            with open('meta/world.json') as world_file:
-                world = json.load(world_file)
-                for country in world[continent]:
-                    self.voltage_levels = world[continent][country]['voltages']
-                    self.prepare_poly(continent, country)
-                    self.poly = '../data/{0}/{1}/pfile.poly'.format(continent, country)
-                    self.destdir = '../models/{0}/{1}/'.format(continent, country)
-                    Transnet.reset_params()
-                    self.modeling()
+            with open('meta/{0}.json'.format(continent)) as continent_file:
+                continent_json = json.load(continent_file)
+                for country in continent_json:
+                    try:
+                        self.voltage_levels = continent_json[country]['voltages']
+                        if self.voltage_levels:
+                            self.prepare_poly(continent, country)
+                            self.poly = '../data/{0}/{1}/pfile.poly'.format(continent, country)
+                            self.destdir = '../models/{0}/{1}/'.format(continent, country)
+                            Transnet.reset_params()
+                            self.modeling(country)
+                    except Exception as e:
+                        root.error(e)
         else:
-            self.modeling()
+            self.modeling(self.db_name)
 
     def prepare_poly(self, continent, country):
         if not isfile('../data/{0}/{1}/pfile.poly'.format(continent, country)):
@@ -102,7 +112,7 @@ class Transnet:
     def reset_params():
         Transnet.covered_nodes = None
 
-    def modeling(self):
+    def modeling(self, country_name):
         # create dest dir
         if not exists(self.destdir):
             makedirs(self.destdir)
@@ -138,6 +148,7 @@ class Transnet:
 
             # create lines dictionary
             sql = "SELECT l.osm_id AS id, st_transform(create_line(l.osm_id), 4326) AS geom, l.way AS srs_geom, l.power AS type, l.name, l.ref, l.voltage, l.cables, w.nodes, w.tags, st_transform(create_point(w.nodes[1]), 4326) AS first_node_geom, st_transform(create_point(w.nodes[array_length(w.nodes, 1)]), 4326) AS last_node_geom, ST_Y(ST_Transform(ST_Centroid(l.way),4326)) AS lat, ST_X(ST_Transform(ST_Centroid(l.way),4326)) AS lon, st_length(st_transform(l.way, 4326), TRUE) AS spheric_length FROM planet_osm_line l, planet_osm_ways w WHERE l.osm_id >= 0 AND l.power ~ 'line|cable|minor_line' AND l.voltage ~ '" + voltage_level + "' AND l.osm_id = w.id AND " + where_clause
+
             self.cur.execute(sql)
             result = self.cur.fetchall()
             for (
@@ -164,6 +175,7 @@ class Transnet:
 
             # create station dictionary by quering only ways (there are almost no node substations for voltage level 110kV and higher)
             sql = "SELECT DISTINCT(p.osm_id) AS id, st_transform(p.way, 4326) AS geom, p.power AS type, p.name, p.ref, p.voltage, p.tags, ST_Y(ST_Transform(ST_Centroid(p.way),4326)) AS lat, ST_X(ST_Transform(ST_Centroid(p.way),4326)) AS lon FROM planet_osm_line l, planet_osm_polygon p WHERE l.osm_id >= 0 AND p.osm_id >= 0 AND p.power ~ 'substation|station|sub_station' AND (p.voltage ~ '" + self.voltage_levels + "' OR (p.voltage = '') IS NOT FALSE) AND st_intersects(l.way, p.way) AND l.power ~ 'line|cable|minor_line' AND l.voltage ~ '" + voltage_level + "' AND " + where_clause
+
             self.cur.execute(sql)
             result = self.cur.fetchall()
             for (id, geom, type, name, ref, voltage, tags, lat, lon) in result:
@@ -183,6 +195,7 @@ class Transnet:
 
             # add power plants with area
             sql = "SELECT DISTINCT(p.osm_id) AS id, st_transform(p.way, 4326) AS geom, p.power AS type, p.name, p.ref, p.voltage, p.\"plant:output:electricity\" AS output1, p.\"generator:output:electricity\" AS output2, p.tags, ST_Y(ST_Transform(ST_Centroid(p.way),4326)) AS lat, ST_X(ST_Transform(ST_Centroid(p.way),4326)) AS lon FROM planet_osm_line l, planet_osm_polygon p WHERE l.osm_id >= 0 AND p.osm_id >= 0 AND p.power ~ 'plant|generator' AND st_intersects(l.way, p.way) AND l.power ~ 'line|cable|minor_line' AND l.voltage ~ '" + voltage_level + "' AND " + where_clause
+
             self.cur.execute(sql)
             result = self.cur.fetchall()
             for (id, geom, type, name, ref, voltage, output1, output2, tags, lat, lon) in result:
@@ -219,8 +232,6 @@ class Transnet:
         root.info('Inference took %s millies', str(datetime.now() - time))
 
         # transnet_instance.export_to_db(all_circuits, dbname)
-
-        # transnet_instance.export_to_json(all_circuits, dbname)
 
         partition_by_station_dict = None
         population_by_station_dict = None
@@ -537,8 +548,62 @@ class Transnet:
         self.cur_export.execute(insert_sql)
         self.conn_export.commit()
 
-    def export_to_json(self, circuits, country):
-        pass
+    @staticmethod
+    def run_matlab_for_continent(matlab, continent_folder, root_log):
+        dirs = [x[0] for x in walk(join(dirname(__file__), '../models/{0}/'.format(continent_folder)))]
+        matlab_dir = join(dirname(__file__), '../matlab')
+        for dir in dirs[1:]:
+            try:
+                country = dir.split('/')[-1]
+                log_dir = join(dirname(__file__), '../logs/{0}/{1}'.format(continent_folder, country))
+                if not exists(log_dir):
+                    makedirs(log_dir)
+
+                command = 'cd {0} && {1} -r "transform {2}/{3};quit;"| tee ../logs/{2}/{3}/transnet_matlab.log' \
+                    .format(matlab_dir, matlab, continent, country)
+                root_log.info('running MATLAB modeling for {0}'.format(country))
+                return_code = call(command, shell=True)
+                root_log.info('MATLAB return code {0}'.format(return_code))
+            except Exception as e:
+                root_log.error(e)
+
+    @staticmethod
+    def try_parse_int(string):
+        try:
+            return int(string)
+        except ValueError:
+            return 0
+
+    def prepare_planet_json(self, continent):
+
+        with open('meta/{0}.json'.format(continent), 'r+') as continent_file:
+            continent_json = json.load(continent_file)
+            for country in continent_json:
+                self.prepare_poly(continent, country)
+                poly_parser = PolyParser()
+                boundary = poly_parser.poly_to_polygon('../data/{0}/{1}/pfile.poly'.format(continent, country))
+                where_clause = "st_intersects(l.way, st_transform(st_geomfromtext('" + boundary.wkt + "',4269),3857))"
+                voltages = set()
+                voltages_string = ''
+                first_round = True
+                sql = "SELECT DISTINCT(voltage) AS voltage, count(*) AS num FROM planet_osm_line  l WHERE " + where_clause + " GROUP BY voltage ORDER BY num DESC"
+                self.cur.execute(sql)
+                result = self.cur.fetchall()
+                for (voltage, num) in result:
+                    if num > 30 and voltage:
+                        raw_voltages = [Transnet.try_parse_int(x) for x in str(voltage).strip().split(';')]
+                        voltages = voltages.union(set(raw_voltages))
+                for voltage in sorted(voltages):
+                    if voltage > 99999:
+                        if first_round:
+                            voltages_string += str(voltage)
+                            first_round = False
+                        else:
+                            voltages_string += '|' + str(voltage)
+                continent_json[country]['voltages'] = voltages_string
+            continent_file.seek(0)
+            continent_file.write(json.dumps(continent_json, indent=4))
+            continent_file.truncate()
 
 
 if __name__ == '__main__':
@@ -578,6 +643,10 @@ if __name__ == '__main__':
     parser.add_option("-c", "--continent", action="store", dest="continent", \
                       help="name of continent, options: 'africa', 'antarctica', 'asia', "
                            "'australia-oceania', 'central-america', 'europe', 'north-america', 'south-america' ")
+    parser.add_option("-m", "--matlab", action="store", dest="matlab", \
+                      help="run matlab for all countries in continent modeling")
+    parser.add_option("-j", "--preparejson", action="store_true", dest="prepare_json", \
+                      help="prepare json files of planet")
 
     (options, args) = parser.parse_args()
     # get connection data via command line or set to default values
@@ -588,15 +657,16 @@ if __name__ == '__main__':
     dbuser = options.dbuser if options.dbuser else 'lej'
     dbpwrd = options.dbpwrd if options.dbpwrd else 'OpenGridMap'
     ssid = options.ssid if options.ssid else '23025610'
-    poly = options.poly if options.poly else None
-    bpoly = options.bounding_polygon if options.bounding_polygon else None
+    poly = options.poly
+    bpoly = options.bounding_polygon
     verbose = options.verbose if options.verbose else False
     validate = options.evaluate if options.evaluate else False
     topology = options.topology if options.topology else False
     voltage_levels = options.voltage_levels if options.voltage_levels else '220000|380000'
     load_estimation = options.load_estimation if options.load_estimation else False
     destdir = '../models/' + options.destdir if options.destdir else '../results'
-    continent = options.continent if options.continent else None
+    continent = options.continent
+    matlab = options.matlab
 
     # configure logging
     ch = logging.StreamHandler(sys.stdout)
@@ -606,14 +676,21 @@ if __name__ == '__main__':
         ch.setLevel(logging.INFO)
     root.addHandler(ch)
 
+    if matlab and continent:
+        Transnet.run_matlab_for_continent(matlab, continent, root)
+        exit()
+
     # Connect to DB
     try:
         transnet_instance = Transnet(database=dbname, export_database=export_dbname, host=dbhost, port=dbport,
                                      user=dbuser, password=dbpwrd, ssid=ssid, poly=poly, bpoly=bpoly, verbose=verbose,
                                      validate=validate, topology=topology, voltage_levels=voltage_levels,
                                      load_estimation=load_estimation, destdir=destdir, continent=continent, root=root)
-        transnet_instance.run()
+        if options.prepare_json and continent:
+            transnet_instance.prepare_planet_json(continent)
+        else:
+            transnet_instance.run()
     except Exception as e:
-        root.error(e.message)
+        root.error(e)
         parser.print_help()
         exit()

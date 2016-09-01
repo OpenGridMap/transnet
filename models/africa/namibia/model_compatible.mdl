@@ -1,0 +1,3949 @@
+Model {
+  Name			  "model_compatible"
+  Version		  7.5
+  SavedCharacterEncoding  "UTF-8"
+  GraphicalInterface {
+    NumRootInports	    0
+    NumRootOutports	    0
+    ParameterArgumentNames  ""
+    ComputedModelVersion    "1.2"
+    NumModelReferences	    0
+    NumTestPointedSignals   0
+  }
+  ScopeRefreshTime	  0.035000
+  OverrideScopeRefreshTime on
+  DisableAllScopes	  off
+  DataTypeOverride	  "UseLocalSettings"
+  MinMaxOverflowLogging	  "UseLocalSettings"
+  MinMaxOverflowArchiveMode "Overwrite"
+  MaxMDLFileLineLength	  120
+  UserBdParams		  "PhysicalModelingChecksum;PhysicalModelingParameterChecksum;PhysicalModelingProducts"
+  PhysicalModelingChecksum "598827057"
+  PhysicalModelingParameterChecksum "613197884"
+  PhysicalModelingProducts "Power_System_Blocks"
+  Created		  "Fri Apr 15 09:38:05 2016"
+  Creator		  "lej"
+  UpdateHistory		  "UpdateHistoryNever"
+  ModifiedByFormat	  "%<Auto>"
+  LastModifiedBy	  "epezhman"
+  ModifiedDateFormat	  "%<Auto>"
+  LastModifiedDate	  "Wed Aug 31 16:30:45 2016"
+  RTWModifiedTimeStamp	  394561845
+  ModelVersionFormat	  "1.%<AutoIncrement:2>"
+  ConfigurationManager	  "none"
+  SampleTimeColors	  off
+  SampleTimeAnnotations	  off
+  WideLines		  off
+  ShowLineDimensions	  off
+  ShowPortDataTypes	  off
+  ShowLoopsOnError	  on
+  IgnoreBidirectionalLines off
+  ShowStorageClass	  off
+  ShowTestPointIcons	  on
+  ShowSignalResolutionIcons on
+  ShowViewerIcons	  on
+  SortedOrder		  off
+  ExecutionContextIcon	  off
+  ShowLinearizationAnnotations on
+  BlockNameDataTip	  off
+  BlockParametersDataTip  off
+  BlockDescriptionStringDataTip	off
+  ToolBar		  on
+  StatusBar		  on
+  BrowserShowLibraryLinks off
+  BrowserLookUnderMasks	  off
+  SimulationMode	  "normal"
+  LinearizationMsg	  "none"
+  Profile		  off
+  ParamWorkspaceSource	  "MATLABWorkspace"
+  AccelSystemTargetFile	  "accel.tlc"
+  AccelTemplateMakefile	  "accel_default_tmf"
+  AccelMakeCommand	  "make_rtw"
+  TryForcingSFcnDF	  off
+  RecordCoverage	  off
+  CovPath		  "/"
+  CovSaveName		  "covdata"
+  CovMetricSettings	  "dw"
+  CovNameIncrementing	  off
+  CovHtmlReporting	  on
+  CovForceBlockReductionOff on
+  covSaveCumulativeToWorkspaceVar on
+  CovSaveSingleToWorkspaceVar on
+  CovCumulativeVarName	  "covCumulativeData"
+  CovCumulativeReport	  off
+  CovReportOnPause	  on
+  CovModelRefEnable	  "off"
+  CovExternalEMLEnable	  off
+  ExtModeBatchMode	  off
+  ExtModeEnableFloating	  on
+  ExtModeTrigType	  "manual"
+  ExtModeTrigMode	  "normal"
+  ExtModeTrigPort	  "1"
+  ExtModeTrigElement	  "any"
+  ExtModeTrigDuration	  1000
+  ExtModeTrigDurationFloating "auto"
+  ExtModeTrigHoldOff	  0
+  ExtModeTrigDelay	  0
+  ExtModeTrigDirection	  "rising"
+  ExtModeTrigLevel	  0
+  ExtModeArchiveMode	  "off"
+  ExtModeAutoIncOneShot	  off
+  ExtModeIncDirWhenArm	  off
+  ExtModeAddSuffixToVar	  off
+  ExtModeWriteAllDataToWs off
+  ExtModeArmWhenConnect	  on
+  ExtModeSkipDownloadWhenConnect off
+  ExtModeLogAll		  on
+  ExtModeAutoUpdateStatusClock on
+  ShowModelReferenceBlockVersion off
+  ShowModelReferenceBlockIO off
+  Array {
+    Type		    "Handle"
+    Dimension		    1
+    Simulink.ConfigSet {
+      $ObjectID		      7
+      Version		      "1.10.0"
+      Array {
+	Type			"Handle"
+	Dimension		9
+	Simulink.SolverCC {
+	  $ObjectID		  8
+	  Version		  "1.10.0"
+	  StartTime		  "0.0"
+	  StopTime		  "10.0"
+	  AbsTol		  "auto"
+	  FixedStep		  "auto"
+	  InitialStep		  "auto"
+	  MaxNumMinSteps	  "-1"
+	  MaxOrder		  5
+	  ZcThreshold		  "auto"
+	  ConsecutiveZCsStepRelTol "10*128*eps"
+	  MaxConsecutiveZCs	  "1000"
+	  ExtrapolationOrder	  4
+	  NumberNewtonIterations  1
+	  MaxStep		  "auto"
+	  MinStep		  "auto"
+	  MaxConsecutiveMinStep	  "1"
+	  RelTol		  "1e-3"
+	  SolverMode		  "Auto"
+	  Solver		  ode45
+	  SolverName		  ode45
+	  SolverJacobianMethodControl "auto"
+	  ShapePreserveControl	  "DisableAll"
+	  ZeroCrossControl	  "UseLocalSettings"
+	  ZeroCrossAlgorithm	  "Nonadaptive"
+	  AlgebraicLoopSolver	  "TrustRegion"
+	  SolverResetMethod	  "Fast"
+	  PositivePriorityOrder	  off
+	  AutoInsertRateTranBlk	  off
+	  SampleTimeConstraint	  "Unconstrained"
+	  InsertRTBMode		  "Whenever possible"
+	}
+	Simulink.DataIOCC {
+	  $ObjectID		  9
+	  Version		  "1.10.0"
+	  Decimation		  "1"
+	  ExternalInput		  "[t, u]"
+	  FinalStateName	  "xFinal"
+	  InitialState		  "xInitial"
+	  LimitDataPoints	  on
+	  MaxDataPoints		  "1000"
+	  LoadExternalInput	  off
+	  LoadInitialState	  off
+	  SaveFinalState	  off
+	  SaveCompleteFinalSimState off
+	  SaveFormat		  "StructureWithTime"
+	  SaveOutput		  on
+	  SaveState		  off
+	  SignalLogging		  on
+	  DSMLogging		  on
+	  InspectSignalLogs	  off
+	  SaveTime		  on
+	  ReturnWorkspaceOutputs  off
+	  StateSaveName		  "xout"
+	  TimeSaveName		  "tout"
+	  OutputSaveName	  "yout"
+	  SignalLoggingName	  "logsout"
+	  DSMLoggingName	  "dsmout"
+	  OutputOption		  "RefineOutputTimes"
+	  OutputTimes		  "[]"
+	  ReturnWorkspaceOutputsName "out"
+	  Refine		  "1"
+	}
+	Simulink.OptimizationCC {
+	  $ObjectID		  10
+	  Version		  "1.10.0"
+	  Array {
+	    Type		    "Cell"
+	    Dimension		    8
+	    Cell		    "BooleansAsBitfields"
+	    Cell		    "PassReuseOutputArgsAs"
+	    Cell		    "PassReuseOutputArgsThreshold"
+	    Cell		    "ZeroExternalMemoryAtStartup"
+	    Cell		    "ZeroInternalMemoryAtStartup"
+	    Cell		    "OptimizeModelRefInitCode"
+	    Cell		    "NoFixptDivByZeroProtection"
+	    Cell		    "UseSpecifiedMinMax"
+	    PropName		    "DisabledProps"
+	  }
+	  BlockReduction	  on
+	  BooleanDataType	  on
+	  ConditionallyExecuteInputs on
+	  InlineParams		  off
+	  InlineInvariantSignals  off
+	  OptimizeBlockIOStorage  on
+	  BufferReuse		  on
+	  EnhancedBackFolding	  off
+	  StrengthReduction	  off
+	  ExpressionFolding	  on
+	  BooleansAsBitfields	  off
+	  BitfieldContainerType	  "uint_T"
+	  EnableMemcpy		  on
+	  MemcpyThreshold	  64
+	  PassReuseOutputArgsAs	  "Structure reference"
+	  ExpressionDepthLimit	  128
+	  LocalBlockOutputs	  on
+	  RollThreshold		  5
+	  StateBitsets		  off
+	  DataBitsets		  off
+	  ZeroExternalMemoryAtStartup on
+	  ZeroInternalMemoryAtStartup on
+	  InitFltsAndDblsToZero	  off
+	  NoFixptDivByZeroProtection off
+	  EfficientFloat2IntCast  off
+	  EfficientMapNaN2IntZero on
+	  OptimizeModelRefInitCode off
+	  LifeSpan		  "inf"
+	  MaxStackSize		  "Inherit from target"
+	  BufferReusableBoundary  on
+	  SimCompilerOptimization "Off"
+	  AccelVerboseBuild	  off
+	  UseIntDivNetSlope	  off
+	  EnforceIntegerDowncast  on
+	}
+	Simulink.DebuggingCC {
+	  $ObjectID		  11
+	  Version		  "1.10.0"
+	  RTPrefix		  "error"
+	  ConsistencyChecking	  "none"
+	  ArrayBoundsChecking	  "none"
+	  SignalInfNanChecking	  "none"
+	  SignalRangeChecking	  "none"
+	  ReadBeforeWriteMsg	  "UseLocalSettings"
+	  WriteAfterWriteMsg	  "UseLocalSettings"
+	  WriteAfterReadMsg	  "UseLocalSettings"
+	  AlgebraicLoopMsg	  "warning"
+	  ArtificialAlgebraicLoopMsg "warning"
+	  SaveWithDisabledLinksMsg "warning"
+	  SaveWithParameterizedLinksMsg	"warning"
+	  CheckSSInitialOutputMsg on
+	  UnderspecifiedInitializationDetection	"Simplified"
+	  MergeDetectMultiDrivingBlocksExec "error"
+	  CheckExecutionContextPreStartOutputMsg off
+	  CheckExecutionContextRuntimeOutputMsg	off
+	  SignalResolutionControl "UseLocalSettings"
+	  BlockPriorityViolationMsg "warning"
+	  MinStepSizeMsg	  "warning"
+	  TimeAdjustmentMsg	  "none"
+	  MaxConsecutiveZCsMsg	  "error"
+	  SolverPrmCheckMsg	  "none"
+	  InheritedTsInSrcMsg	  "warning"
+	  MultiTaskDSMMsg	  "error"
+	  MultiTaskCondExecSysMsg "error"
+	  MultiTaskRateTransMsg	  "error"
+	  SingleTaskRateTransMsg  "none"
+	  TasksWithSamePriorityMsg "warning"
+	  SigSpecEnsureSampleTimeMsg "warning"
+	  CheckMatrixSingularityMsg "none"
+	  IntegerOverflowMsg	  "warning"
+	  Int32ToFloatConvMsg	  "warning"
+	  ParameterDowncastMsg	  "error"
+	  ParameterOverflowMsg	  "error"
+	  ParameterUnderflowMsg	  "none"
+	  ParameterPrecisionLossMsg "warning"
+	  ParameterTunabilityLossMsg "warning"
+	  FixptConstUnderflowMsg  "none"
+	  FixptConstOverflowMsg	  "none"
+	  FixptConstPrecisionLossMsg "none"
+	  UnderSpecifiedDataTypeMsg "none"
+	  UnnecessaryDatatypeConvMsg "none"
+	  VectorMatrixConversionMsg "none"
+	  InvalidFcnCallConnMsg	  "error"
+	  FcnCallInpInsideContextMsg "Enable All"
+	  SignalLabelMismatchMsg  "none"
+	  UnconnectedInputMsg	  "warning"
+	  UnconnectedOutputMsg	  "warning"
+	  UnconnectedLineMsg	  "warning"
+	  SFcnCompatibilityMsg	  "none"
+	  UniqueDataStoreMsg	  "none"
+	  BusObjectLabelMismatch  "warning"
+	  RootOutportRequireBusObject "warning"
+	  AssertControl		  "UseLocalSettings"
+	  ModelReferenceIOMsg	  "none"
+	  ModelReferenceVersionMismatchMessage "none"
+	  ModelReferenceIOMismatchMessage "none"
+	  UnknownTsInhSupMsg	  "warning"
+	  ModelReferenceDataLoggingMessage "warning"
+	  ModelReferenceSymbolNameMessage "warning"
+	  ModelReferenceExtraNoncontSigs "error"
+	  StateNameClashWarn	  "none"
+	  SimStateInterfaceChecksumMismatchMsg "warning"
+	  StrictBusMsg		  "ErrorLevel1"
+	  BusNameAdapt		  "WarnAndRepair"
+	  NonBusSignalsTreatedAsBus "none"
+	  BlockIODiagnostic	  "none"
+	  ModelReferenceCSMismatchMessage "none"
+	}
+	Simulink.HardwareCC {
+	  $ObjectID		  12
+	  Version		  "1.10.0"
+	  ProdBitPerChar	  8
+	  ProdBitPerShort	  16
+	  ProdBitPerInt		  32
+	  ProdBitPerLong	  32
+	  ProdIntDivRoundTo	  "Zero"
+	  ProdEndianess		  "LittleEndian"
+	  ProdWordSize		  32
+	  ProdShiftRightIntArith  on
+	  ProdHWDeviceType	  "Specified"
+	  TargetBitPerChar	  8
+	  TargetBitPerShort	  16
+	  TargetBitPerInt	  32
+	  TargetBitPerLong	  32
+	  TargetShiftRightIntArith on
+	  TargetIntDivRoundTo	  "Undefined"
+	  TargetEndianess	  "Unspecified"
+	  TargetWordSize	  32
+	  TargetPreprocMaxBitsSint 32
+	  TargetPreprocMaxBitsUint 32
+	  TargetHWDeviceType	  "Specified"
+	  TargetUnknown		  off
+	  ProdEqTarget		  on
+	}
+	Simulink.ModelReferenceCC {
+	  $ObjectID		  13
+	  Version		  "1.10.0"
+	  UpdateModelReferenceTargets "IfOutOfDateOrStructuralChange"
+	  CheckModelReferenceTargetMessage "error"
+	  EnableParallelModelReferenceBuilds off
+	  ParallelModelReferenceMATLABWorkerInit "None"
+	  ModelReferenceNumInstancesAllowed "Multi"
+	  PropagateVarSize	  "Infer from blocks in model"
+	  ModelReferencePassRootInputsByReference on
+	  ModelReferenceMinAlgLoopOccurrences off
+	  PropagateSignalLabelsOutOfModel off
+	  SupportModelReferenceSimTargetCustomCode off
+	}
+	Simulink.SFSimCC {
+	  $ObjectID		  14
+	  Version		  "1.10.0"
+	  SFSimEcho		  on
+	  SimCtrlC		  on
+	  SimIntegrity		  on
+	  SimUseLocalCustomCode	  off
+	  SimBuildMode		  "sf_incremental_build"
+	}
+	Simulink.RTWCC {
+	  $BackupClass		  "Simulink.RTWCC"
+	  $ObjectID		  15
+	  Version		  "1.10.0"
+	  Array {
+	    Type		    "Cell"
+	    Dimension		    13
+	    Cell		    "IncludeHyperlinkInReport"
+	    Cell		    "GenerateTraceInfo"
+	    Cell		    "GenerateTraceReport"
+	    Cell		    "GenerateTraceReportSl"
+	    Cell		    "GenerateTraceReportSf"
+	    Cell		    "GenerateTraceReportEml"
+	    Cell		    "PortableWordSizes"
+	    Cell		    "GenerateWebview"
+	    Cell		    "GenerateCodeMetricsReport"
+	    Cell		    "GenerateCodeReplacementReport"
+	    Cell		    "GenerateMissedCodeReplacementReport"
+	    Cell		    "GenerateErtSFunction"
+	    Cell		    "CreateSILPILBlock"
+	    PropName		    "DisabledProps"
+	  }
+	  SystemTargetFile	  "grt.tlc"
+	  TLCOptions		  ""
+	  GenCodeOnly		  off
+	  MakeCommand		  "make_rtw"
+	  GenerateMakefile	  on
+	  TemplateMakefile	  "grt_default_tmf"
+	  PostCodeGenCommand	  ""
+	  Description		  ""
+	  GenerateReport	  off
+	  SaveLog		  off
+	  RTWVerbose		  on
+	  RetainRTWFile		  off
+	  ProfileTLC		  off
+	  TLCDebug		  off
+	  TLCCoverage		  off
+	  TLCAssert		  off
+	  RTWUseLocalCustomCode	  off
+	  RTWUseSimCustomCode	  off
+	  IncludeHyperlinkInReport off
+	  LaunchReport		  off
+	  TargetLang		  "C"
+	  IncludeBusHierarchyInRTWFileBlockHierarchyMap	off
+	  GenerateTraceInfo	  off
+	  GenerateTraceReport	  off
+	  GenerateTraceReportSl	  off
+	  GenerateTraceReportSf	  off
+	  GenerateTraceReportEml  off
+	  RTWCompilerOptimization "Off"
+	  RTWCustomCompilerOptimizations ""
+	  CheckMdlBeforeBuild	  "Off"
+	  Array {
+	    Type		    "Handle"
+	    Dimension		    2
+	    Simulink.CodeAppCC {
+	      $ObjectID		      16
+	      Version		      "1.10.0"
+	      Array {
+		Type			"Cell"
+		Dimension		24
+		Cell			"IgnoreCustomStorageClasses"
+		Cell			"ParameterTuningSideEffectCode"
+		Cell			"IgnoreTestpoints"
+		Cell			"InsertBlockDesc"
+		Cell			"InsertPolySpaceComments"
+		Cell			"SFDataObjDesc"
+		Cell			"MATLABFcnDesc"
+		Cell			"SimulinkDataObjDesc"
+		Cell			"DefineNamingRule"
+		Cell			"SignalNamingRule"
+		Cell			"ParamNamingRule"
+		Cell			"InternalIdentifier"
+		Cell			"InlinedPrmAccess"
+		Cell			"CustomSymbolStr"
+		Cell			"CustomSymbolStrGlobalVar"
+		Cell			"CustomSymbolStrType"
+		Cell			"CustomSymbolStrField"
+		Cell			"CustomSymbolStrFcn"
+		Cell			"CustomSymbolStrFcnArg"
+		Cell			"CustomSymbolStrBlkIO"
+		Cell			"CustomSymbolStrTmpVar"
+		Cell			"CustomSymbolStrMacro"
+		Cell			"CustomSymbolStrUtil"
+		Cell			"ReqsInCode"
+		PropName		"DisabledProps"
+	      }
+	      ForceParamTrailComments off
+	      GenerateComments	      on
+	      IgnoreCustomStorageClasses on
+	      IgnoreTestpoints	      off
+	      IncHierarchyInIds	      off
+	      MaxIdLength	      31
+	      PreserveName	      off
+	      PreserveNameWithParent  off
+	      ShowEliminatedStatement off
+	      IncAutoGenComments      off
+	      SimulinkDataObjDesc     off
+	      SFDataObjDesc	      off
+	      IncDataTypeInIds	      off
+	      MangleLength	      1
+	      CustomSymbolStrGlobalVar "$R$N$M"
+	      CustomSymbolStrType     "$N$R$M_T"
+	      CustomSymbolStrField    "$N$M"
+	      CustomSymbolStrFcn      "$R$N$M$F"
+	      CustomSymbolStrFcnArg   "rt$I$N$M"
+	      CustomSymbolStrBlkIO    "rtb_$N$M"
+	      CustomSymbolStrTmpVar   "$N$M"
+	      CustomSymbolStrMacro    "$R$N$M"
+	      DefineNamingRule	      "None"
+	      ParamNamingRule	      "None"
+	      SignalNamingRule	      "None"
+	      InsertBlockDesc	      off
+	      SimulinkBlockComments   on
+	      EnableCustomComments    off
+	      InlinedPrmAccess	      "Literals"
+	      ReqsInCode	      off
+	      UseSimReservedNames     off
+	    }
+	    Simulink.GRTTargetCC {
+	      $BackupClass	      "Simulink.TargetCC"
+	      $ObjectID		      17
+	      Version		      "1.10.0"
+	      Array {
+		Type			"Cell"
+		Dimension		14
+		Cell			"IncludeMdlTerminateFcn"
+		Cell			"SuppressErrorStatus"
+		Cell			"ERTCustomFileBanners"
+		Cell			"GenerateSampleERTMain"
+		Cell			"GenerateTestInterfaces"
+		Cell			"ModelStepFunctionPrototypeControlCompliant"
+		Cell			"MultiInstanceERTCode"
+		Cell			"PurelyIntegerCode"
+		Cell			"SupportComplex"
+		Cell			"SupportAbsoluteTime"
+		Cell			"SupportContinuousTime"
+		Cell			"SupportNonInlinedSFcns"
+		Cell			"SupportNonFinite"
+		Cell			"CombineOutputUpdateFcns"
+		PropName		"DisabledProps"
+	      }
+	      TargetFcnLib	      "ansi_tfl_table_tmw.mat"
+	      TargetLibSuffix	      ""
+	      TargetFunctionLibrary   "C89/C90 (ANSI)"
+	      UtilityFuncGeneration   "Auto"
+	      ERTMultiwordTypeDef     "System defined"
+	      ERTMultiwordLength      256
+	      MultiwordLength	      2048
+	      GenerateFullHeader      on
+	      GenerateSampleERTMain   off
+	      GenerateTestInterfaces  off
+	      ModelReferenceCompliant on
+	      ParMdlRefBuildCompliant on
+	      CompOptLevelCompliant   on
+	      IncludeMdlTerminateFcn  on
+	      GeneratePreprocessorConditionals "Use local settings"
+	      CombineOutputUpdateFcns off
+	      SuppressErrorStatus     off
+	      ERTFirstTimeCompliant   off
+	      IncludeFileDelimiter    "Auto"
+	      ERTCustomFileBanners    off
+	      SupportAbsoluteTime     on
+	      LogVarNameModifier      "rt_"
+	      MatFileLogging	      on
+	      MultiInstanceERTCode    off
+	      SupportNonFinite	      on
+	      SupportComplex	      on
+	      PurelyIntegerCode	      off
+	      SupportContinuousTime   on
+	      SupportNonInlinedSFcns  on
+	      SupportVariableSizeSignals off
+	      ParenthesesLevel	      "Nominal"
+	      ModelStepFunctionPrototypeControlCompliant off
+	      CPPClassGenCompliant    off
+	      AutosarCompliant	      off
+	      UseMalloc		      off
+	      ExtMode		      off
+	      ExtModeStaticAlloc      off
+	      ExtModeTesting	      off
+	      ExtModeStaticAllocSize  1000000
+	      ExtModeTransport	      0
+	      ExtModeMexFile	      "ext_comm"
+	      ExtModeIntrfLevel	      "Level1"
+	      RTWCAPISignals	      off
+	      RTWCAPIParams	      off
+	      RTWCAPIStates	      off
+	      GenerateASAP2	      off
+	    }
+	    PropName		    "Components"
+	  }
+	}
+	SSC.SimscapeCC {
+	  $ObjectID		  19
+	  Version		  "1.10.0"
+	  Array {
+	    Type		    "Cell"
+	    Dimension		    1
+	    Cell		    "Name"
+	    PropName		    "DisabledProps"
+	  }
+	  Array {
+	    Type		    "Handle"
+	    Dimension		    2
+	    MECH.SimMechanicsCC {
+	      $ObjectID		      20
+	      Version		      "1.10.0"
+	      WarnOnRedundantConstraints on
+	      WarnOnSingularInitialAssembly off
+	      ShowCutJoints	      off
+	      VisOnUpdateDiagram      off
+	      VisDuringSimulation     off
+	      EnableVisSimulationTime on
+	      VisSampleTime	      "0"
+	      DisableBodyVisControl   off
+	      ShowCG		      on
+	      ShowCS		      on
+	      ShowOnlyPortCS	      off
+	      HighlightModel	      on
+	      FramesToBeSkipped	      "0"
+	      AnimationDelay	      "3"
+	      RecordAVI		      off
+	      CompressAVI	      on
+	      AutoFitVis	      "off"
+	      EnableSelection	      on
+	      LastVizWinPosition      "[-1 -1 -1 -1]"
+	      CamPosition	      "[0 0 0]"
+	      CamTarget		      "[0 0 -1]"
+	      CamUpVector	      "[0 1 0]"
+	      CamHeight		      "-1"
+	      CamViewAngle	      "0"
+	      VisBackgroundColor      "[0.9 0.9 0.95]"
+	      DefaultBodyColor	      "[1 0 0]"
+	      MDLBodyVisualizationType "Convex hull from body CS locations"
+	      OVRRIDBodyVisualizationType "NONE"
+	      Name		      SimMechanics
+	    }
+	    simmechanics.ConfigurationSet {
+	      $ObjectID		      21
+	      Version		      "1.10.0"
+	      Description	      "Simscape Multibody"
+	      Array {
+		Type			"Handle"
+		Dimension		2
+		simmechanics.DiagnosticsConfigSet {
+		  $ObjectID		  22
+		  Version		  "1.16.2"
+		  Description		  "Diagnostics"
+		  Name			  "DiagnosticsConfigSet"
+		  SimMechanicsInvalidVisualProperty "warning"
+		  SimMechanicsCrossSectionNullEdge "warning"
+		  SimMechanicsUnconnectedFramePorts "warning"
+		  SimMechanicsUnconnectedGeometryPorts "warning"
+		  SimMechanicsRedundantBlock "warning"
+		  SimMechanicsConflictingReferenceFrames "warning"
+		  SimMechanicsRigidlyBoundBlock	"error"
+		  SimMechanicsUnsatisfiedHighPriorityTargets "warning"
+		  SimMechanicsJointTargetOverSpecification "error"
+		}
+		simmechanics.ExplorerConfigSet {
+		  $ObjectID		  23
+		  Version		  "1.16.2"
+		  Description		  "Explorer"
+		  Name			  "ExplorerConfigSet"
+		  SimMechanicsOpenEditorOnUpdate on
+		}
+		PropName		"Components"
+	      }
+	      Name		      SimMechanics2G
+	    }
+	    PropName		    "Components"
+	  }
+	  Name			  "Simscape"
+	  EditingMode		  "Full"
+	  ExplicitSolverDiagnosticOptions "warning"
+	  GlobalZcOffDiagnosticOptions "warning"
+	  SimscapeLogType	  "none"
+	  SimscapeLogSimulationStatistics off
+	  SimscapeLogOpenViewer	  off
+	  SimscapeLogName	  "simlog"
+	  SimscapeLogDecimation	  1
+	  SimscapeLogLimitData	  on
+	  SimscapeLogDataHistory  5000
+	}
+	PropName		"Components"
+      }
+      Name		      "Configuration"
+      CurrentDlgPage	      "Solver"
+      ConfigPrmDlgPosition    [ 420, 220, 1500, 860 ]  
+    }
+    PropName		    "ConfigurationSets"
+  }
+  Simulink.ConfigSet {
+    $PropName		    "ActiveConfigurationSet"
+    $ObjectID		    7
+  }
+  BlockDefaults {
+    ForegroundColor	    "black"
+    BackgroundColor	    "white"
+    DropShadow		    off
+    NamePlacement	    "normal"
+    FontName		    "Helvetica"
+    FontSize		    10
+    FontWeight		    "normal"
+    FontAngle		    "normal"
+    ShowName		    on
+    BlockRotation	    0
+    BlockMirror		    off
+  }
+  AnnotationDefaults {
+    HorizontalAlignment	    "center"
+    VerticalAlignment	    "middle"
+    ForegroundColor	    "black"
+    BackgroundColor	    "white"
+    DropShadow		    off
+    FontName		    "Helvetica"
+    FontSize		    10
+    FontWeight		    "normal"
+    FontAngle		    "normal"
+    UseDisplayTextAsClickCallback off
+  }
+  LineDefaults {
+    FontName		    "Helvetica"
+    FontSize		    9
+    FontWeight		    "normal"
+    FontAngle		    "normal"
+  }
+  BlockParameterDefaults {
+  }
+  System {
+    Name		    "model_compatible"
+    Location		    [100, 100, 620, 900]
+    Open		    off
+    ModelBrowserVisibility  off
+    ModelBrowserWidth	    200
+    ScreenColor		    "white"
+    PaperOrientation	    "landscape"
+    PaperPositionMode	    "auto"
+    PaperType		    "usletter"
+    PaperUnits		    "inches"
+    TiledPaperMargins	    [0.500000, 0.500000, 0.500000, 0.500000]
+    TiledPageScale	    1
+    ShowPageBoundaries	    off
+    ZoomFactor		    "5"
+    ReportName		    "simulink-default.rpt"
+    SIDHighWatermark	    72
+    Block {
+      BlockType		      Reference
+      Name		      "G_122245237_Van_Eck_Power_Plant"
+      SID		      15
+      Ports		      [0, 0, 0, 0, 0, 0, 3]
+      Position		      [2445, 5531, 2480, 5559]
+      BlockMirror	      on
+      BackgroundColor	      "cyan"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Electrical\nSources/Three-Phase Source"
+      SourceType	      "Three-Phase Source"
+      InternalConnection      "Yg"
+      VoltagePhases	      off
+      Voltage		      "220000"
+      PhaseAngle	      "0"
+      Voltage_phases	      "[ 1 1 1]*380000"
+      PhaseAngles_phases      "[ 0 0 0]"
+      Frequency		      "50"
+      NonIdealSource	      on
+      SpecifyImpedance	      off
+      Resistance	      "0.8929"
+      Inductance	      "16.58e-3"
+      ShortCircuitLevel	      "100e6"
+      BaseVoltage	      "220000"
+      XRratio		      "7"
+      BusType		      "swing"
+      Pref		      "10e3"
+      Qref		      "0"
+      Prefabc		      "[3333.33 3333.33 3333.33]"
+      Qrefabc		      "[0 0 0]"
+      Qmin		      "-inf"
+      Qmax		      "inf"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "L_108549128"
+      SID		      17
+      Ports		      [0, 0, 0, 0, 0, 3]
+      Position		      [145, 5834, 185, 5866]
+      BackgroundColor	      "yellow"
+      AttributesFormatString  "\\n"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Elements/Three-Phase\nSeries RLC Load"
+      SourceType	      "Three-Phase Series RLC Load"
+      LConnTagsString	      "A|B|C"
+      Configuration	      "Y (grounded)"
+      NominalVoltage	      "220000"
+      Vabc		      "[1e3 1e3 1e3]"
+      Vabcp		      "[1e3 1e3 1e3]"
+      NominalFrequency	      "50"
+      UnbalancedPower	      off
+      ActivePower	      "100000"
+      InductivePower	      "100"
+      CapacitivePower	      "100"
+      Pabc		      "[10e3 9e3 11e3]"
+      QLabc		      "[100 90 110]"
+      QCabc		      "[100 90 110]"
+      Pabcp		      "[10e3 9e3 11e3]"
+      QLabcp		      "[100 90 110]"
+      QCabcp		      "[100 90 110]"
+      Measurements	      "None"
+      LoadType		      "constant PQ"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "L_108562208"
+      SID		      16
+      Ports		      [0, 0, 0, 0, 0, 3]
+      Position		      [135, 5999, 175, 6031]
+      BackgroundColor	      "yellow"
+      AttributesFormatString  "\\n"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Elements/Three-Phase\nSeries RLC Load"
+      SourceType	      "Three-Phase Series RLC Load"
+      LConnTagsString	      "A|B|C"
+      Configuration	      "Y (grounded)"
+      NominalVoltage	      "220000"
+      Vabc		      "[1e3 1e3 1e3]"
+      Vabcp		      "[1e3 1e3 1e3]"
+      NominalFrequency	      "50"
+      UnbalancedPower	      off
+      ActivePower	      "100000"
+      InductivePower	      "100"
+      CapacitivePower	      "100"
+      Pabc		      "[10e3 9e3 11e3]"
+      QLabc		      "[100 90 110]"
+      QCabc		      "[100 90 110]"
+      Pabcp		      "[10e3 9e3 11e3]"
+      QLabcp		      "[100 90 110]"
+      QCabcp		      "[100 90 110]"
+      Measurements	      "None"
+      LoadType		      "constant PQ"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "L_121729808"
+      SID		      20
+      Ports		      [0, 0, 0, 0, 0, 3]
+      Position		      [1455, 4404, 1495, 4436]
+      BackgroundColor	      "yellow"
+      AttributesFormatString  "\\n"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Elements/Three-Phase\nSeries RLC Load"
+      SourceType	      "Three-Phase Series RLC Load"
+      LConnTagsString	      "A|B|C"
+      Configuration	      "Y (grounded)"
+      NominalVoltage	      "220000"
+      Vabc		      "[1e3 1e3 1e3]"
+      Vabcp		      "[1e3 1e3 1e3]"
+      NominalFrequency	      "50"
+      UnbalancedPower	      off
+      ActivePower	      "100000"
+      InductivePower	      "100"
+      CapacitivePower	      "100"
+      Pabc		      "[10e3 9e3 11e3]"
+      QLabc		      "[100 90 110]"
+      QCabc		      "[100 90 110]"
+      Pabcp		      "[10e3 9e3 11e3]"
+      QLabcp		      "[100 90 110]"
+      QCabcp		      "[100 90 110]"
+      Measurements	      "None"
+      LoadType		      "constant PQ"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "L_179096206"
+      SID		      25
+      Ports		      [0, 0, 0, 0, 0, 3]
+      Position		      [10115, 119, 10155, 151]
+      BackgroundColor	      "yellow"
+      AttributesFormatString  "\\n"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Elements/Three-Phase\nSeries RLC Load"
+      SourceType	      "Three-Phase Series RLC Load"
+      LConnTagsString	      "A|B|C"
+      Configuration	      "Y (grounded)"
+      NominalVoltage	      "220000"
+      Vabc		      "[1e3 1e3 1e3]"
+      Vabcp		      "[1e3 1e3 1e3]"
+      NominalFrequency	      "50"
+      UnbalancedPower	      off
+      ActivePower	      "100000"
+      InductivePower	      "100"
+      CapacitivePower	      "100"
+      Pabc		      "[10e3 9e3 11e3]"
+      QLabc		      "[100 90 110]"
+      QCabc		      "[100 90 110]"
+      Pabcp		      "[10e3 9e3 11e3]"
+      QLabcp		      "[100 90 110]"
+      QCabcp		      "[100 90 110]"
+      Measurements	      "None"
+      LoadType		      "constant PQ"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "L_179309597"
+      SID		      26
+      Ports		      [0, 0, 0, 0, 0, 3]
+      Position		      [9900, 34, 9940, 66]
+      BlockMirror	      on
+      BackgroundColor	      "yellow"
+      AttributesFormatString  "\\n"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Elements/Three-Phase\nSeries RLC Load"
+      SourceType	      "Three-Phase Series RLC Load"
+      LConnTagsString	      "A|B|C"
+      Configuration	      "Y (grounded)"
+      NominalVoltage	      "220000"
+      Vabc		      "[1e3 1e3 1e3]"
+      Vabcp		      "[1e3 1e3 1e3]"
+      NominalFrequency	      "50"
+      UnbalancedPower	      off
+      ActivePower	      "100000"
+      InductivePower	      "100"
+      CapacitivePower	      "100"
+      Pabc		      "[10e3 9e3 11e3]"
+      QLabc		      "[100 90 110]"
+      QCabc		      "[100 90 110]"
+      Pabcp		      "[10e3 9e3 11e3]"
+      QLabcp		      "[100 90 110]"
+      QCabcp		      "[100 90 110]"
+      Measurements	      "None"
+      LoadType		      "constant PQ"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "L_179315356"
+      SID		      29
+      Ports		      [0, 0, 0, 0, 0, 3]
+      Position		      [2835, 5609, 2875, 5641]
+      BackgroundColor	      "yellow"
+      AttributesFormatString  "\\n"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Elements/Three-Phase\nSeries RLC Load"
+      SourceType	      "Three-Phase Series RLC Load"
+      LConnTagsString	      "A|B|C"
+      Configuration	      "Y (grounded)"
+      NominalVoltage	      "220000"
+      Vabc		      "[1e3 1e3 1e3]"
+      Vabcp		      "[1e3 1e3 1e3]"
+      NominalFrequency	      "50"
+      UnbalancedPower	      off
+      ActivePower	      "100000"
+      InductivePower	      "100"
+      CapacitivePower	      "100"
+      Pabc		      "[10e3 9e3 11e3]"
+      QLabc		      "[100 90 110]"
+      QCabc		      "[100 90 110]"
+      Pabcp		      "[10e3 9e3 11e3]"
+      QLabcp		      "[100 90 110]"
+      QCabcp		      "[100 90 110]"
+      Measurements	      "None"
+      LoadType		      "constant PQ"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "L_179675621"
+      SID		      18
+      Ports		      [0, 0, 0, 0, 0, 3]
+      Position		      [1685, 3084, 1725, 3116]
+      BlockMirror	      on
+      BackgroundColor	      "yellow"
+      AttributesFormatString  "\\n"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Elements/Three-Phase\nSeries RLC Load"
+      SourceType	      "Three-Phase Series RLC Load"
+      LConnTagsString	      "A|B|C"
+      Configuration	      "Y (grounded)"
+      NominalVoltage	      "220000"
+      Vabc		      "[1e3 1e3 1e3]"
+      Vabcp		      "[1e3 1e3 1e3]"
+      NominalFrequency	      "50"
+      UnbalancedPower	      off
+      ActivePower	      "100000"
+      InductivePower	      "100"
+      CapacitivePower	      "100"
+      Pabc		      "[10e3 9e3 11e3]"
+      QLabc		      "[100 90 110]"
+      QCabc		      "[100 90 110]"
+      Pabcp		      "[10e3 9e3 11e3]"
+      QLabcp		      "[100 90 110]"
+      QCabcp		      "[100 90 110]"
+      Measurements	      "None"
+      LoadType		      "constant PQ"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "L_179679495"
+      SID		      19
+      Ports		      [0, 0, 0, 0, 0, 3]
+      Position		      [3125, 1869, 3165, 1901]
+      BackgroundColor	      "yellow"
+      AttributesFormatString  "\\n"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Elements/Three-Phase\nSeries RLC Load"
+      SourceType	      "Three-Phase Series RLC Load"
+      LConnTagsString	      "A|B|C"
+      Configuration	      "Y (grounded)"
+      NominalVoltage	      "220000"
+      Vabc		      "[1e3 1e3 1e3]"
+      Vabcp		      "[1e3 1e3 1e3]"
+      NominalFrequency	      "50"
+      UnbalancedPower	      off
+      ActivePower	      "100000"
+      InductivePower	      "100"
+      CapacitivePower	      "100"
+      Pabc		      "[10e3 9e3 11e3]"
+      QLabc		      "[100 90 110]"
+      QCabc		      "[100 90 110]"
+      Pabcp		      "[10e3 9e3 11e3]"
+      QLabcp		      "[100 90 110]"
+      QCabcp		      "[100 90 110]"
+      Measurements	      "None"
+      LoadType		      "constant PQ"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "L_191928540"
+      SID		      22
+      Ports		      [0, 0, 0, 0, 0, 3]
+      Position		      [3935, 11389, 3975, 11421]
+      BackgroundColor	      "yellow"
+      AttributesFormatString  "\\n"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Elements/Three-Phase\nSeries RLC Load"
+      SourceType	      "Three-Phase Series RLC Load"
+      LConnTagsString	      "A|B|C"
+      Configuration	      "Y (grounded)"
+      NominalVoltage	      "220000"
+      Vabc		      "[1e3 1e3 1e3]"
+      Vabcp		      "[1e3 1e3 1e3]"
+      NominalFrequency	      "50"
+      UnbalancedPower	      off
+      ActivePower	      "100000"
+      InductivePower	      "100"
+      CapacitivePower	      "100"
+      Pabc		      "[10e3 9e3 11e3]"
+      QLabc		      "[100 90 110]"
+      QCabc		      "[100 90 110]"
+      Pabcp		      "[10e3 9e3 11e3]"
+      QLabcp		      "[100 90 110]"
+      QCabcp		      "[100 90 110]"
+      Measurements	      "None"
+      LoadType		      "constant PQ"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "L_191928543"
+      SID		      24
+      Ports		      [0, 0, 0, 0, 0, 3]
+      Position		      [3865, 12124, 3905, 12156]
+      BackgroundColor	      "yellow"
+      AttributesFormatString  "\\n"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Elements/Three-Phase\nSeries RLC Load"
+      SourceType	      "Three-Phase Series RLC Load"
+      LConnTagsString	      "A|B|C"
+      Configuration	      "Y (grounded)"
+      NominalVoltage	      "220000"
+      Vabc		      "[1e3 1e3 1e3]"
+      Vabcp		      "[1e3 1e3 1e3]"
+      NominalFrequency	      "50"
+      UnbalancedPower	      off
+      ActivePower	      "100000"
+      InductivePower	      "100"
+      CapacitivePower	      "100"
+      Pabc		      "[10e3 9e3 11e3]"
+      QLabc		      "[100 90 110]"
+      QCabc		      "[100 90 110]"
+      Pabcp		      "[10e3 9e3 11e3]"
+      QLabcp		      "[100 90 110]"
+      QCabcp		      "[100 90 110]"
+      Measurements	      "None"
+      LoadType		      "constant PQ"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "L_198090281"
+      SID		      28
+      Ports		      [0, 0, 0, 0, 0, 3]
+      Position		      [11830, 684, 11870, 716]
+      BackgroundColor	      "yellow"
+      AttributesFormatString  "\\n"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Elements/Three-Phase\nSeries RLC Load"
+      SourceType	      "Three-Phase Series RLC Load"
+      LConnTagsString	      "A|B|C"
+      Configuration	      "Y (grounded)"
+      NominalVoltage	      "220000"
+      Vabc		      "[1e3 1e3 1e3]"
+      Vabcp		      "[1e3 1e3 1e3]"
+      NominalFrequency	      "50"
+      UnbalancedPower	      off
+      ActivePower	      "100000"
+      InductivePower	      "100"
+      CapacitivePower	      "100"
+      Pabc		      "[10e3 9e3 11e3]"
+      QLabc		      "[100 90 110]"
+      QCabc		      "[100 90 110]"
+      Pabcp		      "[10e3 9e3 11e3]"
+      QLabcp		      "[100 90 110]"
+      QCabcp		      "[100 90 110]"
+      Measurements	      "None"
+      LoadType		      "constant PQ"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "L_315321465"
+      SID		      27
+      Ports		      [0, 0, 0, 0, 0, 3]
+      Position		      [505, 5119, 545, 5151]
+      BlockMirror	      on
+      BackgroundColor	      "yellow"
+      AttributesFormatString  "\\n"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Elements/Three-Phase\nSeries RLC Load"
+      SourceType	      "Three-Phase Series RLC Load"
+      LConnTagsString	      "A|B|C"
+      Configuration	      "Y (grounded)"
+      NominalVoltage	      "220000"
+      Vabc		      "[1e3 1e3 1e3]"
+      Vabcp		      "[1e3 1e3 1e3]"
+      NominalFrequency	      "50"
+      UnbalancedPower	      off
+      ActivePower	      "100000"
+      InductivePower	      "100"
+      CapacitivePower	      "100"
+      Pabc		      "[10e3 9e3 11e3]"
+      QLabc		      "[100 90 110]"
+      QCabc		      "[100 90 110]"
+      Pabcp		      "[10e3 9e3 11e3]"
+      QLabcp		      "[100 90 110]"
+      QCabcp		      "[100 90 110]"
+      Measurements	      "None"
+      LoadType		      "constant PQ"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "L_88691550"
+      SID		      23
+      Ports		      [0, 0, 0, 0, 0, 3]
+      Position		      [3510, 7909, 3550, 7941]
+      BackgroundColor	      "yellow"
+      AttributesFormatString  "\\n"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Elements/Three-Phase\nSeries RLC Load"
+      SourceType	      "Three-Phase Series RLC Load"
+      LConnTagsString	      "A|B|C"
+      Configuration	      "Y (grounded)"
+      NominalVoltage	      "220000"
+      Vabc		      "[1e3 1e3 1e3]"
+      Vabcp		      "[1e3 1e3 1e3]"
+      NominalFrequency	      "50"
+      UnbalancedPower	      off
+      ActivePower	      "100000"
+      InductivePower	      "100"
+      CapacitivePower	      "100"
+      Pabc		      "[10e3 9e3 11e3]"
+      QLabc		      "[100 90 110]"
+      QCabc		      "[100 90 110]"
+      Pabcp		      "[10e3 9e3 11e3]"
+      QLabcp		      "[100 90 110]"
+      QCabcp		      "[100 90 110]"
+      Measurements	      "None"
+      LoadType		      "constant PQ"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "L_89084614"
+      SID		      21
+      Ports		      [0, 0, 0, 0, 0, 3]
+      Position		      [3755, 9874, 3795, 9906]
+      BackgroundColor	      "yellow"
+      AttributesFormatString  "\\n"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Elements/Three-Phase\nSeries RLC Load"
+      SourceType	      "Three-Phase Series RLC Load"
+      LConnTagsString	      "A|B|C"
+      Configuration	      "Y (grounded)"
+      NominalVoltage	      "220000"
+      Vabc		      "[1e3 1e3 1e3]"
+      Vabcp		      "[1e3 1e3 1e3]"
+      NominalFrequency	      "50"
+      UnbalancedPower	      off
+      ActivePower	      "100000"
+      InductivePower	      "100"
+      CapacitivePower	      "100"
+      Pabc		      "[10e3 9e3 11e3]"
+      QLabc		      "[100 90 110]"
+      QCabc		      "[100 90 110]"
+      Pabcp		      "[10e3 9e3 11e3]"
+      QLabcp		      "[100 90 110]"
+      QCabcp		      "[100 90 110]"
+      Measurements	      "None"
+      LoadType		      "constant PQ"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "T_108549128__"
+      SID		      2
+      Ports		      [0, 0, 0, 0, 0, 3, 3]
+      Position		      [45, 5836, 85, 5874]
+      BackgroundColor	      "orange"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Elements/Three-Phase\nTransformer\n(Two Windings)"
+      SourceType	      "Three-Phase Transformer (Two Windings)"
+      Winding1Connection      "Yg"
+      Winding2Connection      "Yg"
+      CoreType		      "Three single-phase transformers"
+      SetSaturation	      off
+      Hysteresis	      off
+      DataFile		      "'hysteresis'"
+      SetInitialFlux	      off
+      Measurements	      "None"
+      UNITS		      "pu"
+      NominalPower	      "[ 250e6 , 50 ]"
+      Winding1		      "[220000,0.002,0.08]"
+      Winding2		      "[220000,0.002,0.08]"
+      Rm		      "2000"
+      Lm		      "50"
+      L0		      "0.5"
+      Saturation	      "[ 0,0 ; 0.0024,1.2 ; 1.0,1.52 ]"
+      InitialFluxes	      "[ 0.8 , -0.8 , 0.7 ]"
+      MoreParameters	      off
+      BreakLoop		      off
+      DataType		      off
+      TransfoNumber	      "1"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "T_108562208__"
+      SID		      1
+      Ports		      [0, 0, 0, 0, 0, 3, 3]
+      Position		      [35, 6001, 75, 6039]
+      BackgroundColor	      "orange"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Elements/Three-Phase\nTransformer\n(Two Windings)"
+      SourceType	      "Three-Phase Transformer (Two Windings)"
+      Winding1Connection      "Yg"
+      Winding2Connection      "Yg"
+      CoreType		      "Three single-phase transformers"
+      SetSaturation	      off
+      Hysteresis	      off
+      DataFile		      "'hysteresis'"
+      SetInitialFlux	      off
+      Measurements	      "None"
+      UNITS		      "pu"
+      NominalPower	      "[ 250e6 , 50 ]"
+      Winding1		      "[220000,0.002,0.08]"
+      Winding2		      "[220000,0.002,0.08]"
+      Rm		      "2000"
+      Lm		      "50"
+      L0		      "0.5"
+      Saturation	      "[ 0,0 ; 0.0024,1.2 ; 1.0,1.52 ]"
+      InitialFluxes	      "[ 0.8 , -0.8 , 0.7 ]"
+      MoreParameters	      off
+      BreakLoop		      off
+      DataType		      off
+      TransfoNumber	      "1"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "T_121729808__"
+      SID		      5
+      Ports		      [0, 0, 0, 0, 0, 3, 3]
+      Position		      [1355, 4406, 1395, 4444]
+      BackgroundColor	      "orange"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Elements/Three-Phase\nTransformer\n(Two Windings)"
+      SourceType	      "Three-Phase Transformer (Two Windings)"
+      Winding1Connection      "Yg"
+      Winding2Connection      "Yg"
+      CoreType		      "Three single-phase transformers"
+      SetSaturation	      off
+      Hysteresis	      off
+      DataFile		      "'hysteresis'"
+      SetInitialFlux	      off
+      Measurements	      "None"
+      UNITS		      "pu"
+      NominalPower	      "[ 250e6 , 50 ]"
+      Winding1		      "[220000,0.002,0.08]"
+      Winding2		      "[220000,0.002,0.08]"
+      Rm		      "2000"
+      Lm		      "50"
+      L0		      "0.5"
+      Saturation	      "[ 0,0 ; 0.0024,1.2 ; 1.0,1.52 ]"
+      InitialFluxes	      "[ 0.8 , -0.8 , 0.7 ]"
+      MoreParameters	      off
+      BreakLoop		      off
+      DataType		      off
+      TransfoNumber	      "1"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "T_179096206__Zambesi_substation"
+      SID		      10
+      Ports		      [0, 0, 0, 0, 0, 3, 3]
+      Position		      [10015, 121, 10055, 159]
+      BackgroundColor	      "orange"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Elements/Three-Phase\nTransformer\n(Two Windings)"
+      SourceType	      "Three-Phase Transformer (Two Windings)"
+      Winding1Connection      "Yg"
+      Winding2Connection      "Yg"
+      CoreType		      "Three single-phase transformers"
+      SetSaturation	      off
+      Hysteresis	      off
+      DataFile		      "'hysteresis'"
+      SetInitialFlux	      off
+      Measurements	      "None"
+      UNITS		      "pu"
+      NominalPower	      "[ 250e6 , 50 ]"
+      Winding1		      "[220000,0.002,0.08]"
+      Winding2		      "[220000,0.002,0.08]"
+      Rm		      "2000"
+      Lm		      "50"
+      L0		      "0.5"
+      Saturation	      "[ 0,0 ; 0.0024,1.2 ; 1.0,1.52 ]"
+      InitialFluxes	      "[ 0.8 , -0.8 , 0.7 ]"
+      MoreParameters	      off
+      BreakLoop		      off
+      DataType		      off
+      TransfoNumber	      "1"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "T_179309597__"
+      SID		      11
+      Ports		      [0, 0, 0, 0, 0, 3, 3]
+      Position		      [10000, 36, 10040, 74]
+      BlockMirror	      on
+      BackgroundColor	      "orange"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Elements/Three-Phase\nTransformer\n(Two Windings)"
+      SourceType	      "Three-Phase Transformer (Two Windings)"
+      Winding1Connection      "Yg"
+      Winding2Connection      "Yg"
+      CoreType		      "Three single-phase transformers"
+      SetSaturation	      off
+      Hysteresis	      off
+      DataFile		      "'hysteresis'"
+      SetInitialFlux	      off
+      Measurements	      "None"
+      UNITS		      "pu"
+      NominalPower	      "[ 250e6 , 50 ]"
+      Winding1		      "[220000,0.002,0.08]"
+      Winding2		      "[220000,0.002,0.08]"
+      Rm		      "2000"
+      Lm		      "50"
+      L0		      "0.5"
+      Saturation	      "[ 0,0 ; 0.0024,1.2 ; 1.0,1.52 ]"
+      InitialFluxes	      "[ 0.8 , -0.8 , 0.7 ]"
+      MoreParameters	      off
+      BreakLoop		      off
+      DataType		      off
+      TransfoNumber	      "1"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "T_179315356__"
+      SID		      14
+      Ports		      [0, 0, 0, 0, 0, 3, 3]
+      Position		      [2735, 5611, 2775, 5649]
+      BackgroundColor	      "orange"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Elements/Three-Phase\nTransformer\n(Two Windings)"
+      SourceType	      "Three-Phase Transformer (Two Windings)"
+      Winding1Connection      "Yg"
+      Winding2Connection      "Yg"
+      CoreType		      "Three single-phase transformers"
+      SetSaturation	      off
+      Hysteresis	      off
+      DataFile		      "'hysteresis'"
+      SetInitialFlux	      off
+      Measurements	      "None"
+      UNITS		      "pu"
+      NominalPower	      "[ 250e6 , 50 ]"
+      Winding1		      "[220000,0.002,0.08]"
+      Winding2		      "[220000,0.002,0.08]"
+      Rm		      "2000"
+      Lm		      "50"
+      L0		      "0.5"
+      Saturation	      "[ 0,0 ; 0.0024,1.2 ; 1.0,1.52 ]"
+      InitialFluxes	      "[ 0.8 , -0.8 , 0.7 ]"
+      MoreParameters	      off
+      BreakLoop		      off
+      DataType		      off
+      TransfoNumber	      "1"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "T_179675621__"
+      SID		      3
+      Ports		      [0, 0, 0, 0, 0, 3, 3]
+      Position		      [1785, 3086, 1825, 3124]
+      BlockMirror	      on
+      BackgroundColor	      "orange"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Elements/Three-Phase\nTransformer\n(Two Windings)"
+      SourceType	      "Three-Phase Transformer (Two Windings)"
+      Winding1Connection      "Yg"
+      Winding2Connection      "Yg"
+      CoreType		      "Three single-phase transformers"
+      SetSaturation	      off
+      Hysteresis	      off
+      DataFile		      "'hysteresis'"
+      SetInitialFlux	      off
+      Measurements	      "None"
+      UNITS		      "pu"
+      NominalPower	      "[ 250e6 , 50 ]"
+      Winding1		      "[220000,0.002,0.08]"
+      Winding2		      "[220000,0.002,0.08]"
+      Rm		      "2000"
+      Lm		      "50"
+      L0		      "0.5"
+      Saturation	      "[ 0,0 ; 0.0024,1.2 ; 1.0,1.52 ]"
+      InitialFluxes	      "[ 0.8 , -0.8 , 0.7 ]"
+      MoreParameters	      off
+      BreakLoop		      off
+      DataType		      off
+      TransfoNumber	      "1"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "T_179679495__"
+      SID		      4
+      Ports		      [0, 0, 0, 0, 0, 3, 3]
+      Position		      [3025, 1871, 3065, 1909]
+      BackgroundColor	      "orange"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Elements/Three-Phase\nTransformer\n(Two Windings)"
+      SourceType	      "Three-Phase Transformer (Two Windings)"
+      Winding1Connection      "Yg"
+      Winding2Connection      "Yg"
+      CoreType		      "Three single-phase transformers"
+      SetSaturation	      off
+      Hysteresis	      off
+      DataFile		      "'hysteresis'"
+      SetInitialFlux	      off
+      Measurements	      "None"
+      UNITS		      "pu"
+      NominalPower	      "[ 250e6 , 50 ]"
+      Winding1		      "[220000,0.002,0.08]"
+      Winding2		      "[220000,0.002,0.08]"
+      Rm		      "2000"
+      Lm		      "50"
+      L0		      "0.5"
+      Saturation	      "[ 0,0 ; 0.0024,1.2 ; 1.0,1.52 ]"
+      InitialFluxes	      "[ 0.8 , -0.8 , 0.7 ]"
+      MoreParameters	      off
+      BreakLoop		      off
+      DataType		      off
+      TransfoNumber	      "1"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "T_191928540__"
+      SID		      7
+      Ports		      [0, 0, 0, 0, 0, 3, 3]
+      Position		      [3835, 11391, 3875, 11429]
+      BackgroundColor	      "orange"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Elements/Three-Phase\nTransformer\n(Two Windings)"
+      SourceType	      "Three-Phase Transformer (Two Windings)"
+      Winding1Connection      "Yg"
+      Winding2Connection      "Yg"
+      CoreType		      "Three single-phase transformers"
+      SetSaturation	      off
+      Hysteresis	      off
+      DataFile		      "'hysteresis'"
+      SetInitialFlux	      off
+      Measurements	      "None"
+      UNITS		      "pu"
+      NominalPower	      "[ 250e6 , 50 ]"
+      Winding1		      "[220000,0.002,0.08]"
+      Winding2		      "[220000,0.002,0.08]"
+      Rm		      "2000"
+      Lm		      "50"
+      L0		      "0.5"
+      Saturation	      "[ 0,0 ; 0.0024,1.2 ; 1.0,1.52 ]"
+      InitialFluxes	      "[ 0.8 , -0.8 , 0.7 ]"
+      MoreParameters	      off
+      BreakLoop		      off
+      DataType		      off
+      TransfoNumber	      "1"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "T_191928543_220000_"
+      SID		      9
+      Ports		      [0, 0, 0, 0, 0, 3, 3]
+      Position		      [3765, 12126, 3805, 12164]
+      BackgroundColor	      "orange"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Elements/Three-Phase\nTransformer\n(Two Windings)"
+      SourceType	      "Three-Phase Transformer (Two Windings)"
+      Winding1Connection      "Yg"
+      Winding2Connection      "Yg"
+      CoreType		      "Three single-phase transformers"
+      SetSaturation	      off
+      Hysteresis	      off
+      DataFile		      "'hysteresis'"
+      SetInitialFlux	      off
+      Measurements	      "None"
+      UNITS		      "pu"
+      NominalPower	      "[ 250e6 , 50 ]"
+      Winding1		      "[220000,0.002,0.08]"
+      Winding2		      "[220000,0.002,0.08]"
+      Rm		      "2000"
+      Lm		      "50"
+      L0		      "0.5"
+      Saturation	      "[ 0,0 ; 0.0024,1.2 ; 1.0,1.52 ]"
+      InitialFluxes	      "[ 0.8 , -0.8 , 0.7 ]"
+      MoreParameters	      off
+      BreakLoop		      off
+      DataType		      off
+      TransfoNumber	      "1"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "T_198090281__"
+      SID		      13
+      Ports		      [0, 0, 0, 0, 0, 3, 3]
+      Position		      [11730, 686, 11770, 724]
+      BackgroundColor	      "orange"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Elements/Three-Phase\nTransformer\n(Two Windings)"
+      SourceType	      "Three-Phase Transformer (Two Windings)"
+      Winding1Connection      "Yg"
+      Winding2Connection      "Yg"
+      CoreType		      "Three single-phase transformers"
+      SetSaturation	      off
+      Hysteresis	      off
+      DataFile		      "'hysteresis'"
+      SetInitialFlux	      off
+      Measurements	      "None"
+      UNITS		      "pu"
+      NominalPower	      "[ 250e6 , 50 ]"
+      Winding1		      "[220000,0.002,0.08]"
+      Winding2		      "[220000,0.002,0.08]"
+      Rm		      "2000"
+      Lm		      "50"
+      L0		      "0.5"
+      Saturation	      "[ 0,0 ; 0.0024,1.2 ; 1.0,1.52 ]"
+      InitialFluxes	      "[ 0.8 , -0.8 , 0.7 ]"
+      MoreParameters	      off
+      BreakLoop		      off
+      DataType		      off
+      TransfoNumber	      "1"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "T_315321465__"
+      SID		      12
+      Ports		      [0, 0, 0, 0, 0, 3, 3]
+      Position		      [605, 5121, 645, 5159]
+      BlockMirror	      on
+      BackgroundColor	      "orange"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Elements/Three-Phase\nTransformer\n(Two Windings)"
+      SourceType	      "Three-Phase Transformer (Two Windings)"
+      Winding1Connection      "Yg"
+      Winding2Connection      "Yg"
+      CoreType		      "Three single-phase transformers"
+      SetSaturation	      off
+      Hysteresis	      off
+      DataFile		      "'hysteresis'"
+      SetInitialFlux	      off
+      Measurements	      "None"
+      UNITS		      "pu"
+      NominalPower	      "[ 250e6 , 50 ]"
+      Winding1		      "[220000,0.002,0.08]"
+      Winding2		      "[220000,0.002,0.08]"
+      Rm		      "2000"
+      Lm		      "50"
+      L0		      "0.5"
+      Saturation	      "[ 0,0 ; 0.0024,1.2 ; 1.0,1.52 ]"
+      InitialFluxes	      "[ 0.8 , -0.8 , 0.7 ]"
+      MoreParameters	      off
+      BreakLoop		      off
+      DataType		      off
+      TransfoNumber	      "1"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "T_88691550__"
+      SID		      8
+      Ports		      [0, 0, 0, 0, 0, 3, 3]
+      Position		      [3410, 7911, 3450, 7949]
+      BackgroundColor	      "orange"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Elements/Three-Phase\nTransformer\n(Two Windings)"
+      SourceType	      "Three-Phase Transformer (Two Windings)"
+      Winding1Connection      "Yg"
+      Winding2Connection      "Yg"
+      CoreType		      "Three single-phase transformers"
+      SetSaturation	      off
+      Hysteresis	      off
+      DataFile		      "'hysteresis'"
+      SetInitialFlux	      off
+      Measurements	      "None"
+      UNITS		      "pu"
+      NominalPower	      "[ 250e6 , 50 ]"
+      Winding1		      "[220000,0.002,0.08]"
+      Winding2		      "[220000,0.002,0.08]"
+      Rm		      "2000"
+      Lm		      "50"
+      L0		      "0.5"
+      Saturation	      "[ 0,0 ; 0.0024,1.2 ; 1.0,1.52 ]"
+      InitialFluxes	      "[ 0.8 , -0.8 , 0.7 ]"
+      MoreParameters	      off
+      BreakLoop		      off
+      DataType		      off
+      TransfoNumber	      "1"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "T_89084614__"
+      SID		      6
+      Ports		      [0, 0, 0, 0, 0, 3, 3]
+      Position		      [3655, 9876, 3695, 9914]
+      BackgroundColor	      "orange"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Elements/Three-Phase\nTransformer\n(Two Windings)"
+      SourceType	      "Three-Phase Transformer (Two Windings)"
+      Winding1Connection      "Yg"
+      Winding2Connection      "Yg"
+      CoreType		      "Three single-phase transformers"
+      SetSaturation	      off
+      Hysteresis	      off
+      DataFile		      "'hysteresis'"
+      SetInitialFlux	      off
+      Measurements	      "None"
+      UNITS		      "pu"
+      NominalPower	      "[ 250e6 , 50 ]"
+      Winding1		      "[220000,0.002,0.08]"
+      Winding2		      "[220000,0.002,0.08]"
+      Rm		      "2000"
+      Lm		      "50"
+      L0		      "0.5"
+      Saturation	      "[ 0,0 ; 0.0024,1.2 ; 1.0,1.52 ]"
+      InitialFluxes	      "[ 0.8 , -0.8 , 0.7 ]"
+      MoreParameters	      off
+      BreakLoop		      off
+      DataType		      off
+      TransfoNumber	      "1"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "_CN_108562208_220000_CN_108549128_220000"
+      SID		      30
+      Ports		      [0, 0, 0, 0, 0, 3, 3]
+      Position		      [43, 5920, 77, 5955]
+      BlockRotation	      270
+      ForegroundColor	      "[0.000000, 0.000000, 1.000000]"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Elements/Distributed Parameters Line"
+      SourceType	      "Distributed Parameters Line"
+      Phases		      "3"
+      Frequency		      "50"
+      Resistance	      "[0.01273 0.3864]"
+      Inductance	      "[0.9337e-3  4.1264e-3]"
+      Capacitance	      "[12.74e-9 7.751e-9]"
+      Length		      "17.0127"
+      x1		      "[8.73114913702011e-11 380000 380000;314.159265358979 314.159265358979 314.159265358979;-0.17767012321"
+      "7348 0.415246442777429 -1.15554988401747]"
+      x2		      "[1.26090477118469e-09 381852.398472139 381852.398472139;314.159265358979 314.159265358979 314.1592653"
+      "58979;-1.41941675517191 0.415007521738739 -1.15578880505616]"
+      x3		      "[1.07663708898761e-11 1405.24743813465 1405.24743813466;314.159265358979 314.159265358979 314.1592653"
+      "58979;-2.70558821102223 0.316110507002444 -1.25468581979246]"
+      x4		      "[8.62234243168895e-12 1405.96374414071 1405.9637441407;314.159265358979 314.159265358979 314.15926535"
+      "8979;0.245769282942371 0.405640215255436 -1.16515611153945]"
+      x5		      "0.000565541566995742"
+      V1		      "ones(3,3)"
+      V2		      "ones(3,3)"
+      I1		      "ones(3,3)"
+      I2		      "ones(3,3)"
+      nHarmo		      "1"
+      Measurements	      "None"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "_CN_121729808_220000_CN_122245237_220000"
+      SID		      37
+      Ports		      [0, 0, 0, 0, 0, 3, 3]
+      Position		      [1913, 4985, 1947, 5020]
+      BlockRotation	      270
+      BlockMirror	      on
+      ForegroundColor	      "[0.000000, 0.000000, 1.000000]"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Elements/Distributed Parameters Line"
+      SourceType	      "Distributed Parameters Line"
+      Phases		      "3"
+      Frequency		      "50"
+      Resistance	      "[0.01273 0.3864]"
+      Inductance	      "[0.9337e-3  4.1264e-3]"
+      Capacitance	      "[12.74e-9 7.751e-9]"
+      Length		      "92.6155"
+      x1		      "[8.73114913702011e-11 380000 380000;314.159265358979 314.159265358979 314.159265358979;-0.17767012321"
+      "7348 0.415246442777429 -1.15554988401747]"
+      x2		      "[1.26090477118469e-09 381852.398472139 381852.398472139;314.159265358979 314.159265358979 314.1592653"
+      "58979;-1.41941675517191 0.415007521738739 -1.15578880505616]"
+      x3		      "[1.07663708898761e-11 1405.24743813465 1405.24743813466;314.159265358979 314.159265358979 314.1592653"
+      "58979;-2.70558821102223 0.316110507002444 -1.25468581979246]"
+      x4		      "[8.62234243168895e-12 1405.96374414071 1405.9637441407;314.159265358979 314.159265358979 314.15926535"
+      "8979;0.245769282942371 0.405640215255436 -1.16515611153945]"
+      x5		      "0.000565541566995742"
+      V1		      "ones(3,3)"
+      V2		      "ones(3,3)"
+      I1		      "ones(3,3)"
+      I2		      "ones(3,3)"
+      nHarmo		      "1"
+      Measurements	      "None"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "_CN_121729808_220000_CN_315321465_220000"
+      SID		      38
+      Ports		      [0, 0, 0, 0, 0, 3, 3]
+      Position		      [1005, 4798, 1040, 4832]
+      BlockMirror	      on
+      ForegroundColor	      "[0.000000, 0.000000, 1.000000]"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Elements/Distributed Parameters Line"
+      SourceType	      "Distributed Parameters Line"
+      Phases		      "3"
+      Frequency		      "50"
+      Resistance	      "[0.01273 0.3864]"
+      Inductance	      "[0.9337e-3  4.1264e-3]"
+      Capacitance	      "[12.74e-9 7.751e-9]"
+      Length		      "111.0087"
+      x1		      "[8.73114913702011e-11 380000 380000;314.159265358979 314.159265358979 314.159265358979;-0.17767012321"
+      "7348 0.415246442777429 -1.15554988401747]"
+      x2		      "[1.26090477118469e-09 381852.398472139 381852.398472139;314.159265358979 314.159265358979 314.1592653"
+      "58979;-1.41941675517191 0.415007521738739 -1.15578880505616]"
+      x3		      "[1.07663708898761e-11 1405.24743813465 1405.24743813466;314.159265358979 314.159265358979 314.1592653"
+      "58979;-2.70558821102223 0.316110507002444 -1.25468581979246]"
+      x4		      "[8.62234243168895e-12 1405.96374414071 1405.9637441407;314.159265358979 314.159265358979 314.15926535"
+      "8979;0.245769282942371 0.405640215255436 -1.16515611153945]"
+      x5		      "0.000565541566995742"
+      V1		      "ones(3,3)"
+      V2		      "ones(3,3)"
+      I1		      "ones(3,3)"
+      I2		      "ones(3,3)"
+      nHarmo		      "1"
+      Measurements	      "None"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "_CN_179096206_220000_CN_179309597_220000"
+      SID		      36
+      Ports		      [0, 0, 0, 0, 0, 3, 3]
+      Position		      [10018, 80, 10052, 115]
+      BlockRotation	      270
+      ForegroundColor	      "[0.000000, 0.000000, 1.000000]"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Elements/Distributed Parameters Line"
+      SourceType	      "Distributed Parameters Line"
+      Phases		      "3"
+      Frequency		      "50"
+      Resistance	      "[0.01273 0.3864]"
+      Inductance	      "[0.9337e-3  4.1264e-3]"
+      Capacitance	      "[12.74e-9 7.751e-9]"
+      Length		      "9.9975"
+      x1		      "[8.73114913702011e-11 380000 380000;314.159265358979 314.159265358979 314.159265358979;-0.17767012321"
+      "7348 0.415246442777429 -1.15554988401747]"
+      x2		      "[1.26090477118469e-09 381852.398472139 381852.398472139;314.159265358979 314.159265358979 314.1592653"
+      "58979;-1.41941675517191 0.415007521738739 -1.15578880505616]"
+      x3		      "[1.07663708898761e-11 1405.24743813465 1405.24743813466;314.159265358979 314.159265358979 314.1592653"
+      "58979;-2.70558821102223 0.316110507002444 -1.25468581979246]"
+      x4		      "[8.62234243168895e-12 1405.96374414071 1405.9637441407;314.159265358979 314.159265358979 314.15926535"
+      "8979;0.245769282942371 0.405640215255436 -1.16515611153945]"
+      x5		      "0.000565541566995742"
+      V1		      "ones(3,3)"
+      V2		      "ones(3,3)"
+      I1		      "ones(3,3)"
+      I2		      "ones(3,3)"
+      nHarmo		      "1"
+      Measurements	      "None"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "_CN_179315356_220000_CN_122245237_220000"
+      SID		      41
+      Ports		      [0, 0, 0, 0, 0, 3, 3]
+      Position		      [2600, 5573, 2635, 5607]
+      ForegroundColor	      "[0.000000, 0.000000, 1.000000]"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Elements/Distributed Parameters Line"
+      SourceType	      "Distributed Parameters Line"
+      Phases		      "3"
+      Frequency		      "50"
+      Resistance	      "[0.01273 0.3864]"
+      Inductance	      "[0.9337e-3  4.1264e-3]"
+      Capacitance	      "[12.74e-9 7.751e-9]"
+      Length		      "33.8405"
+      x1		      "[8.73114913702011e-11 380000 380000;314.159265358979 314.159265358979 314.159265358979;-0.17767012321"
+      "7348 0.415246442777429 -1.15554988401747]"
+      x2		      "[1.26090477118469e-09 381852.398472139 381852.398472139;314.159265358979 314.159265358979 314.1592653"
+      "58979;-1.41941675517191 0.415007521738739 -1.15578880505616]"
+      x3		      "[1.07663708898761e-11 1405.24743813465 1405.24743813466;314.159265358979 314.159265358979 314.1592653"
+      "58979;-2.70558821102223 0.316110507002444 -1.25468581979246]"
+      x4		      "[8.62234243168895e-12 1405.96374414071 1405.9637441407;314.159265358979 314.159265358979 314.15926535"
+      "8979;0.245769282942371 0.405640215255436 -1.16515611153945]"
+      x5		      "0.000565541566995742"
+      V1		      "ones(3,3)"
+      V2		      "ones(3,3)"
+      I1		      "ones(3,3)"
+      I2		      "ones(3,3)"
+      nHarmo		      "1"
+      Measurements	      "None"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "_CN_179315356_220000_CN_88691550_220000"
+      SID		      40
+      Ports		      [0, 0, 0, 0, 0, 3, 3]
+      Position		      [2903, 6830, 2937, 6865]
+      BlockRotation	      270
+      ForegroundColor	      "[0.000000, 0.000000, 1.000000]"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Elements/Distributed Parameters Line"
+      SourceType	      "Distributed Parameters Line"
+      Phases		      "3"
+      Frequency		      "50"
+      Resistance	      "[0.01273 0.3864]"
+      Inductance	      "[0.9337e-3  4.1264e-3]"
+      Capacitance	      "[12.74e-9 7.751e-9]"
+      Length		      "157.1982"
+      x1		      "[8.73114913702011e-11 380000 380000;314.159265358979 314.159265358979 314.159265358979;-0.17767012321"
+      "7348 0.415246442777429 -1.15554988401747]"
+      x2		      "[1.26090477118469e-09 381852.398472139 381852.398472139;314.159265358979 314.159265358979 314.1592653"
+      "58979;-1.41941675517191 0.415007521738739 -1.15578880505616]"
+      x3		      "[1.07663708898761e-11 1405.24743813465 1405.24743813466;314.159265358979 314.159265358979 314.1592653"
+      "58979;-2.70558821102223 0.316110507002444 -1.25468581979246]"
+      x4		      "[8.62234243168895e-12 1405.96374414071 1405.9637441407;314.159265358979 314.159265358979 314.15926535"
+      "8979;0.245769282942371 0.405640215255436 -1.16515611153945]"
+      x5		      "0.000565541566995742"
+      V1		      "ones(3,3)"
+      V2		      "ones(3,3)"
+      I1		      "ones(3,3)"
+      I2		      "ones(3,3)"
+      nHarmo		      "1"
+      Measurements	      "None"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "_CN_179675621_220000_CN_121729808_220000"
+      SID		      32
+      Ports		      [0, 0, 0, 0, 0, 3, 3]
+      Position		      [1608, 3765, 1642, 3800]
+      BlockRotation	      270
+      BlockMirror	      on
+      ForegroundColor	      "[0.000000, 0.000000, 1.000000]"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Elements/Distributed Parameters Line"
+      SourceType	      "Distributed Parameters Line"
+      Phases		      "3"
+      Frequency		      "50"
+      Resistance	      "[0.01273 0.3864]"
+      Inductance	      "[0.9337e-3  4.1264e-3]"
+      Capacitance	      "[12.74e-9 7.751e-9]"
+      Length		      "46.8827"
+      x1		      "[8.73114913702011e-11 380000 380000;314.159265358979 314.159265358979 314.159265358979;-0.17767012321"
+      "7348 0.415246442777429 -1.15554988401747]"
+      x2		      "[1.26090477118469e-09 381852.398472139 381852.398472139;314.159265358979 314.159265358979 314.1592653"
+      "58979;-1.41941675517191 0.415007521738739 -1.15578880505616]"
+      x3		      "[1.07663708898761e-11 1405.24743813465 1405.24743813466;314.159265358979 314.159265358979 314.1592653"
+      "58979;-2.70558821102223 0.316110507002444 -1.25468581979246]"
+      x4		      "[8.62234243168895e-12 1405.96374414071 1405.9637441407;314.159265358979 314.159265358979 314.15926535"
+      "8979;0.245769282942371 0.405640215255436 -1.16515611153945]"
+      x5		      "0.000565541566995742"
+      V1		      "ones(3,3)"
+      V2		      "ones(3,3)"
+      I1		      "ones(3,3)"
+      I2		      "ones(3,3)"
+      nHarmo		      "1"
+      Measurements	      "None"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "_CN_179675621_220000_CN_179679495_220000"
+      SID		      31
+      Ports		      [0, 0, 0, 0, 0, 3, 3]
+      Position		      [2428, 2500, 2462, 2535]
+      BlockRotation	      270
+      ForegroundColor	      "[0.000000, 0.000000, 1.000000]"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Elements/Distributed Parameters Line"
+      SourceType	      "Distributed Parameters Line"
+      Phases		      "3"
+      Frequency		      "50"
+      Resistance	      "[0.01273 0.3864]"
+      Inductance	      "[0.9337e-3  4.1264e-3]"
+      Capacitance	      "[12.74e-9 7.751e-9]"
+      Length		      "80.7271"
+      x1		      "[8.73114913702011e-11 380000 380000;314.159265358979 314.159265358979 314.159265358979;-0.17767012321"
+      "7348 0.415246442777429 -1.15554988401747]"
+      x2		      "[1.26090477118469e-09 381852.398472139 381852.398472139;314.159265358979 314.159265358979 314.1592653"
+      "58979;-1.41941675517191 0.415007521738739 -1.15578880505616]"
+      x3		      "[1.07663708898761e-11 1405.24743813465 1405.24743813466;314.159265358979 314.159265358979 314.1592653"
+      "58979;-2.70558821102223 0.316110507002444 -1.25468581979246]"
+      x4		      "[8.62234243168895e-12 1405.96374414071 1405.9637441407;314.159265358979 314.159265358979 314.15926535"
+      "8979;0.245769282942371 0.405640215255436 -1.16515611153945]"
+      x5		      "0.000565541566995742"
+      V1		      "ones(3,3)"
+      V2		      "ones(3,3)"
+      I1		      "ones(3,3)"
+      I2		      "ones(3,3)"
+      nHarmo		      "1"
+      Measurements	      "None"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "_CN_191928540_220000_CN_191928543_220000"
+      SID		      35
+      Ports		      [0, 0, 0, 0, 0, 3, 3]
+      Position		      [3798, 11760, 3832, 11795]
+      BlockRotation	      270
+      BlockMirror	      on
+      ForegroundColor	      "[0.000000, 0.000000, 1.000000]"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Elements/Distributed Parameters Line"
+      SourceType	      "Distributed Parameters Line"
+      Phases		      "3"
+      Frequency		      "50"
+      Resistance	      "[0.01273 0.3864]"
+      Inductance	      "[0.9337e-3  4.1264e-3]"
+      Capacitance	      "[12.74e-9 7.751e-9]"
+      Length		      "73.9216"
+      x1		      "[8.73114913702011e-11 380000 380000;314.159265358979 314.159265358979 314.159265358979;-0.17767012321"
+      "7348 0.415246442777429 -1.15554988401747]"
+      x2		      "[1.26090477118469e-09 381852.398472139 381852.398472139;314.159265358979 314.159265358979 314.1592653"
+      "58979;-1.41941675517191 0.415007521738739 -1.15578880505616]"
+      x3		      "[1.07663708898761e-11 1405.24743813465 1405.24743813466;314.159265358979 314.159265358979 314.1592653"
+      "58979;-2.70558821102223 0.316110507002444 -1.25468581979246]"
+      x4		      "[8.62234243168895e-12 1405.96374414071 1405.9637441407;314.159265358979 314.159265358979 314.15926535"
+      "8979;0.245769282942371 0.405640215255436 -1.16515611153945]"
+      x5		      "0.000565541566995742"
+      V1		      "ones(3,3)"
+      V2		      "ones(3,3)"
+      I1		      "ones(3,3)"
+      I2		      "ones(3,3)"
+      nHarmo		      "1"
+      Measurements	      "None"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "_CN_198090281_220000_CN_179309597_220000"
+      SID		      39
+      Ports		      [0, 0, 0, 0, 0, 3, 3]
+      Position		      [10960, 278, 10995, 312]
+      ForegroundColor	      "[0.000000, 0.000000, 1.000000]"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Elements/Distributed Parameters Line"
+      SourceType	      "Distributed Parameters Line"
+      Phases		      "3"
+      Frequency		      "50"
+      Resistance	      "[0.01273 0.3864]"
+      Inductance	      "[0.9337e-3  4.1264e-3]"
+      Capacitance	      "[12.74e-9 7.751e-9]"
+      Length		      "95.091"
+      x1		      "[8.73114913702011e-11 380000 380000;314.159265358979 314.159265358979 314.159265358979;-0.17767012321"
+      "7348 0.415246442777429 -1.15554988401747]"
+      x2		      "[1.26090477118469e-09 381852.398472139 381852.398472139;314.159265358979 314.159265358979 314.1592653"
+      "58979;-1.41941675517191 0.415007521738739 -1.15578880505616]"
+      x3		      "[1.07663708898761e-11 1405.24743813465 1405.24743813466;314.159265358979 314.159265358979 314.1592653"
+      "58979;-2.70558821102223 0.316110507002444 -1.25468581979246]"
+      x4		      "[8.62234243168895e-12 1405.96374414071 1405.9637441407;314.159265358979 314.159265358979 314.15926535"
+      "8979;0.245769282942371 0.405640215255436 -1.16515611153945]"
+      x5		      "0.000565541566995742"
+      V1		      "ones(3,3)"
+      V2		      "ones(3,3)"
+      I1		      "ones(3,3)"
+      I2		      "ones(3,3)"
+      nHarmo		      "1"
+      Measurements	      "None"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "_CN_89084614_220000_CN_191928540_220000"
+      SID		      33
+      Ports		      [0, 0, 0, 0, 0, 3, 3]
+      Position		      [3853, 10605, 3887, 10640]
+      BlockRotation	      270
+      BlockMirror	      on
+      ForegroundColor	      "[0.000000, 0.000000, 1.000000]"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Elements/Distributed Parameters Line"
+      SourceType	      "Distributed Parameters Line"
+      Phases		      "3"
+      Frequency		      "50"
+      Resistance	      "[0.01273 0.3864]"
+      Inductance	      "[0.9337e-3  4.1264e-3]"
+      Capacitance	      "[12.74e-9 7.751e-9]"
+      Length		      "74.263"
+      x1		      "[8.73114913702011e-11 380000 380000;314.159265358979 314.159265358979 314.159265358979;-0.17767012321"
+      "7348 0.415246442777429 -1.15554988401747]"
+      x2		      "[1.26090477118469e-09 381852.398472139 381852.398472139;314.159265358979 314.159265358979 314.1592653"
+      "58979;-1.41941675517191 0.415007521738739 -1.15578880505616]"
+      x3		      "[1.07663708898761e-11 1405.24743813465 1405.24743813466;314.159265358979 314.159265358979 314.1592653"
+      "58979;-2.70558821102223 0.316110507002444 -1.25468581979246]"
+      x4		      "[8.62234243168895e-12 1405.96374414071 1405.9637441407;314.159265358979 314.159265358979 314.15926535"
+      "8979;0.245769282942371 0.405640215255436 -1.16515611153945]"
+      x5		      "0.000565541566995742"
+      V1		      "ones(3,3)"
+      V2		      "ones(3,3)"
+      I1		      "ones(3,3)"
+      I2		      "ones(3,3)"
+      nHarmo		      "1"
+      Measurements	      "None"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "_CN_89084614_220000_CN_88691550_220000"
+      SID		      34
+      Ports		      [0, 0, 0, 0, 0, 3, 3]
+      Position		      [3598, 8885, 3632, 8920]
+      BlockRotation	      270
+      ForegroundColor	      "[0.000000, 0.000000, 1.000000]"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Elements/Distributed Parameters Line"
+      SourceType	      "Distributed Parameters Line"
+      Phases		      "3"
+      Frequency		      "50"
+      Resistance	      "[0.01273 0.3864]"
+      Inductance	      "[0.9337e-3  4.1264e-3]"
+      Capacitance	      "[12.74e-9 7.751e-9]"
+      Length		      "109.8963"
+      x1		      "[8.73114913702011e-11 380000 380000;314.159265358979 314.159265358979 314.159265358979;-0.17767012321"
+      "7348 0.415246442777429 -1.15554988401747]"
+      x2		      "[1.26090477118469e-09 381852.398472139 381852.398472139;314.159265358979 314.159265358979 314.1592653"
+      "58979;-1.41941675517191 0.415007521738739 -1.15578880505616]"
+      x3		      "[1.07663708898761e-11 1405.24743813465 1405.24743813466;314.159265358979 314.159265358979 314.1592653"
+      "58979;-2.70558821102223 0.316110507002444 -1.25468581979246]"
+      x4		      "[8.62234243168895e-12 1405.96374414071 1405.9637441407;314.159265358979 314.159265358979 314.15926535"
+      "8979;0.245769282942371 0.405640215255436 -1.16515611153945]"
+      x5		      "0.000565541566995742"
+      V1		      "ones(3,3)"
+      V2		      "ones(3,3)"
+      I1		      "ones(3,3)"
+      I2		      "ones(3,3)"
+      nHarmo		      "1"
+      Measurements	      "None"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "bus1"
+      SID		      42
+      Ports		      [0, 0, 0, 0, 0, 1]
+      Position		      [135, 6084, 150, 6106]
+      BackgroundColor	      "orange"
+      ShowName		      off
+      AttributesFormatString  "%<ID>\n%<Vbase>V\n%<VLF>pu\n%<angleLF>deg.\n%<Name>"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Measurements/Load Flow Bus"
+      SourceType	      "Load Flow Bus"
+      LConnTagsString	      "a"
+      Phases		      "single"
+      Connectors	      "on one side"
+      ID		      "bus1"
+      Vbase		      "220000"
+      Vref		      "1"
+      Vangle		      "0"
+      VLF		      "1"
+      VLFb		      "1"
+      VLFc		      "1"
+      angleLF		      "0"
+      angleLFb		      "0"
+      angleLFc		      "0"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "bus10"
+      SID		      51
+      Ports		      [0, 0, 0, 0, 0, 1]
+      Position		      [10115, 164, 10130, 186]
+      BackgroundColor	      "orange"
+      ShowName		      off
+      AttributesFormatString  "%<ID>\n%<Vbase>V\n%<VLF>pu\n%<angleLF>deg.\n%<Name>"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Measurements/Load Flow Bus"
+      SourceType	      "Load Flow Bus"
+      LConnTagsString	      "a"
+      Phases		      "single"
+      Connectors	      "on one side"
+      ID		      "bus10"
+      Vbase		      "220000"
+      Vref		      "1"
+      Vangle		      "0"
+      VLF		      "1"
+      VLFb		      "1"
+      VLFc		      "1"
+      angleLF		      "0"
+      angleLFb		      "0"
+      angleLFc		      "0"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "bus11"
+      SID		      52
+      Ports		      [0, 0, 0, 0, 0, 1]
+      Position		      [10100, 79, 10115, 101]
+      BackgroundColor	      "orange"
+      ShowName		      off
+      AttributesFormatString  "%<ID>\n%<Vbase>V\n%<VLF>pu\n%<angleLF>deg.\n%<Name>"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Measurements/Load Flow Bus"
+      SourceType	      "Load Flow Bus"
+      LConnTagsString	      "a"
+      Phases		      "single"
+      Connectors	      "on one side"
+      ID		      "bus11"
+      Vbase		      "220000"
+      Vref		      "1"
+      Vangle		      "0"
+      VLF		      "1"
+      VLFb		      "1"
+      VLFc		      "1"
+      angleLF		      "0"
+      angleLFb		      "0"
+      angleLFc		      "0"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "bus12"
+      SID		      53
+      Ports		      [0, 0, 0, 0, 0, 1]
+      Position		      [2545, 6079, 2560, 6101]
+      BackgroundColor	      "orange"
+      ShowName		      off
+      AttributesFormatString  "%<ID>\n%<Vbase>V\n%<VLF>pu\n%<angleLF>deg.\n%<Name>"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Measurements/Load Flow Bus"
+      SourceType	      "Load Flow Bus"
+      LConnTagsString	      "a"
+      Phases		      "single"
+      Connectors	      "on one side"
+      ID		      "bus12"
+      Vbase		      "220000"
+      Vref		      "1"
+      Vangle		      "0"
+      VLF		      "1"
+      VLFb		      "1"
+      VLFc		      "1"
+      angleLF		      "0"
+      angleLFb		      "0"
+      angleLFc		      "0"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "bus13"
+      SID		      54
+      Ports		      [0, 0, 0, 0, 0, 1]
+      Position		      [1005, 5219, 1020, 5241]
+      BackgroundColor	      "orange"
+      ShowName		      off
+      AttributesFormatString  "%<ID>\n%<Vbase>V\n%<VLF>pu\n%<angleLF>deg.\n%<Name>"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Measurements/Load Flow Bus"
+      SourceType	      "Load Flow Bus"
+      LConnTagsString	      "a"
+      Phases		      "single"
+      Connectors	      "on one side"
+      ID		      "bus13"
+      Vbase		      "220000"
+      Vref		      "1"
+      Vangle		      "0"
+      VLF		      "1"
+      VLFb		      "1"
+      VLFc		      "1"
+      angleLF		      "0"
+      angleLFb		      "0"
+      angleLFc		      "0"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "bus14"
+      SID		      55
+      Ports		      [0, 0, 0, 0, 0, 1]
+      Position		      [12500, 784, 12515, 806]
+      BackgroundColor	      "orange"
+      ShowName		      off
+      AttributesFormatString  "%<ID>\n%<Vbase>V\n%<VLF>pu\n%<angleLF>deg.\n%<Name>"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Measurements/Load Flow Bus"
+      SourceType	      "Load Flow Bus"
+      LConnTagsString	      "a"
+      Phases		      "single"
+      Connectors	      "on one side"
+      ID		      "bus14"
+      Vbase		      "220000"
+      Vref		      "1"
+      Vangle		      "0"
+      VLF		      "1"
+      VLFb		      "1"
+      VLFc		      "1"
+      angleLF		      "0"
+      angleLFb		      "0"
+      angleLFc		      "0"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "bus15"
+      SID		      56
+      Ports		      [0, 0, 0, 0, 0, 1]
+      Position		      [2835, 6829, 2850, 6851]
+      BackgroundColor	      "orange"
+      ShowName		      off
+      AttributesFormatString  "%<ID>\n%<Vbase>V\n%<VLF>pu\n%<angleLF>deg.\n%<Name>"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Measurements/Load Flow Bus"
+      SourceType	      "Load Flow Bus"
+      LConnTagsString	      "a"
+      Phases		      "single"
+      Connectors	      "on one side"
+      ID		      "bus15"
+      Vbase		      "220000"
+      Vref		      "1"
+      Vangle		      "0"
+      VLF		      "1"
+      VLFb		      "1"
+      VLFc		      "1"
+      angleLF		      "0"
+      angleLFb		      "0"
+      angleLFc		      "0"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "bus16"
+      SID		      57
+      Ports		      [0, 0, 0, 0, 0, 1]
+      Position		      [135, 6099, 150, 6121]
+      BackgroundColor	      "orange"
+      ShowName		      off
+      AttributesFormatString  "%<ID>\n%<Vbase>V\n%<VLF>pu\n%<angleLF>deg.\n%<Name>"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Measurements/Load Flow Bus"
+      SourceType	      "Load Flow Bus"
+      LConnTagsString	      "a"
+      Phases		      "single"
+      Connectors	      "on one side"
+      ID		      "bus16"
+      Vbase		      "220000"
+      Vref		      "1"
+      Vangle		      "0"
+      VLF		      "1"
+      VLFb		      "1"
+      VLFc		      "1"
+      angleLF		      "0"
+      angleLFb		      "0"
+      angleLFc		      "0"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "bus17"
+      SID		      58
+      Ports		      [0, 0, 0, 0, 0, 1]
+      Position		      [145, 5934, 160, 5956]
+      BackgroundColor	      "orange"
+      ShowName		      off
+      AttributesFormatString  "%<ID>\n%<Vbase>V\n%<VLF>pu\n%<angleLF>deg.\n%<Name>"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Measurements/Load Flow Bus"
+      SourceType	      "Load Flow Bus"
+      LConnTagsString	      "a"
+      Phases		      "single"
+      Connectors	      "on one side"
+      ID		      "bus17"
+      Vbase		      "220000"
+      Vref		      "1"
+      Vangle		      "0"
+      VLF		      "1"
+      VLFb		      "1"
+      VLFc		      "1"
+      angleLF		      "0"
+      angleLFb		      "0"
+      angleLFc		      "0"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "bus18"
+      SID		      59
+      Ports		      [0, 0, 0, 0, 0, 1]
+      Position		      [1885, 3184, 1900, 3206]
+      BackgroundColor	      "orange"
+      ShowName		      off
+      AttributesFormatString  "%<ID>\n%<Vbase>V\n%<VLF>pu\n%<angleLF>deg.\n%<Name>"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Measurements/Load Flow Bus"
+      SourceType	      "Load Flow Bus"
+      LConnTagsString	      "a"
+      Phases		      "single"
+      Connectors	      "on one side"
+      ID		      "bus18"
+      Vbase		      "220000"
+      Vref		      "1"
+      Vangle		      "0"
+      VLF		      "1"
+      VLFb		      "1"
+      VLFc		      "1"
+      angleLF		      "0"
+      angleLFb		      "0"
+      angleLFc		      "0"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "bus19"
+      SID		      60
+      Ports		      [0, 0, 0, 0, 0, 1]
+      Position		      [3125, 1969, 3140, 1991]
+      BackgroundColor	      "orange"
+      ShowName		      off
+      AttributesFormatString  "%<ID>\n%<Vbase>V\n%<VLF>pu\n%<angleLF>deg.\n%<Name>"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Measurements/Load Flow Bus"
+      SourceType	      "Load Flow Bus"
+      LConnTagsString	      "a"
+      Phases		      "single"
+      Connectors	      "on one side"
+      ID		      "bus19"
+      Vbase		      "220000"
+      Vref		      "1"
+      Vangle		      "0"
+      VLF		      "1"
+      VLFb		      "1"
+      VLFc		      "1"
+      angleLF		      "0"
+      angleLFb		      "0"
+      angleLFc		      "0"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "bus2"
+      SID		      43
+      Ports		      [0, 0, 0, 0, 0, 1]
+      Position		      [145, 5919, 160, 5941]
+      BackgroundColor	      "orange"
+      ShowName		      off
+      AttributesFormatString  "%<ID>\n%<Vbase>V\n%<VLF>pu\n%<angleLF>deg.\n%<Name>"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Measurements/Load Flow Bus"
+      SourceType	      "Load Flow Bus"
+      LConnTagsString	      "a"
+      Phases		      "single"
+      Connectors	      "on one side"
+      ID		      "bus2"
+      Vbase		      "220000"
+      Vref		      "1"
+      Vangle		      "0"
+      VLF		      "1"
+      VLFb		      "1"
+      VLFc		      "1"
+      angleLF		      "0"
+      angleLFb		      "0"
+      angleLFc		      "0"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "bus20"
+      SID		      61
+      Ports		      [0, 0, 0, 0, 0, 1]
+      Position		      [1455, 4504, 1470, 4526]
+      BackgroundColor	      "orange"
+      ShowName		      off
+      AttributesFormatString  "%<ID>\n%<Vbase>V\n%<VLF>pu\n%<angleLF>deg.\n%<Name>"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Measurements/Load Flow Bus"
+      SourceType	      "Load Flow Bus"
+      LConnTagsString	      "a"
+      Phases		      "single"
+      Connectors	      "on one side"
+      ID		      "bus20"
+      Vbase		      "220000"
+      Vref		      "1"
+      Vangle		      "0"
+      VLF		      "1"
+      VLFb		      "1"
+      VLFc		      "1"
+      angleLF		      "0"
+      angleLFb		      "0"
+      angleLFc		      "0"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "bus21"
+      SID		      62
+      Ports		      [0, 0, 0, 0, 0, 1]
+      Position		      [3755, 9974, 3770, 9996]
+      BackgroundColor	      "orange"
+      ShowName		      off
+      AttributesFormatString  "%<ID>\n%<Vbase>V\n%<VLF>pu\n%<angleLF>deg.\n%<Name>"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Measurements/Load Flow Bus"
+      SourceType	      "Load Flow Bus"
+      LConnTagsString	      "a"
+      Phases		      "single"
+      Connectors	      "on one side"
+      ID		      "bus21"
+      Vbase		      "220000"
+      Vref		      "1"
+      Vangle		      "0"
+      VLF		      "1"
+      VLFb		      "1"
+      VLFc		      "1"
+      angleLF		      "0"
+      angleLFb		      "0"
+      angleLFc		      "0"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "bus22"
+      SID		      63
+      Ports		      [0, 0, 0, 0, 0, 1]
+      Position		      [3935, 11489, 3950, 11511]
+      BackgroundColor	      "orange"
+      ShowName		      off
+      AttributesFormatString  "%<ID>\n%<Vbase>V\n%<VLF>pu\n%<angleLF>deg.\n%<Name>"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Measurements/Load Flow Bus"
+      SourceType	      "Load Flow Bus"
+      LConnTagsString	      "a"
+      Phases		      "single"
+      Connectors	      "on one side"
+      ID		      "bus22"
+      Vbase		      "220000"
+      Vref		      "1"
+      Vangle		      "0"
+      VLF		      "1"
+      VLFb		      "1"
+      VLFc		      "1"
+      angleLF		      "0"
+      angleLFb		      "0"
+      angleLFc		      "0"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "bus23"
+      SID		      64
+      Ports		      [0, 0, 0, 0, 0, 1]
+      Position		      [3510, 8009, 3525, 8031]
+      BackgroundColor	      "orange"
+      ShowName		      off
+      AttributesFormatString  "%<ID>\n%<Vbase>V\n%<VLF>pu\n%<angleLF>deg.\n%<Name>"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Measurements/Load Flow Bus"
+      SourceType	      "Load Flow Bus"
+      LConnTagsString	      "a"
+      Phases		      "single"
+      Connectors	      "on one side"
+      ID		      "bus23"
+      Vbase		      "220000"
+      Vref		      "1"
+      Vangle		      "0"
+      VLF		      "1"
+      VLFb		      "1"
+      VLFc		      "1"
+      angleLF		      "0"
+      angleLFb		      "0"
+      angleLFc		      "0"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "bus24"
+      SID		      65
+      Ports		      [0, 0, 0, 0, 0, 1]
+      Position		      [3865, 12224, 3880, 12246]
+      BackgroundColor	      "orange"
+      ShowName		      off
+      AttributesFormatString  "%<ID>\n%<Vbase>V\n%<VLF>pu\n%<angleLF>deg.\n%<Name>"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Measurements/Load Flow Bus"
+      SourceType	      "Load Flow Bus"
+      LConnTagsString	      "a"
+      Phases		      "single"
+      Connectors	      "on one side"
+      ID		      "bus24"
+      Vbase		      "220000"
+      Vref		      "1"
+      Vangle		      "0"
+      VLF		      "1"
+      VLFb		      "1"
+      VLFc		      "1"
+      angleLF		      "0"
+      angleLFb		      "0"
+      angleLFc		      "0"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "bus25"
+      SID		      66
+      Ports		      [0, 0, 0, 0, 0, 1]
+      Position		      [10115, 219, 10130, 241]
+      BackgroundColor	      "orange"
+      ShowName		      off
+      AttributesFormatString  "%<ID>\n%<Vbase>V\n%<VLF>pu\n%<angleLF>deg.\n%<Name>"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Measurements/Load Flow Bus"
+      SourceType	      "Load Flow Bus"
+      LConnTagsString	      "a"
+      Phases		      "single"
+      Connectors	      "on one side"
+      ID		      "bus25"
+      Vbase		      "220000"
+      Vref		      "1"
+      Vangle		      "0"
+      VLF		      "1"
+      VLFb		      "1"
+      VLFc		      "1"
+      angleLF		      "0"
+      angleLFb		      "0"
+      angleLFc		      "0"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "bus26"
+      SID		      67
+      Ports		      [0, 0, 0, 0, 0, 1]
+      Position		      [10100, 134, 10115, 156]
+      BackgroundColor	      "orange"
+      ShowName		      off
+      AttributesFormatString  "%<ID>\n%<Vbase>V\n%<VLF>pu\n%<angleLF>deg.\n%<Name>"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Measurements/Load Flow Bus"
+      SourceType	      "Load Flow Bus"
+      LConnTagsString	      "a"
+      Phases		      "single"
+      Connectors	      "on one side"
+      ID		      "bus26"
+      Vbase		      "220000"
+      Vref		      "1"
+      Vangle		      "0"
+      VLF		      "1"
+      VLFb		      "1"
+      VLFc		      "1"
+      angleLF		      "0"
+      angleLFb		      "0"
+      angleLFc		      "0"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "bus27"
+      SID		      68
+      Ports		      [0, 0, 0, 0, 0, 1]
+      Position		      [705, 5219, 720, 5241]
+      BackgroundColor	      "orange"
+      ShowName		      off
+      AttributesFormatString  "%<ID>\n%<Vbase>V\n%<VLF>pu\n%<angleLF>deg.\n%<Name>"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Measurements/Load Flow Bus"
+      SourceType	      "Load Flow Bus"
+      LConnTagsString	      "a"
+      Phases		      "single"
+      Connectors	      "on one side"
+      ID		      "bus27"
+      Vbase		      "220000"
+      Vref		      "1"
+      Vangle		      "0"
+      VLF		      "1"
+      VLFb		      "1"
+      VLFc		      "1"
+      angleLF		      "0"
+      angleLFb		      "0"
+      angleLFc		      "0"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "bus28"
+      SID		      69
+      Ports		      [0, 0, 0, 0, 0, 1]
+      Position		      [11830, 784, 11845, 806]
+      BackgroundColor	      "orange"
+      ShowName		      off
+      AttributesFormatString  "%<ID>\n%<Vbase>V\n%<VLF>pu\n%<angleLF>deg.\n%<Name>"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Measurements/Load Flow Bus"
+      SourceType	      "Load Flow Bus"
+      LConnTagsString	      "a"
+      Phases		      "single"
+      Connectors	      "on one side"
+      ID		      "bus28"
+      Vbase		      "220000"
+      Vref		      "1"
+      Vangle		      "0"
+      VLF		      "1"
+      VLFb		      "1"
+      VLFc		      "1"
+      angleLF		      "0"
+      angleLFb		      "0"
+      angleLFc		      "0"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "bus29"
+      SID		      70
+      Ports		      [0, 0, 0, 0, 0, 1]
+      Position		      [2835, 5709, 2850, 5731]
+      BackgroundColor	      "orange"
+      ShowName		      off
+      AttributesFormatString  "%<ID>\n%<Vbase>V\n%<VLF>pu\n%<angleLF>deg.\n%<Name>"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Measurements/Load Flow Bus"
+      SourceType	      "Load Flow Bus"
+      LConnTagsString	      "a"
+      Phases		      "single"
+      Connectors	      "on one side"
+      ID		      "bus29"
+      Vbase		      "220000"
+      Vref		      "1"
+      Vangle		      "0"
+      VLF		      "1"
+      VLFb		      "1"
+      VLFc		      "1"
+      angleLF		      "0"
+      angleLFb		      "0"
+      angleLFc		      "0"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "bus3"
+      SID		      44
+      Ports		      [0, 0, 0, 0, 0, 1]
+      Position		      [2425, 3184, 2440, 3206]
+      BackgroundColor	      "orange"
+      ShowName		      off
+      AttributesFormatString  "%<ID>\n%<Vbase>V\n%<VLF>pu\n%<angleLF>deg.\n%<Name>"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Measurements/Load Flow Bus"
+      SourceType	      "Load Flow Bus"
+      LConnTagsString	      "a"
+      Phases		      "single"
+      Connectors	      "on one side"
+      ID		      "bus3"
+      Vbase		      "220000"
+      Vref		      "1"
+      Vangle		      "0"
+      VLF		      "1"
+      VLFb		      "1"
+      VLFc		      "1"
+      angleLF		      "0"
+      angleLFb		      "0"
+      angleLFc		      "0"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "bus4"
+      SID		      45
+      Ports		      [0, 0, 0, 0, 0, 1]
+      Position		      [3125, 2499, 3140, 2521]
+      BackgroundColor	      "orange"
+      ShowName		      off
+      AttributesFormatString  "%<ID>\n%<Vbase>V\n%<VLF>pu\n%<angleLF>deg.\n%<Name>"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Measurements/Load Flow Bus"
+      SourceType	      "Load Flow Bus"
+      LConnTagsString	      "a"
+      Phases		      "single"
+      Connectors	      "on one side"
+      ID		      "bus4"
+      Vbase		      "220000"
+      Vref		      "1"
+      Vangle		      "0"
+      VLF		      "1"
+      VLFb		      "1"
+      VLFc		      "1"
+      angleLF		      "0"
+      angleLFb		      "0"
+      angleLFc		      "0"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "bus5"
+      SID		      46
+      Ports		      [0, 0, 0, 0, 0, 1]
+      Position		      [1455, 5049, 1470, 5071]
+      BackgroundColor	      "orange"
+      ShowName		      off
+      AttributesFormatString  "%<ID>\n%<Vbase>V\n%<VLF>pu\n%<angleLF>deg.\n%<Name>"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Measurements/Load Flow Bus"
+      SourceType	      "Load Flow Bus"
+      LConnTagsString	      "a"
+      Phases		      "single"
+      Connectors	      "on one side"
+      ID		      "bus5"
+      Vbase		      "220000"
+      Vref		      "1"
+      Vangle		      "0"
+      VLF		      "1"
+      VLFb		      "1"
+      VLFc		      "1"
+      angleLF		      "0"
+      angleLFb		      "0"
+      angleLFc		      "0"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "bus6"
+      SID		      47
+      Ports		      [0, 0, 0, 0, 0, 1]
+      Position		      [3755, 10604, 3770, 10626]
+      BackgroundColor	      "orange"
+      ShowName		      off
+      AttributesFormatString  "%<ID>\n%<Vbase>V\n%<VLF>pu\n%<angleLF>deg.\n%<Name>"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Measurements/Load Flow Bus"
+      SourceType	      "Load Flow Bus"
+      LConnTagsString	      "a"
+      Phases		      "single"
+      Connectors	      "on one side"
+      ID		      "bus6"
+      Vbase		      "220000"
+      Vref		      "1"
+      Vangle		      "0"
+      VLF		      "1"
+      VLFb		      "1"
+      VLFc		      "1"
+      angleLF		      "0"
+      angleLFb		      "0"
+      angleLFc		      "0"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "bus7"
+      SID		      48
+      Ports		      [0, 0, 0, 0, 0, 1]
+      Position		      [3935, 12179, 3950, 12201]
+      BackgroundColor	      "orange"
+      ShowName		      off
+      AttributesFormatString  "%<ID>\n%<Vbase>V\n%<VLF>pu\n%<angleLF>deg.\n%<Name>"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Measurements/Load Flow Bus"
+      SourceType	      "Load Flow Bus"
+      LConnTagsString	      "a"
+      Phases		      "single"
+      Connectors	      "on one side"
+      ID		      "bus7"
+      Vbase		      "220000"
+      Vref		      "1"
+      Vangle		      "0"
+      VLF		      "1"
+      VLFb		      "1"
+      VLFc		      "1"
+      angleLF		      "0"
+      angleLFb		      "0"
+      angleLFc		      "0"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "bus8"
+      SID		      49
+      Ports		      [0, 0, 0, 0, 0, 1]
+      Position		      [3510, 8884, 3525, 8906]
+      BackgroundColor	      "orange"
+      ShowName		      off
+      AttributesFormatString  "%<ID>\n%<Vbase>V\n%<VLF>pu\n%<angleLF>deg.\n%<Name>"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Measurements/Load Flow Bus"
+      SourceType	      "Load Flow Bus"
+      LConnTagsString	      "a"
+      Phases		      "single"
+      Connectors	      "on one side"
+      ID		      "bus8"
+      Vbase		      "220000"
+      Vref		      "1"
+      Vangle		      "0"
+      VLF		      "1"
+      VLFb		      "1"
+      VLFc		      "1"
+      angleLF		      "0"
+      angleLFb		      "0"
+      angleLFc		      "0"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "bus9"
+      SID		      50
+      Ports		      [0, 0, 0, 0, 0, 1]
+      Position		      [3865, 12494, 3880, 12516]
+      BackgroundColor	      "orange"
+      ShowName		      off
+      AttributesFormatString  "%<ID>\n%<Vbase>V\n%<VLF>pu\n%<angleLF>deg.\n%<Name>"
+      LibraryVersion	      "1.2706"
+      SourceBlock	      "powerlib/Measurements/Load Flow Bus"
+      SourceType	      "Load Flow Bus"
+      LConnTagsString	      "a"
+      Phases		      "single"
+      Connectors	      "on one side"
+      ID		      "bus9"
+      Vbase		      "220000"
+      Vref		      "1"
+      Vangle		      "0"
+      VLF		      "1"
+      VLFb		      "1"
+      VLFc		      "1"
+      angleLF		      "0"
+      angleLFb		      "0"
+      angleLFc		      "0"
+    }
+    Block {
+      BlockType		      Reference
+      Name		      "powergui"
+      SID		      71
+      Ports		      []
+      Position		      [43, 66, 264, 190]
+      BackgroundColor	      "darkGreen"
+      Priority		      "1"
+      LibraryVersion	      "1.2706"
+      UserDataPersistent      on
+      UserData		      "DataTag0"
+      SourceBlock	      "powerlib/powergui"
+      SourceType	      "PSB option menu block"
+      SimulationMode	      "Phasor"
+      SolverType	      "Tustin/Backward Euler (TBE)"
+      SampleTime	      "50e-6"
+      frequency		      "50"
+      SPID		      off
+      DisableSnubberDevices   off
+      DisableRonSwitches      off
+      DisableVfSwitches	      off
+      SwTol		      "0"
+      DisplayEquations	      off
+      Interpol		      off
+      ExternalGateDelay	      off
+      methode		      off
+      Ts		      "10"
+      FunctionMessages	      off
+      echomessages	      off
+      HookPort		      off
+      EnableUseOfTLC	      off
+      x0status		      "blocks"
+      frequencyindice	      "50"
+      Pbase		      "3000e6"
+      ErrMax		      "0.0001"
+      Iterations	      "50"
+      UnitsV		      "V"
+      UnitsW		      "W"
+      buscounter	      "0"
+      RestoreLinks	      "warning"
+      ResistiveCurrentMeasurement off
+      Frange		      "[0:2:500]"
+      Ylog		      off
+      Xlog		      on
+      ShowGrid		      off
+      save		      off
+      variable		      "ZData"
+      structure		      "0"
+      ZoomFFT		      off
+      StartTime		      "0.0"
+      cycles		      "1"
+      DisplayStyle	      "1"
+      fundamental	      "60"
+      FreqAxis		      off
+      MaxFrequency	      "1000"
+      frequencyindicesteady   "1"
+      RmsSteady		      "1"
+      display		      off
+    }
+    Line {
+      LineType		      "Connection"
+      SrcBlock		      "T_108562208__"
+      SrcPort		      LConn1
+      DstBlock		      "_CN_108562208_220000_CN_108549128_220000"
+      DstPort		      LConn1
+    }
+    Line {
+      LineType		      "Connection"
+      SrcBlock		      "T_108562208__"
+      SrcPort		      LConn2
+      DstBlock		      "_CN_108562208_220000_CN_108549128_220000"
+      DstPort		      LConn2
+    }
+    Line {
+      LineType		      "Connection"
+      Points		      [20, 6030; 50, -60]
+      DstBlock		      "_CN_108562208_220000_CN_108549128_220000"
+      DstPort		      LConn3
+      Branch {
+	ConnectType		"SRC_DEST"
+	SrcBlock		"T_108562208__"
+	SrcPort			LConn3
+	Points			[0, 0]
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"bus1"
+	DstPort			LConn1
+      }
+    }
+    Line {
+      LineType		      "Connection"
+      SrcBlock		      "T_108549128__"
+      SrcPort		      LConn1
+      DstBlock		      "_CN_108562208_220000_CN_108549128_220000"
+      DstPort		      RConn1
+    }
+    Line {
+      LineType		      "Connection"
+      SrcBlock		      "T_108549128__"
+      SrcPort		      LConn2
+      DstBlock		      "_CN_108562208_220000_CN_108549128_220000"
+      DstPort		      RConn2
+    }
+    Line {
+      LineType		      "Connection"
+      Points		      [30, 5865; 40, 40]
+      DstBlock		      "_CN_108562208_220000_CN_108549128_220000"
+      DstPort		      RConn3
+      Branch {
+	ConnectType		"SRC_DEST"
+	SrcBlock		"T_108549128__"
+	SrcPort			LConn3
+	Points			[0, 0]
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"bus2"
+	DstPort			LConn1
+      }
+    }
+    Line {
+      LineType		      "Connection"
+      Points		      [1840, 3095; 595, -545]
+      DstBlock		      "_CN_179675621_220000_CN_179679495_220000"
+      DstPort		      LConn1
+      Branch {
+	ConnectType		"SRC_DEST"
+	SrcBlock		"T_179675621__"
+	SrcPort			LConn1
+	Points			[0, 0]
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"_CN_179675621_220000_CN_121729808_220000"
+	DstPort			LConn1
+      }
+    }
+    Line {
+      LineType		      "Connection"
+      Points		      [1840, 3105; 605, -555]
+      DstBlock		      "_CN_179675621_220000_CN_179679495_220000"
+      DstPort		      LConn2
+      Branch {
+	ConnectType		"SRC_DEST"
+	SrcBlock		"T_179675621__"
+	SrcPort			LConn2
+	Points			[0, 0]
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"_CN_179675621_220000_CN_121729808_220000"
+	DstPort			LConn2
+      }
+    }
+    Line {
+      LineType		      "Connection"
+      Points		      [1840, 3115; 615, -565]
+      DstBlock		      "_CN_179675621_220000_CN_179679495_220000"
+      DstPort		      LConn3
+      Branch {
+	ConnectType		"SRC_DEST"
+	SrcBlock		"T_179675621__"
+	SrcPort			LConn3
+	Points			[0, 0]
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"_CN_179675621_220000_CN_121729808_220000"
+	DstPort			LConn3
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"bus3"
+	DstPort			LConn1
+      }
+    }
+    Line {
+      LineType		      "Connection"
+      SrcBlock		      "T_179679495__"
+      SrcPort		      LConn1
+      DstBlock		      "_CN_179675621_220000_CN_179679495_220000"
+      DstPort		      RConn1
+    }
+    Line {
+      LineType		      "Connection"
+      SrcBlock		      "T_179679495__"
+      SrcPort		      LConn2
+      DstBlock		      "_CN_179675621_220000_CN_179679495_220000"
+      DstPort		      RConn2
+    }
+    Line {
+      LineType		      "Connection"
+      Points		      [3010, 1900; -555, 585]
+      DstBlock		      "_CN_179675621_220000_CN_179679495_220000"
+      DstPort		      RConn3
+      Branch {
+	ConnectType		"SRC_DEST"
+	SrcBlock		"T_179679495__"
+	SrcPort			LConn3
+	Points			[0, 0]
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"bus4"
+	DstPort			LConn1
+      }
+    }
+    Line {
+      LineType		      "Connection"
+      Points		      [1340, 4415; 275, -600]
+      DstBlock		      "_CN_179675621_220000_CN_121729808_220000"
+      DstPort		      RConn1
+      Branch {
+	ConnectType		"SRC_DEST"
+	SrcBlock		"T_121729808__"
+	SrcPort			LConn1
+	Points			[0, 0]
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"_CN_121729808_220000_CN_122245237_220000"
+	DstPort			LConn1
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"_CN_121729808_220000_CN_315321465_220000"
+	DstPort			LConn1
+      }
+    }
+    Line {
+      LineType		      "Connection"
+      Points		      [1340, 4425; 285, -610]
+      DstBlock		      "_CN_179675621_220000_CN_121729808_220000"
+      DstPort		      RConn2
+      Branch {
+	ConnectType		"SRC_DEST"
+	SrcBlock		"T_121729808__"
+	SrcPort			LConn2
+	Points			[0, 0]
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"_CN_121729808_220000_CN_122245237_220000"
+	DstPort			LConn2
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"_CN_121729808_220000_CN_315321465_220000"
+	DstPort			LConn2
+      }
+    }
+    Line {
+      LineType		      "Connection"
+      Points		      [1340, 4435; 295, -620]
+      DstBlock		      "_CN_179675621_220000_CN_121729808_220000"
+      DstPort		      RConn3
+      Branch {
+	ConnectType		"SRC_DEST"
+	SrcBlock		"T_121729808__"
+	SrcPort			LConn3
+	Points			[0, 0]
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"_CN_121729808_220000_CN_122245237_220000"
+	DstPort			LConn3
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"_CN_121729808_220000_CN_315321465_220000"
+	DstPort			LConn3
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"bus5"
+	DstPort			LConn1
+      }
+    }
+    Line {
+      LineType		      "Connection"
+      Points		      [3640, 9885; 220, 705]
+      DstBlock		      "_CN_89084614_220000_CN_191928540_220000"
+      DstPort		      LConn1
+      Branch {
+	ConnectType		"SRC_DEST"
+	SrcBlock		"T_89084614__"
+	SrcPort			LConn1
+	Points			[0, 0]
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"_CN_89084614_220000_CN_88691550_220000"
+	DstPort			LConn1
+      }
+    }
+    Line {
+      LineType		      "Connection"
+      Points		      [3640, 9895; 230, 695]
+      DstBlock		      "_CN_89084614_220000_CN_191928540_220000"
+      DstPort		      LConn2
+      Branch {
+	ConnectType		"SRC_DEST"
+	SrcBlock		"T_89084614__"
+	SrcPort			LConn2
+	Points			[0, 0]
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"_CN_89084614_220000_CN_88691550_220000"
+	DstPort			LConn2
+      }
+    }
+    Line {
+      LineType		      "Connection"
+      Points		      [3640, 9905; 240, 685]
+      DstBlock		      "_CN_89084614_220000_CN_191928540_220000"
+      DstPort		      LConn3
+      Branch {
+	ConnectType		"SRC_DEST"
+	SrcBlock		"T_89084614__"
+	SrcPort			LConn3
+	Points			[0, 0]
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"_CN_89084614_220000_CN_88691550_220000"
+	DstPort			LConn3
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"bus6"
+	DstPort			LConn1
+      }
+    }
+    Line {
+      LineType		      "Connection"
+      Points		      [3820, 11400; 40, -745]
+      DstBlock		      "_CN_89084614_220000_CN_191928540_220000"
+      DstPort		      RConn1
+      Branch {
+	ConnectType		"SRC_DEST"
+	SrcBlock		"T_191928540__"
+	SrcPort			LConn1
+	Points			[0, 0]
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"_CN_191928540_220000_CN_191928543_220000"
+	DstPort			LConn1
+      }
+    }
+    Line {
+      LineType		      "Connection"
+      Points		      [3820, 11410; 50, -755]
+      DstBlock		      "_CN_89084614_220000_CN_191928540_220000"
+      DstPort		      RConn2
+      Branch {
+	ConnectType		"SRC_DEST"
+	SrcBlock		"T_191928540__"
+	SrcPort			LConn2
+	Points			[0, 0]
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"_CN_191928540_220000_CN_191928543_220000"
+	DstPort			LConn2
+      }
+    }
+    Line {
+      LineType		      "Connection"
+      Points		      [3820, 11420; 60, -765]
+      DstBlock		      "_CN_89084614_220000_CN_191928540_220000"
+      DstPort		      RConn3
+      Branch {
+	ConnectType		"SRC_DEST"
+	SrcBlock		"T_191928540__"
+	SrcPort			LConn3
+	Points			[0, 0]
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"_CN_191928540_220000_CN_191928543_220000"
+	DstPort			LConn3
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"bus7"
+	DstPort			LConn1
+      }
+    }
+    Line {
+      LineType		      "Connection"
+      Points		      [3395, 7920; 210, 950]
+      DstBlock		      "_CN_89084614_220000_CN_88691550_220000"
+      DstPort		      RConn1
+      Branch {
+	ConnectType		"SRC_DEST"
+	SrcBlock		"T_88691550__"
+	SrcPort			LConn1
+	Points			[0, 0]
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"_CN_179315356_220000_CN_88691550_220000"
+	DstPort			LConn1
+      }
+    }
+    Line {
+      LineType		      "Connection"
+      Points		      [3395, 7930; 220, 940]
+      DstBlock		      "_CN_89084614_220000_CN_88691550_220000"
+      DstPort		      RConn2
+      Branch {
+	ConnectType		"SRC_DEST"
+	SrcBlock		"T_88691550__"
+	SrcPort			LConn2
+	Points			[0, 0]
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"_CN_179315356_220000_CN_88691550_220000"
+	DstPort			LConn2
+      }
+    }
+    Line {
+      LineType		      "Connection"
+      Points		      [3395, 7940; 230, 930]
+      DstBlock		      "_CN_89084614_220000_CN_88691550_220000"
+      DstPort		      RConn3
+      Branch {
+	ConnectType		"SRC_DEST"
+	SrcBlock		"T_88691550__"
+	SrcPort			LConn3
+	Points			[0, 0]
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"_CN_179315356_220000_CN_88691550_220000"
+	DstPort			LConn3
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"bus8"
+	DstPort			LConn1
+      }
+    }
+    Line {
+      LineType		      "Connection"
+      SrcBlock		      "T_191928543_220000_"
+      SrcPort		      LConn1
+      DstBlock		      "_CN_191928540_220000_CN_191928543_220000"
+      DstPort		      RConn1
+    }
+    Line {
+      LineType		      "Connection"
+      SrcBlock		      "T_191928543_220000_"
+      SrcPort		      LConn2
+      DstBlock		      "_CN_191928540_220000_CN_191928543_220000"
+      DstPort		      RConn2
+    }
+    Line {
+      LineType		      "Connection"
+      Points		      [3750, 12155; 75, -345]
+      DstBlock		      "_CN_191928540_220000_CN_191928543_220000"
+      DstPort		      RConn3
+      Branch {
+	ConnectType		"SRC_DEST"
+	SrcBlock		"T_191928543_220000_"
+	SrcPort			LConn3
+	Points			[0, 0]
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"bus9"
+	DstPort			LConn1
+      }
+    }
+    Line {
+      LineType		      "Connection"
+      SrcBlock		      "T_179096206__Zambesi_substation"
+      SrcPort		      LConn1
+      DstBlock		      "_CN_179096206_220000_CN_179309597_220000"
+      DstPort		      LConn1
+    }
+    Line {
+      LineType		      "Connection"
+      SrcBlock		      "T_179096206__Zambesi_substation"
+      SrcPort		      LConn2
+      DstBlock		      "_CN_179096206_220000_CN_179309597_220000"
+      DstPort		      LConn2
+    }
+    Line {
+      LineType		      "Connection"
+      Points		      [10000, 150; 45, -20]
+      DstBlock		      "_CN_179096206_220000_CN_179309597_220000"
+      DstPort		      LConn3
+      Branch {
+	ConnectType		"SRC_DEST"
+	SrcBlock		"T_179096206__Zambesi_substation"
+	SrcPort			LConn3
+	Points			[0, 0]
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"bus10"
+	DstPort			LConn1
+      }
+    }
+    Line {
+      LineType		      "Connection"
+      Points		      [10055, 45; -30, 20]
+      DstBlock		      "_CN_179096206_220000_CN_179309597_220000"
+      DstPort		      RConn1
+      Branch {
+	ConnectType		"SRC_DEST"
+	SrcBlock		"T_179309597__"
+	SrcPort			LConn1
+	Points			[0, 0]
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"_CN_198090281_220000_CN_179309597_220000"
+	DstPort			LConn1
+      }
+    }
+    Line {
+      LineType		      "Connection"
+      Points		      [10055, 55; -20, 10]
+      DstBlock		      "_CN_179096206_220000_CN_179309597_220000"
+      DstPort		      RConn2
+      Branch {
+	ConnectType		"SRC_DEST"
+	SrcBlock		"T_179309597__"
+	SrcPort			LConn2
+	Points			[0, 0]
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"_CN_198090281_220000_CN_179309597_220000"
+	DstPort			LConn2
+      }
+    }
+    Line {
+      LineType		      "Connection"
+      Points		      [10055, 65; -10, 0]
+      DstBlock		      "_CN_179096206_220000_CN_179309597_220000"
+      DstPort		      RConn3
+      Branch {
+	ConnectType		"SRC_DEST"
+	SrcBlock		"T_179309597__"
+	SrcPort			LConn3
+	Points			[0, 0]
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"_CN_198090281_220000_CN_179309597_220000"
+	DstPort			LConn3
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"bus11"
+	DstPort			LConn1
+      }
+    }
+    Line {
+      LineType		      "Connection"
+      Points		      [2430, 5535; -510, -500]
+      DstBlock		      "_CN_121729808_220000_CN_122245237_220000"
+      DstPort		      RConn1
+      Branch {
+	ConnectType		"SRC_DEST"
+	SrcBlock		"G_122245237_Van_Eck_Power_Plant"
+	SrcPort			RConn1
+	Points			[0, 0]
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"_CN_179315356_220000_CN_122245237_220000"
+	DstPort			LConn1
+      }
+    }
+    Line {
+      LineType		      "Connection"
+      Points		      [2430, 5545; -500, -510]
+      DstBlock		      "_CN_121729808_220000_CN_122245237_220000"
+      DstPort		      RConn2
+      Branch {
+	ConnectType		"SRC_DEST"
+	SrcBlock		"G_122245237_Van_Eck_Power_Plant"
+	SrcPort			RConn2
+	Points			[0, 0]
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"_CN_179315356_220000_CN_122245237_220000"
+	DstPort			LConn2
+      }
+    }
+    Line {
+      LineType		      "Connection"
+      Points		      [2430, 5555; -490, -520]
+      DstBlock		      "_CN_121729808_220000_CN_122245237_220000"
+      DstPort		      RConn3
+      Branch {
+	ConnectType		"SRC_DEST"
+	SrcBlock		"G_122245237_Van_Eck_Power_Plant"
+	SrcPort			RConn3
+	Points			[0, 0]
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"_CN_179315356_220000_CN_122245237_220000"
+	DstPort			LConn3
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"bus12"
+	DstPort			LConn1
+      }
+    }
+    Line {
+      LineType		      "Connection"
+      SrcBlock		      "T_315321465__"
+      SrcPort		      LConn1
+      DstBlock		      "_CN_121729808_220000_CN_315321465_220000"
+      DstPort		      RConn1
+    }
+    Line {
+      LineType		      "Connection"
+      SrcBlock		      "T_315321465__"
+      SrcPort		      LConn2
+      DstBlock		      "_CN_121729808_220000_CN_315321465_220000"
+      DstPort		      RConn2
+    }
+    Line {
+      LineType		      "Connection"
+      Points		      [660, 5150; 330, -325]
+      DstBlock		      "_CN_121729808_220000_CN_315321465_220000"
+      DstPort		      RConn3
+      Branch {
+	ConnectType		"SRC_DEST"
+	SrcBlock		"T_315321465__"
+	SrcPort			LConn3
+	Points			[0, 0]
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"bus13"
+	DstPort			LConn1
+      }
+    }
+    Line {
+      LineType		      "Connection"
+      SrcBlock		      "T_198090281__"
+      SrcPort		      LConn1
+      DstBlock		      "_CN_198090281_220000_CN_179309597_220000"
+      DstPort		      RConn1
+    }
+    Line {
+      LineType		      "Connection"
+      SrcBlock		      "T_198090281__"
+      SrcPort		      LConn2
+      DstBlock		      "_CN_198090281_220000_CN_179309597_220000"
+      DstPort		      RConn2
+    }
+    Line {
+      LineType		      "Connection"
+      Points		      [11715, 715; -705, -410]
+      DstBlock		      "_CN_198090281_220000_CN_179309597_220000"
+      DstPort		      RConn3
+      Branch {
+	ConnectType		"SRC_DEST"
+	SrcBlock		"T_198090281__"
+	SrcPort			LConn3
+	Points			[0, 0]
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"bus14"
+	DstPort			LConn1
+      }
+    }
+    Line {
+      LineType		      "Connection"
+      Points		      [2720, 5620; 190, 1195]
+      DstBlock		      "_CN_179315356_220000_CN_88691550_220000"
+      DstPort		      RConn1
+      Branch {
+	ConnectType		"SRC_DEST"
+	SrcBlock		"T_179315356__"
+	SrcPort			LConn1
+	Points			[0, 0]
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"_CN_179315356_220000_CN_122245237_220000"
+	DstPort			RConn1
+      }
+    }
+    Line {
+      LineType		      "Connection"
+      Points		      [2720, 5630; 200, 1185]
+      DstBlock		      "_CN_179315356_220000_CN_88691550_220000"
+      DstPort		      RConn2
+      Branch {
+	ConnectType		"SRC_DEST"
+	SrcBlock		"T_179315356__"
+	SrcPort			LConn2
+	Points			[0, 0]
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"_CN_179315356_220000_CN_122245237_220000"
+	DstPort			RConn2
+      }
+    }
+    Line {
+      LineType		      "Connection"
+      Points		      [2720, 5640; 210, 1175]
+      DstBlock		      "_CN_179315356_220000_CN_88691550_220000"
+      DstPort		      RConn3
+      Branch {
+	ConnectType		"SRC_DEST"
+	SrcBlock		"T_179315356__"
+	SrcPort			LConn3
+	Points			[0, 0]
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"_CN_179315356_220000_CN_122245237_220000"
+	DstPort			RConn3
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"bus15"
+	DstPort			LConn1
+      }
+    }
+    Line {
+      LineType		      "Connection"
+      SrcBlock		      "T_108562208__"
+      SrcPort		      RConn1
+      DstBlock		      "L_108562208"
+      DstPort		      LConn1
+    }
+    Line {
+      LineType		      "Connection"
+      SrcBlock		      "T_108562208__"
+      SrcPort		      RConn2
+      DstBlock		      "L_108562208"
+      DstPort		      LConn2
+    }
+    Line {
+      LineType		      "Connection"
+      Points		      [90, 6030; 30, -5]
+      DstBlock		      "L_108562208"
+      DstPort		      LConn3
+      Branch {
+	ConnectType		"SRC_DEST"
+	SrcBlock		"T_108562208__"
+	SrcPort			RConn3
+	Points			[0, 0]
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"bus16"
+	DstPort			LConn1
+      }
+    }
+    Line {
+      LineType		      "Connection"
+      SrcBlock		      "T_108549128__"
+      SrcPort		      RConn1
+      DstBlock		      "L_108549128"
+      DstPort		      LConn1
+    }
+    Line {
+      LineType		      "Connection"
+      SrcBlock		      "T_108549128__"
+      SrcPort		      RConn2
+      DstBlock		      "L_108549128"
+      DstPort		      LConn2
+    }
+    Line {
+      LineType		      "Connection"
+      Points		      [100, 5865; 30, -5]
+      DstBlock		      "L_108549128"
+      DstPort		      LConn3
+      Branch {
+	ConnectType		"SRC_DEST"
+	SrcBlock		"T_108549128__"
+	SrcPort			RConn3
+	Points			[0, 0]
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"bus17"
+	DstPort			LConn1
+      }
+    }
+    Line {
+      LineType		      "Connection"
+      SrcBlock		      "T_179675621__"
+      SrcPort		      RConn1
+      DstBlock		      "L_179675621"
+      DstPort		      LConn1
+    }
+    Line {
+      LineType		      "Connection"
+      SrcBlock		      "T_179675621__"
+      SrcPort		      RConn2
+      DstBlock		      "L_179675621"
+      DstPort		      LConn2
+    }
+    Line {
+      LineType		      "Connection"
+      Points		      [1770, 3115; -30, -5]
+      DstBlock		      "L_179675621"
+      DstPort		      LConn3
+      Branch {
+	ConnectType		"SRC_DEST"
+	SrcBlock		"T_179675621__"
+	SrcPort			RConn3
+	Points			[0, 0]
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"bus18"
+	DstPort			LConn1
+      }
+    }
+    Line {
+      LineType		      "Connection"
+      SrcBlock		      "T_179679495__"
+      SrcPort		      RConn1
+      DstBlock		      "L_179679495"
+      DstPort		      LConn1
+    }
+    Line {
+      LineType		      "Connection"
+      SrcBlock		      "T_179679495__"
+      SrcPort		      RConn2
+      DstBlock		      "L_179679495"
+      DstPort		      LConn2
+    }
+    Line {
+      LineType		      "Connection"
+      Points		      [3080, 1900; 30, -5]
+      DstBlock		      "L_179679495"
+      DstPort		      LConn3
+      Branch {
+	ConnectType		"SRC_DEST"
+	SrcBlock		"T_179679495__"
+	SrcPort			RConn3
+	Points			[0, 0]
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"bus19"
+	DstPort			LConn1
+      }
+    }
+    Line {
+      LineType		      "Connection"
+      SrcBlock		      "T_121729808__"
+      SrcPort		      RConn1
+      DstBlock		      "L_121729808"
+      DstPort		      LConn1
+    }
+    Line {
+      LineType		      "Connection"
+      SrcBlock		      "T_121729808__"
+      SrcPort		      RConn2
+      DstBlock		      "L_121729808"
+      DstPort		      LConn2
+    }
+    Line {
+      LineType		      "Connection"
+      Points		      [1410, 4435; 30, -5]
+      DstBlock		      "L_121729808"
+      DstPort		      LConn3
+      Branch {
+	ConnectType		"SRC_DEST"
+	SrcBlock		"T_121729808__"
+	SrcPort			RConn3
+	Points			[0, 0]
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"bus20"
+	DstPort			LConn1
+      }
+    }
+    Line {
+      LineType		      "Connection"
+      SrcBlock		      "T_89084614__"
+      SrcPort		      RConn1
+      DstBlock		      "L_89084614"
+      DstPort		      LConn1
+    }
+    Line {
+      LineType		      "Connection"
+      SrcBlock		      "T_89084614__"
+      SrcPort		      RConn2
+      DstBlock		      "L_89084614"
+      DstPort		      LConn2
+    }
+    Line {
+      LineType		      "Connection"
+      Points		      [3710, 9905; 30, -5]
+      DstBlock		      "L_89084614"
+      DstPort		      LConn3
+      Branch {
+	ConnectType		"SRC_DEST"
+	SrcBlock		"T_89084614__"
+	SrcPort			RConn3
+	Points			[0, 0]
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"bus21"
+	DstPort			LConn1
+      }
+    }
+    Line {
+      LineType		      "Connection"
+      SrcBlock		      "T_191928540__"
+      SrcPort		      RConn1
+      DstBlock		      "L_191928540"
+      DstPort		      LConn1
+    }
+    Line {
+      LineType		      "Connection"
+      SrcBlock		      "T_191928540__"
+      SrcPort		      RConn2
+      DstBlock		      "L_191928540"
+      DstPort		      LConn2
+    }
+    Line {
+      LineType		      "Connection"
+      Points		      [3890, 11420; 30, -5]
+      DstBlock		      "L_191928540"
+      DstPort		      LConn3
+      Branch {
+	ConnectType		"SRC_DEST"
+	SrcBlock		"T_191928540__"
+	SrcPort			RConn3
+	Points			[0, 0]
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"bus22"
+	DstPort			LConn1
+      }
+    }
+    Line {
+      LineType		      "Connection"
+      SrcBlock		      "T_88691550__"
+      SrcPort		      RConn1
+      DstBlock		      "L_88691550"
+      DstPort		      LConn1
+    }
+    Line {
+      LineType		      "Connection"
+      SrcBlock		      "T_88691550__"
+      SrcPort		      RConn2
+      DstBlock		      "L_88691550"
+      DstPort		      LConn2
+    }
+    Line {
+      LineType		      "Connection"
+      Points		      [3465, 7940; 30, -5]
+      DstBlock		      "L_88691550"
+      DstPort		      LConn3
+      Branch {
+	ConnectType		"SRC_DEST"
+	SrcBlock		"T_88691550__"
+	SrcPort			RConn3
+	Points			[0, 0]
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"bus23"
+	DstPort			LConn1
+      }
+    }
+    Line {
+      LineType		      "Connection"
+      SrcBlock		      "T_191928543_220000_"
+      SrcPort		      RConn1
+      DstBlock		      "L_191928543"
+      DstPort		      LConn1
+    }
+    Line {
+      LineType		      "Connection"
+      SrcBlock		      "T_191928543_220000_"
+      SrcPort		      RConn2
+      DstBlock		      "L_191928543"
+      DstPort		      LConn2
+    }
+    Line {
+      LineType		      "Connection"
+      Points		      [3820, 12155; 30, -5]
+      DstBlock		      "L_191928543"
+      DstPort		      LConn3
+      Branch {
+	ConnectType		"SRC_DEST"
+	SrcBlock		"T_191928543_220000_"
+	SrcPort			RConn3
+	Points			[0, 0]
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"bus24"
+	DstPort			LConn1
+      }
+    }
+    Line {
+      LineType		      "Connection"
+      SrcBlock		      "T_179096206__Zambesi_substation"
+      SrcPort		      RConn1
+      DstBlock		      "L_179096206"
+      DstPort		      LConn1
+    }
+    Line {
+      LineType		      "Connection"
+      SrcBlock		      "T_179096206__Zambesi_substation"
+      SrcPort		      RConn2
+      DstBlock		      "L_179096206"
+      DstPort		      LConn2
+    }
+    Line {
+      LineType		      "Connection"
+      Points		      [10070, 150; 30, -5]
+      DstBlock		      "L_179096206"
+      DstPort		      LConn3
+      Branch {
+	ConnectType		"SRC_DEST"
+	SrcBlock		"T_179096206__Zambesi_substation"
+	SrcPort			RConn3
+	Points			[0, 0]
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"bus25"
+	DstPort			LConn1
+      }
+    }
+    Line {
+      LineType		      "Connection"
+      SrcBlock		      "T_179309597__"
+      SrcPort		      RConn1
+      DstBlock		      "L_179309597"
+      DstPort		      LConn1
+    }
+    Line {
+      LineType		      "Connection"
+      SrcBlock		      "T_179309597__"
+      SrcPort		      RConn2
+      DstBlock		      "L_179309597"
+      DstPort		      LConn2
+    }
+    Line {
+      LineType		      "Connection"
+      Points		      [9985, 65; -30, -5]
+      DstBlock		      "L_179309597"
+      DstPort		      LConn3
+      Branch {
+	ConnectType		"SRC_DEST"
+	SrcBlock		"T_179309597__"
+	SrcPort			RConn3
+	Points			[0, 0]
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"bus26"
+	DstPort			LConn1
+      }
+    }
+    Line {
+      LineType		      "Connection"
+      SrcBlock		      "T_315321465__"
+      SrcPort		      RConn1
+      DstBlock		      "L_315321465"
+      DstPort		      LConn1
+    }
+    Line {
+      LineType		      "Connection"
+      SrcBlock		      "T_315321465__"
+      SrcPort		      RConn2
+      DstBlock		      "L_315321465"
+      DstPort		      LConn2
+    }
+    Line {
+      LineType		      "Connection"
+      Points		      [590, 5150; -30, -5]
+      DstBlock		      "L_315321465"
+      DstPort		      LConn3
+      Branch {
+	ConnectType		"SRC_DEST"
+	SrcBlock		"T_315321465__"
+	SrcPort			RConn3
+	Points			[0, 0]
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"bus27"
+	DstPort			LConn1
+      }
+    }
+    Line {
+      LineType		      "Connection"
+      SrcBlock		      "T_198090281__"
+      SrcPort		      RConn1
+      DstBlock		      "L_198090281"
+      DstPort		      LConn1
+    }
+    Line {
+      LineType		      "Connection"
+      SrcBlock		      "T_198090281__"
+      SrcPort		      RConn2
+      DstBlock		      "L_198090281"
+      DstPort		      LConn2
+    }
+    Line {
+      LineType		      "Connection"
+      Points		      [11785, 715; 30, -5]
+      DstBlock		      "L_198090281"
+      DstPort		      LConn3
+      Branch {
+	ConnectType		"SRC_DEST"
+	SrcBlock		"T_198090281__"
+	SrcPort			RConn3
+	Points			[0, 0]
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"bus28"
+	DstPort			LConn1
+      }
+    }
+    Line {
+      LineType		      "Connection"
+      SrcBlock		      "T_179315356__"
+      SrcPort		      RConn1
+      DstBlock		      "L_179315356"
+      DstPort		      LConn1
+    }
+    Line {
+      LineType		      "Connection"
+      SrcBlock		      "T_179315356__"
+      SrcPort		      RConn2
+      DstBlock		      "L_179315356"
+      DstPort		      LConn2
+    }
+    Line {
+      LineType		      "Connection"
+      Points		      [2790, 5640; 30, -5]
+      DstBlock		      "L_179315356"
+      DstPort		      LConn3
+      Branch {
+	ConnectType		"SRC_DEST"
+	SrcBlock		"T_179315356__"
+	SrcPort			RConn3
+	Points			[0, 0]
+      }
+      Branch {
+	ConnectType		"SRC_SRC"
+	DstBlock		"bus29"
+	DstPort			LConn1
+      }
+    }
+    Annotation {
+      Name		      "220000 Volts Power Line"
+      Position		      [-2587, -5894]
+      HorizontalAlignment     "left"
+      VerticalAlignment	      "top"
+      BackgroundColor	      "[0.000000, 0.000000, 1.000000]"
+    }
+  }
+}
+MatData {
+  NumRecords		  1
+  DataRecord {
+    Tag			    DataTag0
+    Data		    "  %)30     .    : ,   8    (     @         %    \"     $    !     0         %  0 #     $   \"0    <&]W9"
+    "7)G=6D     <W1E861Y<W1A=&4 :6YI='-T871E<P  ;&]A9&9L;W<     ;&]A9&9L;W=N97< ;'1I=FEE=P      >FUE=&5R        9F9T=&]"
+    "O;       <F5P;W)T        :'ES=&5R97-I<P  ;&EN97!A<F%M    5',             #@   #     &    \"     8         !0    @ "
+    "              $         \"0         .    ,     8    (    !@         %    \"                0         )          X "
+    "   P    !@    @    &          4    (               !          D         #@   #     &    \"     8         !0    @  "
+    "             $         \"0         .    ,     8    (    !@         %    \"                0         )          X  "
+    "  P    !@    @    &          4    (               !          D         #@   #     &    \"     8         !0    @   "
+    "            $         \"0         .    ,     8    (    !@         %    \"                0         )          X   "
+    " P    !@    @    &          4    (               !          D         #@   #     &    \"     8         !0    @    "
+    "           $         \"0         .    ,     8    (    !@         %    \"                0         )          X    "
+    "P    !@    @    &          4    (               !          D         "
+  }
+}
