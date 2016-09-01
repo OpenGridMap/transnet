@@ -117,6 +117,8 @@ class Transnet:
         if not exists(self.destdir):
             makedirs(self.destdir)
 
+        root.info('Infer for %s', country_name)
+
         time = datetime.now()
 
         # build location where clause for succeeding queries
