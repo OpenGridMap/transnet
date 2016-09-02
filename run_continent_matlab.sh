@@ -9,7 +9,7 @@ fi
 mkdir -p "logs/$destdir"
 
 # configure the right matlab binary direction
-matlab='/usr/local/bin/matlab'
+matlab='/usr/bin/matlab'
 
 # run transnet
 cdir=`pwd`
