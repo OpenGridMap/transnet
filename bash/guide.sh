@@ -38,4 +38,4 @@ export dpassword="$dpassword"
 export PGPASS="$dpassword"
 
 sh prepare_db.sh
-sh run.sh
+sh run_country.sh
