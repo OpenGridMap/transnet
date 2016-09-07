@@ -1,17 +1,17 @@
 #!/bin/bash
 # launch a complete Transnet run for planet
 
-cd /home/leimhofe/transnet
+cd /home/leimhofe/transnet/bash
 
 source activate transnet
 
-./prepare_db_planet.sh
+./prepare_db_planet.sh | tee -a "../logs/planet_db.log"
 
-./prepare_planet_poly_and_voltages.sh
+./prepare_planet_poly_and_voltages.sh | tee -a "../logs/planet_poly_and_voltages.log"
 
-./run_planet_topology.sh
+./run_planet_topology.sh | tee -a "../logs/planet_topology.log"
 
-./run_planet_matlab.sh
+./run_planet_matlab.sh | tee -a "../logs/planet_matlab.log"
 
 cd ..
 
