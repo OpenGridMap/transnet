@@ -6,7 +6,7 @@ if [ "$#" -ne 0 ]; then
   source "$1"
 fi
 
-mkdir -p "logs/$destdir"
+mkdir -p "../logs/$destdir"
 
 # configure the right matlab binary direction
 matlab='/usr/bin/matlab'

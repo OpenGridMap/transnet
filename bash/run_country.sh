@@ -9,7 +9,7 @@ if [ "$#" -ne 0 ]; then
   source "$1"
 fi
 
-mkdir -p "logs/$destdir"
+mkdir -p "../logs/$destdir"
 
 # run transnet
 cdir=`pwd`
