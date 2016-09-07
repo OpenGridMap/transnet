@@ -6,12 +6,18 @@ if [ "$#" -ne 0 ]; then
   source "$1"
 fi
 
-cd $project_dir
-cd bash
-#./prepare_db_planet.sh
+cd $project_dir/bash
+./prepare_db_planet.sh
+
+cd $project_dir/bash
 ./prepare_planet_poly_and_voltages.sh
+
+cd $project_dir/bash
 ./run_planet_topology.sh
+
+cd $project_dir/bash
 ./run_planet_matlab.sh
+
 cd $project_dir
 
 git add .

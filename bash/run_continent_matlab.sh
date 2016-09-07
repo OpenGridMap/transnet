@@ -13,7 +13,7 @@ matlab='/usr/bin/matlab'
 
 # run transnet
 cdir=`pwd`
-cd app
+cd ../app
 python Transnet.py -c $continent -m $matlab | tee "../logs/$destdir/transnet.log"
 cd $cdir
 
