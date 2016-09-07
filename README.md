@@ -84,7 +84,7 @@ Finally, for the execution of Transnet (later on) you can choose from various ar
 Once the config file is ready, prepare the database with the following command:
 ```
 cd transnet
-./bash/prepare_db.sh configs/austria.conf
+./prepare_db.sh configs/austria.conf
 ```
 Note: The execution will request you for the database password once again. If you want to disable such requests, specify a .passfile in your home directory according to https://www.postgresql.org/docs/9.1/static/libpq-pgpass.html.
 
@@ -97,6 +97,7 @@ http://opengeodb.giswiki.org/wiki/Datenbank_erstellen
 Once you have set up the database, you are ready to go to run Transnet with the _run.sh_ script. Before that, make sure that you have configured the right path to your MATLAB installation in _run.sh_.
 To run Transnet for a specific region (in this case Austria), enter the following command:
 ```
-./bash/run.sh configs/austria.conf
+cd transnet/bash
+./run.sh configs/austria.conf
 ```
 After a successful inference the resulting models are placed into the _models/$destdir_ subdirectory. 

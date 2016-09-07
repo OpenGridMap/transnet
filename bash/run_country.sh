@@ -13,12 +13,12 @@ mkdir -p "logs/$destdir"
 
 # run transnet
 cdir=`pwd`
-cd app
+cd ../app
 python Transnet.py -p "../data/$destdir/pfile.poly" -D $dname -U $duser -X $dpassword -d $destdir -V $vlevels $trans_args | tee "../logs/$destdir/transnet.log"
 cd $cdir
 
 # run matlab
 cdir=`pwd`
-cd matlab
+cd ../matlab
 `$matlab -r "transform $destdir;quit;"` | tee "../logs/$destdir/transnet_matlab.log"
 cd $cdir
