@@ -3,16 +3,17 @@
 
 source activate transnet
 
-#./prepare_db_planet.sh
+./prepare_db_planet.sh
 
 ./prepare_planet_poly_and_voltages.sh
 
-#./run_planet_topology.sh
+./run_planet_topology.sh
 
-#./run_planet_matlab.sh
+./run_planet_matlab.sh
 
 cd ..
 
+git checkout planet-models
 git add .
 git commit -m "modeling matlab planet"
 git push origin master
