@@ -1,6 +1,8 @@
 #!/bin/bash
 # launch a complete Transnet run for planet
 
+cd /home/leimhofe/transnet
+
 source activate transnet
 
 ./prepare_db_planet.sh
@@ -16,4 +18,4 @@ cd ..
 git checkout planet-models
 git add .
 git commit -m "modeling matlab planet"
-git push origin master
+git push origin planet-models
