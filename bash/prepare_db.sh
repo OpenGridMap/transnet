@@ -45,4 +45,4 @@ osmosis --read-pbf file="../data/$destdir/power_extract1.pbf" --read-pbf file=".
 osmosis --read-pbf file="../data/$destdir/power_extract12.pbf" --read-pbf file="../data/$destdir/power_extract3.pbf" --merge --write-pbf file="../data/$destdir/power_extract.pbf"
 
 echo "7. import to postgresql database"
-osm2pgsql -r pbf --username=$duser -d $dname -E 3857 -k -s -C 6000 -v --host='localhost' --port='5432' --style util/power.style "../data/$destdir/power_extract.pbf"
+osm2pgsql -r pbf --username=$duser -d $dname -E 3857 -k -s -C 6000 -v --host='localhost' --port='5432' --style ../util/power.style "../data/$destdir/power_extract.pbf"
