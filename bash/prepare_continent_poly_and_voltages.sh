@@ -10,7 +10,7 @@ mkdir -p "logs/$destdir"
 
 # run transnet
 cdir=`pwd`
-cd app
+cd ../app
 python Transnet.py -c $continent -D $dname -U $duser -X $dpassword -j | tee "../logs/$destdir/transnet.log"
 cd $cdir
 

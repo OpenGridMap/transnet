@@ -2,7 +2,8 @@
 # launch a complete Topology modeling for planet
 
 
-
+cdir=`pwd`
+cd ../bash
 #./run_continent.sh configs/continents/africa.conf
 #./run_continent.sh configs/continents/asia.conf
 #./run_continent.sh configs/continents/russia.conf
@@ -11,6 +12,7 @@
 #./run_continent.sh configs/continents/southamerica.conf
 #./run_continent.sh configs/continents/europe.conf
 #./run_continent.sh configs/continents/northamerica.conf
+cd $cdir
 git add .
 git commit -m "topology planet"
 git push origin master
