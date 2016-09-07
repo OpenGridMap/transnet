@@ -102,11 +102,12 @@ class Transnet:
             self.modeling(self.db_name)
 
     def prepare_poly(self, continent, country):
-        if not isfile('../data/{0}/{1}/pfile.poly'.format(continent, country)):
+        if not exists('../data/{0}/{1}/'.format(continent, country)):
             makedirs('../data/{0}/{1}/'.format(continent, country))
-            self.root.info('Downloading poly for {0}'.format(country))
-            urllib.URLopener().retrieve('http://download.geofabrik.de/{0}/{1}.poly'.format(continent, country),
-                                        '../data/{0}/{1}/pfile.poly'.format(continent, country))
+        makedirs('../data/{0}/{1}/'.format(continent, country))
+        self.root.info('Downloading poly for {0}'.format(country))
+        urllib.URLopener().retrieve('http://download.geofabrik.de/{0}/{1}.poly'.format(continent, country),
+                                    '../data/{0}/{1}/pfile.poly'.format(continent, country))
 
     @staticmethod
     def reset_params():
