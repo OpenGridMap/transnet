@@ -3,8 +3,6 @@
 
 cd /home/leimhofe/transnet/bash
 
-date > sd.txt
-
 source activate transnet
 
 #./prepare_db_planet.sh | tee -a "../logs/planet_db.log"
@@ -17,7 +15,7 @@ source activate transnet
 
 cd ..
 
-date > sd.txt
+which python > sd.txt
 
 git checkout planet-models
 git add .
