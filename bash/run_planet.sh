@@ -1,7 +1,9 @@
 #!/bin/bash
 # launch a complete Transnet run for planet
 
-cd /home/leimhofe/transnet/bash
+#cd /home/leimhofe/transnet/bash
+
+cd /home/epezhman/Projects/transnet/bash
 
 source activate transnet
 
@@ -15,7 +17,7 @@ source activate transnet
 
 cd ..
 
-#which python > sd.txt
+which python > sd.txt
 
 git checkout planet-models
 git add .
