@@ -104,11 +104,11 @@ class Transnet:
         if not exists('../data/{0}/{1}/'.format(continent, country)):
             makedirs('../data/{0}/{1}/'.format(continent, country))
         self.root.info('Downloading poly for {0}'.format(country))
-        download_string = ''
         if continent == 'north-america' and (country != 'canada' and country != 'greenland' and country !='mexico'):
             download_string = 'http://download.geofabrik.de/{0}/us/{1}.poly'.format(continent, country)
         else:
             download_string = 'http://download.geofabrik.de/{0}/{1}.poly'.format(continent, country)
+        self.root.info(download_string)
         urllib.URLopener().retrieve(download_string, '../data/{0}/{1}/pfile.poly'.format(continent, country))
 
     @staticmethod
