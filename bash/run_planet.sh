@@ -1,16 +1,16 @@
 #!/bin/bash
 # launch a complete Transnet run for planet
 
-#cd /home/leimhofe/transnet/bash
+cd /home/leimhofe/transnet/bash
 
-cd /home/epezhman/Projects/transnet/bash
+#cd /home/epezhman/Projects/transnet/bash
 
 source activate transnet
 
 which python > ../logs/python_ver.txt
 
-#export HTTP_PROXY="http://proxy:8080"
-#export HTTPS_PROXY="https://proxy:8080"
+export HTTP_PROXY="http://proxy:8080"
+export HTTPS_PROXY="https://proxy:8080"
 
 ./_prepare_db_planet.sh | tee -a "../logs/planet_db.log"
 
