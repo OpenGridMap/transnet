@@ -18,7 +18,7 @@ export HTTPS_PROXY="https://proxy:8080"
 
 cd ..
 
-#which python > sd.txt
+which python > sd.txt
 
 git checkout planet-models
 git add .
