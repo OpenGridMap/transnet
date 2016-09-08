@@ -5,6 +5,8 @@ cd /home/leimhofe/transnet/bash
 
 source activate transnet
 
+which python > ../logs/python_ver.txt
+
 export HTTP_PROXY="http://proxy:8080"
 export HTTPS_PROXY="https://proxy:8080"
 
@@ -17,8 +19,6 @@ export HTTPS_PROXY="https://proxy:8080"
 #./run_planet_matlab.sh | tee -a "../logs/planet_matlab.log"
 
 cd ..
-
-which python > sd.txt
 
 git checkout planet-models
 git add .
