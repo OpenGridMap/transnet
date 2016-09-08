@@ -93,7 +93,7 @@ class Transnet:
                     self.voltage_levels = continent_json[self.continent]['voltages']
                     if self.voltage_levels:
                         self.poly = '../data/planet/{0}/pfile.poly'.format(continent)
-                        self.destdir = '../models/planet/'.format(continent)
+                        self.destdir = '../models/planet/{0}/'.format(continent)
                         Transnet.reset_params()
                         self.modeling(continent)
                 except Exception as e:
@@ -122,7 +122,6 @@ class Transnet:
             download_string = 'http://download.geofabrik.de/{0}/us/{1}.poly'.format(continent, country)
         else:
             download_string = 'http://download.geofabrik.de/{0}/{1}.poly'.format(continent, country)
-        self.root.info(download_string)
         urllib.URLopener().retrieve(download_string, '../data/{0}/{1}/pfile.poly'.format(continent, country))
 
     def prepare_poly_continent(self, continent):
@@ -582,7 +581,7 @@ class Transnet:
             if not exists(log_dir):
                 makedirs(log_dir)
 
-            command = 'cd {0} && {1} -r "transform planet/{2};quit;"| tee ../logs/planet/{0}/transnet_matlab.log' \
+            command = 'cd {0} && {1} -r "transform planet/{2};quit;"| tee ../logs/planet/{2}/transnet_matlab.log' \
                 .format(matlab_dir, matlab, continent)
             root_log.info('running MATLAB modeling for {0}'.format(continent_folder))
             return_code = call(command, shell=True)
@@ -591,7 +590,7 @@ class Transnet:
             root_log.error(e)
 
     @staticmethod
-    def run_matlab_for_planet(matlab, continent_folder, root_log):
+    def run_matlab_for_countries(matlab, continent_folder, root_log):
         dirs = [x[0] for x in walk(join(dirname(__file__), '../models/{0}/'.format(continent_folder)))]
         matlab_dir = join(dirname(__file__), '../matlab')
         for dir in dirs[1:]:
@@ -734,9 +733,9 @@ if __name__ == '__main__':
 
     if matlab and continent:
         if options.whole_planet:
-            Transnet.run_matlab_for_planet(matlab, continent, root)
-        else:
             Transnet.run_matlab_for_continent(matlab, continent, root)
+        else:
+            Transnet.run_matlab_for_countries(matlab, continent, root)
         exit()
 
     # Connect to DB
