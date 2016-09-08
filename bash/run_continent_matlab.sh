@@ -8,12 +8,20 @@ fi
 
 mkdir -p "../logs/$destdir"
 
-# configure the right matlab binary direction
-matlab='/usr/bin/matlab'
+# matlab directory epezhman
+matlab='/usr/local/bin/matlab'
+
+# matlab directory remote
+#matlab='/usr/bin/matlab'
 
 # run transnet
 cdir=`pwd`
 cd ../app
-python Transnet.py -c $continent -m $matlab | tee "../logs/$destdir/transnet.log"
+
+if [ "$#" -eq 2 ]; then
+    python Transnet.py -c $continent -m $matlab -g | tee "../logs/$destdir/transnet.log"
+else
+    python Transnet.py -c $continent -m $matlab | tee "../logs/$destdir/transnet.log"
+fi
 cd $cdir
 
