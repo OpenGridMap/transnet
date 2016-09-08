@@ -1,13 +1,17 @@
 #!/bin/bash
 # launch a complete Transnet run
 
-# configure the right matlab binary direction
-matlab='/usr/local/bin/matlab'
 
 if [ "$#" -ne 0 ]; then
   # load the appropriate config file
   source "$1"
 fi
+
+# matlab directory epezhman
+matlab='/usr/local/bin/matlab'
+
+# matlab directory remote
+#matlab='/usr/bin/matlab'
 
 mkdir -p "../logs/$destdir"
 
