@@ -15,7 +15,7 @@ source activate transnet
 
 cd ..
 
-which python > sd.txt
+#which python > sd.txt
 
 git checkout planet-models
 git add .

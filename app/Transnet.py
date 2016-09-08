@@ -108,6 +108,7 @@ class Transnet:
             download_string = 'http://download.geofabrik.de/{0}/us/{1}.poly'.format(continent, country)
         else:
             download_string = 'http://download.geofabrik.de/{0}/{1}.poly'.format(continent, country)
+        self.root.info(download_string)
         urllib.URLopener().retrieve(download_string, '../data/{0}/{1}/pfile.poly'.format(continent, country))
 
     @staticmethod
