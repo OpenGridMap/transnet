@@ -13,6 +13,10 @@ source activate transnet
 
 #./run_planet_matlab.sh | tee -a "../logs/planet_matlab.log"
 
+#./run_planet_matlab.sh | tee -a "../logs/planet_matlab.log"
+
+#./run_whole_continent_matlab.sh | tee -a "../logs/planet_matlab.log"
+
 cd ..
 
 #which python > sd.txt
