@@ -24,5 +24,5 @@ cd $cdir
 # run matlab
 cdir=`pwd`
 cd ../matlab
-`$matlab -r "transform $destdir;quit;"` | tee "../logs/$destdir/transnet_matlab.log"
+`$matlab -r "transform countries/$destdir;quit;"` | tee "../logs/$destdir/transnet_matlab.log"
 cd $cdir
