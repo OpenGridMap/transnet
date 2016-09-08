@@ -13,7 +13,8 @@ cdir=`pwd`
 cd ../app
 
 if [ "$#" -eq 2 ]; then
-    python Transnet.py -c $continent -D $dname -U $duser -X $dpassword $trans_args -g | tee "../logs/$destdir/transnet.log"
+    mkdir -p "../logs/planet/$destdir"
+    python Transnet.py -c $continent -D $dname -U $duser -X $dpassword $trans_args -g | tee "../logs/planet/$destdir/transnet.log"
 else
     python Transnet.py -c $continent -D $dname -U $duser -X $dpassword $trans_args | tee "../logs/$destdir/transnet.log"
 fi

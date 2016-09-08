@@ -19,12 +19,11 @@ cdir=`pwd`
 cd ../app
 
 if [ "$#" -eq 2 ]; then
-
-    date > mm.txt
-    python Transnet.py -c $continent -m $matlab -g | tee "../logs/$destdir/transnet.log"
+    mkdir -p "../logs/planet/$destdir"
+    python Transnet.py -c $continent -m $matlab -g | tee "../logs/planet/$destdir/transnet.log"
 else
-    date > nn.txt
     python Transnet.py -c $continent -m $matlab | tee "../logs/$destdir/transnet.log"
 fi
+
 cd $cdir
 
