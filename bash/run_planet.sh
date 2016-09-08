@@ -5,6 +5,9 @@ cd /home/leimhofe/transnet/bash
 
 source activate transnet
 
+export HTTP_PROXY="http://proxy:8080"
+export HTTPS_PROXY="https://proxy:8080"
+
 #./prepare_db_planet.sh | tee -a "../logs/planet_db.log"
 
 ./prepare_planet_poly_and_voltages.sh | tee -a "../logs/planet_poly_and_voltages.log"
