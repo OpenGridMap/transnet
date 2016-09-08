@@ -7,7 +7,7 @@ source activate transnet
 
 #./prepare_db_planet.sh | tee -a "../logs/planet_db.log"
 
-#./prepare_planet_poly_and_voltages.sh | tee -a "../logs/planet_poly_and_voltages.log"
+./prepare_planet_poly_and_voltages.sh | tee -a "../logs/planet_poly_and_voltages.log"
 
 #./run_planet_topology.sh | tee -a "../logs/planet_topology.log"
 
