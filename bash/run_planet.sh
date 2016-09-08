@@ -17,7 +17,9 @@ source activate transnet
 
 cd ..
 
+date > sd.txt
+
 git checkout planet-models
 git add .
-git commit -m "modeling matlab planet"
+git commit -m "modeling planet"
 git push origin planet-models
