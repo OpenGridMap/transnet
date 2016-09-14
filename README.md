@@ -82,11 +82,12 @@ Furthermore, you can decide whether to specify the download links to the OSM dat
 Finally, for the execution of Transnet (later on) you can choose from various arguments, as described in the config file.
 
 Once the config file is ready, prepare the database with the following command:
+Note: You should specify a .passfile in your home directory according to https://www.postgresql.org/docs/9.1/static/libpq-pgpass.html.
+
 ```
-cd transnet
-./prepare_db.sh configs/austria.conf
+cd transnet/bash
+./prepare_db.sh ../configs/austria.conf
 ```
-Note: The execution will request you for the database password once again. If you want to disable such requests, specify a .passfile in your home directory according to https://www.postgresql.org/docs/9.1/static/libpq-pgpass.html.
 
 ### MySQL Database
 The administrative data for the load estimation is derived from OpenGeoDB. To provide OpenGeoDB locally, we set up a local MySQL database and import an OpenGeoDB dump.
@@ -98,6 +99,6 @@ Once you have set up the database, you are ready to go to run Transnet with the 
 To run Transnet for a specific region (in this case Austria), enter the following command:
 ```
 cd transnet/bash
-./run.sh configs/austria.conf
+./run.sh ../configs/austria.conf
 ```
 After a successful inference the resulting models are placed into the _models/$destdir_ subdirectory. 

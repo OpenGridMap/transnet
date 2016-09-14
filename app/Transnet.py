@@ -118,7 +118,9 @@ class Transnet:
         if not exists('../data/{0}/{1}/'.format(continent, country)):
             makedirs('../data/{0}/{1}/'.format(continent, country))
         self.root.info('Downloading poly for {0}'.format(country))
-        if continent == 'north-america' and (country != 'canada' and country != 'greenland' and country != 'mexico'):
+        if country == 'usa':
+            download_string = 'http://svn.openstreetmap.org/applications/utils/osm-extract/polygons/united_states_inc_ak_and_hi.poly'
+        elif continent == 'north-america' and (country != 'canada' and country != 'greenland' and country != 'mexico'):
             download_string = 'http://download.geofabrik.de/{0}/us/{1}.poly'.format(continent, country)
         else:
             download_string = 'http://download.geofabrik.de/{0}/{1}.poly'.format(continent, country)
@@ -272,13 +274,13 @@ class Transnet:
             plotter = Plotter(self.voltage_levels)
             plotter.plot_topology(all_circuits, equipments_multipoint, partition_by_station_dict, cities, self.destdir)
 
-        root.info('CIM model generation started ...')
-        cim_writer = CimWriter(all_circuits, map_centroid, population_by_station_dict, self.voltage_levels)
-        cim_writer.publish(self.destdir + '/cim')
-
         root.info('CSV generation started ...')
         csv_writer = CSVWriter(all_circuits)
         csv_writer.publish(self.destdir + '/csv')
+
+        root.info('CIM model generation started ...')
+        cim_writer = CimWriter(all_circuits, map_centroid, population_by_station_dict, self.voltage_levels)
+        cim_writer.publish(self.destdir + '/cim')
 
         if validate:
             validator = InferenceValidator(self.cur)
@@ -719,7 +721,7 @@ if __name__ == '__main__':
     topology = options.topology if options.topology else False
     voltage_levels = options.voltage_levels if options.voltage_levels else '220000|380000'
     load_estimation = options.load_estimation if options.load_estimation else False
-    destdir = '../models/' + options.destdir if options.destdir else '../results'
+    destdir = '../models/countries/' + options.destdir if options.destdir else '../results'
     continent = options.continent
     matlab = options.matlab
 

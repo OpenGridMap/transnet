@@ -29,13 +29,13 @@ git push origin planet-models
 
 cd bash
 
-./_run_whole_continent_topology.sh | tee -a "../logs/whole_continent_topology.log"
-
-./_run_whole_continent_matlab.sh | tee -a "../logs/whole_continent_matlab.log"
-
-cd..
-
-git checkout planet-models
-git add .
-git commit -m "modeling continents"
-git push origin planet-models
+#./_run_whole_continent_topology.sh | tee -a "../logs/whole_continent_topology.log"
+#
+#./_run_whole_continent_matlab.sh | tee -a "../logs/whole_continent_matlab.log"
+#
+#cd..
+#
+#git checkout planet-models
+#git add .
+#git commit -m "modeling continents"
+#git push origin planet-models
