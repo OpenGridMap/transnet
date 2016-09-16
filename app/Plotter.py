@@ -126,7 +126,7 @@ class Plotter:
                     Plotter.plot_polygon(partition_polygon, '#888888', zorder=2)
             plt.plot([], [], color='#888888', lw=2, zorder=5, label='Voronoi partitions')
             plt.savefig(destdir + '/topology_voronoi.png', bbox_inches='tight', pad_inches=0, dpi=600)
-
+        plt.clf()
         plt.close()
 
     @staticmethod
