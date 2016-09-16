@@ -22,3 +22,18 @@ class Station(Way):
         if voltage not in self.connected_stations:
             self.connected_stations[voltage] = set()
         self.connected_stations[voltage].add(station_id)
+
+    def serialize(self):
+        return {
+            'id': self.id,
+            'geom': str(self.geom),
+            'type': self.type,
+            'name': str(self.name),
+            'voltage': str(self.voltage),
+            'nodes': self.nodes,
+            'tags': str(self.tags),
+            'lat': str(self.lat),
+            'lon': str(self.lon),
+            'length': str(self.length),
+            'raw_geom': str(self.raw_geom)
+        }

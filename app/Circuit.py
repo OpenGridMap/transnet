@@ -35,3 +35,11 @@ class Circuit:
         if self.voltage:
             s.append(' Voltage: ' + self.voltage)
         print(''.join(s))
+
+    def serialize(self):
+        return {
+            'voltage': self.voltage,
+            'name': self.name,
+            'ref': self.ref,
+            'members': [m.serialize() for m in self.members]
+        }

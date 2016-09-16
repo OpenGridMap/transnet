@@ -17,3 +17,20 @@ class Line(Way):
 
     def __str__(self):
         return 'Line - ' + Way.__str__(self)
+
+    def serialize(self):
+        return {
+            'id': self.id,
+            'geom': str(self.geom),
+            'srs_geom': str(self.srs_geom),
+            'type': self.type,
+            'name': str(self.name),
+            'voltage': str(self.voltage),
+            'cables': str(self.cables),
+            'nodes': self.nodes,
+            'tags': str(self.tags),
+            'lat': str(self.lat),
+            'lon': str(self.lon),
+            'length': str(self.length),
+            'raw_geom': str(self.raw_geom)
+        }

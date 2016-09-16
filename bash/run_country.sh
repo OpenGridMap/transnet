@@ -8,10 +8,10 @@ if [ "$#" -ne 0 ]; then
 fi
 
 # matlab directory epezhman
-matlab='/usr/local/bin/matlab'
+#matlab='/usr/local/bin/matlab'
 
 # matlab directory remote
-#matlab='/usr/bin/matlab'
+matlab='/usr/bin/matlab'
 
 mkdir -p "../logs/$destdir"
 
@@ -22,7 +22,7 @@ python Transnet.py -p "../data/$destdir/pfile.poly" -D $dname -U $duser -X $dpas
 cd $cdir
 
 # run matlab
-cdir=`pwd`
-cd ../matlab
-`$matlab -r "transform $destdir;quit;"` | tee "../logs/$destdir/transnet_matlab.log"
-cd $cdir
+#cdir=`pwd`
+#cd ../matlab
+#`$matlab -r "transform countries/$destdir;quit;"` | tee "../logs/$destdir/transnet_matlab.log"
+#cd $cdir
