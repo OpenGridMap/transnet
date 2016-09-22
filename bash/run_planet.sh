@@ -1,16 +1,16 @@
 #!/bin/bash
 # launch a complete Transnet run for planet
 
-#cd /home/leimhofe/transnet/bash
+cd /home/leimhofe/transnet/bash
 
-cd /home/epezhman/Projects/transnet/bash
+#cd /home/epezhman/Projects/transnet/bash
 
 source activate transnet
 
 which python > ../logs/python_ver.txt
 
-#export HTTP_PROXY="http://proxy:8080"
-#export HTTPS_PROXY="https://proxy:8080"
+export HTTP_PROXY="http://proxy:8080"
+export HTTPS_PROXY="https://proxy:8080"
 
 ./_prepare_db_planet.sh | tee -a "../logs/planet_db.log"
 
@@ -27,14 +27,14 @@ git add .
 git commit -m "modeling countries of continent"
 git push origin planet-models
 
-cd bash
+#cd bash
 
 #./_run_whole_continent_topology.sh | tee -a "../logs/whole_continent_topology.log"
-#
+
 #./_run_whole_continent_matlab.sh | tee -a "../logs/whole_continent_matlab.log"
-#
+
 #cd..
-#
+
 #git checkout planet-models
 #git add .
 #git commit -m "modeling continents"

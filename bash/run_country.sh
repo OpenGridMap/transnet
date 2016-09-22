@@ -8,10 +8,10 @@ if [ "$#" -ne 0 ]; then
 fi
 
 # matlab directory epezhman
-matlab='/usr/local/bin/matlab'
+#matlab='/usr/local/bin/matlab'
 
 # matlab directory remote
-#matlab='/usr/bin/matlab'
+matlab='/usr/bin/matlab'
 
 mkdir -p "../logs/$destdir"
 
