@@ -416,11 +416,12 @@ class Transnet:
                 raw_voltages = [Transnet.try_parse_int(x) for x in str(voltage).strip().split(';')]
                 voltages = voltages.union(set(raw_voltages))
         for voltage in sorted(voltages):
-            if first_round:
-                voltages_string += str(voltage)
-                first_round = False
-            else:
-                voltages_string += '|' + str(voltage)
+            if voltage > 0:
+                if first_round:
+                    voltages_string += str(voltage)
+                    first_round = False
+                else:
+                    voltages_string += '|' + str(voltage)
         return voltages_string
 
     def inference_for_voltage(self, voltage_level, where_clause, length_found_lines, equipment_points, all_substations,
@@ -590,16 +591,16 @@ class Transnet:
         partition_by_station_dict = None
         population_by_station_dict = None
         cities = None
-        if self.load_estimation:
-            root.info('Start partitioning into Voronoi-partions')
-            load_estimator = LoadEstimator(all_substations, boundary)
-            partition_by_station_dict, population_by_station_dict = load_estimator.partition()
-            cities = load_estimator.cities
-
-        if self.topology:
-            root.info('Plot inferred transmission system topology')
-            plotter = Plotter(self.voltage_levels)
-            plotter.plot_topology(all_circuits, equipments_multipoint, partition_by_station_dict, cities, self.destdir)
+        # if self.load_estimation:
+        #     root.info('Start partitioning into Voronoi-partions')
+        #     load_estimator = LoadEstimator(all_substations, boundary)
+        #     partition_by_station_dict, population_by_station_dict = load_estimator.partition()
+        #     cities = load_estimator.cities
+        #
+        # if self.topology:
+        #     root.info('Plot inferred transmission system topology')
+        #     plotter = Plotter(self.voltage_levels)
+        #     plotter.plot_topology(all_circuits, equipments_multipoint, partition_by_station_dict, cities, self.destdir)
 
         root.info('CSV generation started ...')
         csv_writer = CSVWriter(all_circuits)

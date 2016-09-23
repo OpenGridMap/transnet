@@ -34,6 +34,6 @@ class Station(Way):
             'tags': str(self.tags),
             'lat': str(self.lat),
             'lon': str(self.lon),
-            'length': str(self.length),
+            'length': str(self.length()),
             'raw_geom': str(self.raw_geom)
         }
