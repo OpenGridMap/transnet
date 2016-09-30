@@ -18,7 +18,7 @@ export HTTPS_PROXY="https://proxy:8080"
 
 ./_run_planet_topology.sh | tee -a "../logs/planet_topology.log"
 
-#./_run_planet_matlab.sh | tee -a "../logs/planet_matlab.log"
+./_run_planet_matlab.sh | tee -a "../logs/planet_matlab.log"
 
 cd ..
 
