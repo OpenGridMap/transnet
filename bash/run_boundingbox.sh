@@ -7,13 +7,20 @@ if [ "$#" -ne 0 ]; then
   source "$1"
 fi
 
+machine=$(pwd)
+
+if [[ $machine == *"epezhman"* ]]
+then
+    echo 'Machine: epezhman'
+    matlab='/usr/local/bin/matlab'
+elif [[ $machine == *"leimhofe"* ]]
+then
+    echo 'Machine: leimhofe'
+    matlab='/usr/bin/matlab'
+fi
+
 mkdir -p "../logs/$destdir"
 
-# matlab directory epezhman
-matlab='/usr/local/bin/matlab'
-
-# matlab directory remote
-#matlab='/usr/bin/matlab'
 
 # run transnet
 cdir=`pwd`
