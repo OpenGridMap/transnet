@@ -1,4 +1,7 @@
 class Util:
+    def __init__(self):
+        pass
+
     @staticmethod
     def have_common_voltage(vstring1, vstring2):
         if vstring1 is None or vstring2 is None:

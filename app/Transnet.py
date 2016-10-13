@@ -293,7 +293,7 @@ class Transnet:
             return_code = call(command, shell=True)
             root_log.info('MATLAB return code {0}'.format(return_code))
         except Exception as ex:
-            root_log.error(ex)
+            root_log.error(ex.message)
 
     @staticmethod
     def run_matlab_for_countries(matlab_command, continent_folder, root_log):
@@ -312,7 +312,7 @@ class Transnet:
                 return_code = call(command, shell=True)
                 root_log.info('MATLAB return code {0}'.format(return_code))
             except Exception as ex:
-                root_log.error(ex)
+                root_log.error(ex.message)
 
     @staticmethod
     def try_parse_int(string):
@@ -326,8 +326,7 @@ class Transnet:
             continent_json = json.load(continent_file)
             for country in continent_json:
                 Transnet.prepare_poly_country(continent_name, country)
-                poly_parser = PolyParser()
-                boundary = poly_parser.poly_to_polygon('../data/{0}/{1}/pfile.poly'.format(continent_name, country))
+                boundary = PolyParser.poly_to_polygon('../data/{0}/{1}/pfile.poly'.format(continent_name, country))
                 where_clause = "st_intersects(l.way, st_transform(st_geomfromtext('" + boundary.wkt + "',4269),3857))"
                 query = '''SELECT DISTINCT(voltage) AS voltage, count(*)
                             AS num FROM planet_osm_line  l WHERE %s
@@ -499,7 +498,7 @@ class Transnet:
                         Transnet.reset_params()
                         self.modeling(continent)
                 except Exception as ex:
-                    root.error(ex)
+                    root.error(ex.message)
         elif self.chose_continent:
             with open('meta/{0}.json'.format(continent)) as continent_file:
                 continent_json = json.load(continent_file)
@@ -512,7 +511,7 @@ class Transnet:
                             Transnet.reset_params()
                             self.modeling(country)
                     except Exception as ex:
-                        root.error(ex)
+                        root.error(ex.message)
         else:
             self.modeling(self.db_name)
 
@@ -529,8 +528,7 @@ class Transnet:
         # build location where clause for succeeding queries
         boundary = None
         if self.poly:
-            poly_parser = PolyParser()
-            boundary = poly_parser.poly_to_polygon(self.poly)
+            boundary = PolyParser.poly_to_polygon(self.poly)
             where_clause = "st_intersects(l.way, st_transform(st_geomfromtext('" + boundary.wkt + "',4269),3857))"
         elif self.bpoly:
             boundary = wkt.loads(self.bpoly)
@@ -564,8 +562,8 @@ class Transnet:
         try:
             with open('{0}/relations.json'.format(self.destdir), 'w') as outfile:
                 json.dump([c.serialize() for c in all_circuits], outfile, indent=4)
-        except Exception as exp:
-            root.error(exp)
+        except Exception as ex:
+            root.error(ex.message)
 
         partition_by_station_dict = None
         population_by_station_dict = None
@@ -692,6 +690,6 @@ if __name__ == '__main__':
         else:
             transnet_instance.run()
     except Exception as e:
-        root.error(e)
+        root.error(e.message)
         parser.print_help()
         exit()

@@ -1,20 +1,8 @@
 class Way:
-    id = None
-    geom = None
-    type = None
-    name = None
-    ref = None
-    voltage = None
-    nodes = None
-    tags = None
-    lat = None
-    lon = None
-    raw_geom = None
-
-    def __init__(self, id, geom, type, name, ref, voltage, nodes, tags, lat, lon, raw_geom):
-        self.id = id
+    def __init__(self, _id, geom, _type, name, ref, voltage, nodes, tags, lat, lon, raw_geom):
+        self.id = _id
         self.geom = geom
-        self.type = type
+        self.type = _type
         self.name = name
         self.ref = ref
         self.voltage = voltage

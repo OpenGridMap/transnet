@@ -1,7 +1,4 @@
 class Pole:
-    id = None
-    geom = None
-
-    def __init__(self, id, geom):
-        self.id = id
+    def __init__(self, _id, geom):
+        self.id = _id
         self.geom = geom

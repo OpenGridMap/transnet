@@ -43,7 +43,7 @@ export HTTPS_PROXY="https://proxy:8080"
 
 cd..
 
-git checkout planet-models
+#git checkout planet-models
 git add .
 git commit -m "modeling continents"
 git push origin planet-models
