@@ -22,7 +22,7 @@ export HTTPS_PROXY="https://proxy:8080"
 
 #./_prepare_db_planet.sh | tee -a "../logs/planet_db.log"
 
-./_prepare_planet_poly_and_voltages.sh | tee -a "../logs/planet_poly_and_voltages.log"
+#./_prepare_planet_poly_and_voltages.sh | tee -a "../logs/planet_poly_and_voltages.log"
 
 #./_run_planet_topology.sh | tee -a "../logs/planet_topology.log"
 #
