@@ -1,10 +1,15 @@
 import ast
 import csv
-import json
 
 
 class CSVWriter:
     circuits = None
+
+    # Aluminum R = 36/S(c.s.a)
+    # Aluminum S = 2000mmsq
+    # R = 36/2000 = 0.018 Ohms per km
+
+    R = 0.018
 
     def __init__(self, circuits):
         self.circuits = circuits
@@ -16,10 +21,19 @@ class CSVWriter:
         except ValueError:
             return 0
 
+    @staticmethod
+    def sanitize_csv(string):
+        if string:
+            return string.replace("'", '').replace(';', '-')
+        return ''
+
+    @staticmethod
+    def convert_dict_to_string(dictionary):
+        return CSVWriter.sanitize_csv('-'.join([str(v) for v in dictionary]))
+
     def publish(self, file_name):
 
         id_by_station_dict = dict()
-        station_counter = 1
         line_counter = 1
 
         with open(file_name + '_nodes.csv', 'wb') as nodes_file, \
@@ -59,7 +73,7 @@ class CSVWriter:
                         frequencies.update([CSVWriter.try_parse_int(line_tags['frequency'])])
                     if 'operator' in line_tags_keys:
                         operators.update([line_tags['operator'].replace("'", '').replace(';', '-')])
-                    names.update([line_part.name.replace("'", '').replace(';', '-') if line_part.name else ''])
+                    names.update([line_part.name if line_part.name else ''])
                     types.update([line_part.type])
 
                     line_length += line_part.length
@@ -68,31 +82,31 @@ class CSVWriter:
                         tags_list = [x.replace('"', "").replace('\\', "").strip() for x in
                                      str(station.tags).replace(',', '=>').split('=>')]
                         station_tags = dict(zip(tags_list[::2], tags_list[1::2]))
-                        id_by_station_dict[station] = station_counter
+                        id_by_station_dict[station] = station.id
                         station_tags_keys = station_tags.keys()
                         nodes_writer.writerow(
-                            [str(station_counter),
+                            [str(station.id),
                              str(station.lon),
                              str(station.lat),
                              str(station.type),
-                             str(station.voltage).replace(';', '-'),
+                             CSVWriter.sanitize_csv(str(station.voltage)),
                              str(station_tags['frequency'] if 'frequency' in station_tags_keys else ''),
-                             str(station.name.replace("'", '').replace(';', '-') if station.name else ''),
-                             str(station_tags['operator']
-                                 .replace("'", '').replace(';', '-') if 'operator' in station_tags_keys else '')])
-                        station_counter += 1
+                             str(CSVWriter.sanitize_csv(station.name) if station.name else ''),
+                             str(CSVWriter.sanitize_csv(station_tags['operator'])
+                                 if 'operator' in station_tags_keys else '')])
                 lines_writer.writerow([str(line_counter),
                                        str(id_by_station_dict[station1]),
                                        str(id_by_station_dict[station2]),
-                                       '-'.join([str(v) for v in voltages]),
-                                       '-'.join([str(v) for v in cables]),
-                                       '-'.join([str(v) for v in types]),
-                                       '-'.join([str(v) for v in frequencies]),
-                                       '-'.join([str(v) for v in names]),
-                                       '-'.join([str(v) for v in operators]),
-                                       str(line_length),
-                                       str(r_ohm_kms).replace(';', '-'),
-                                       str(x_ohm_kms).replace(';', '-'),
-                                       str(c_nf_kms).replace(';', '-'),
-                                       str(i_th_max_kms).replace(';', '-')])
+                                       CSVWriter.convert_dict_to_string(voltages),
+                                       CSVWriter.convert_dict_to_string(cables),
+                                       CSVWriter.convert_dict_to_string(types),
+                                       CSVWriter.convert_dict_to_string(frequencies),
+                                       CSVWriter.convert_dict_to_string(names),
+                                       CSVWriter.convert_dict_to_string(operators),
+                                       str(round(line_length)),
+                                       CSVWriter.convert_dict_to_string(r_ohm_kms),
+                                       # http://www.electricalengineeringtoolbox.com/2009/11/calculation-of-cable-resistance.html
+                                       CSVWriter.convert_dict_to_string(x_ohm_kms),
+                                       CSVWriter.convert_dict_to_string(c_nf_kms),
+                                       CSVWriter.convert_dict_to_string(i_th_max_kms)])
                 line_counter += 1
