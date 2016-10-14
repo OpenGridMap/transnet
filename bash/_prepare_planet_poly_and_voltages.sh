@@ -8,5 +8,5 @@
 #./prepare_continent_poly_and_voltages.sh ../configs/continents/australiaoceania.conf -g
 #./prepare_continent_poly_and_voltages.sh ../configs/continents/centralamerica.conf -g
 #./prepare_continent_poly_and_voltages.sh ../configs/continents/southamerica.conf -g
-#./prepare_continent_poly_and_voltages.sh ../configs/continents/europe.conf -g
+./prepare_continent_poly_and_voltages.sh ../configs/continents/europe.conf -g
 #./prepare_continent_poly_and_voltages.sh ../configs/continents/northamerica.conf -g
