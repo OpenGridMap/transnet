@@ -24,8 +24,8 @@ export HTTPS_PROXY="https://proxy:8080"
 
 ./_prepare_planet_poly_and_voltages.sh | tee -a "../logs/planet_poly_and_voltages.log"
 
-#./_run_planet_topology.sh | tee -a "../logs/planet_topology.log"
-#
+./_run_planet_topology.sh | tee -a "../logs/planet_topology.log"
+
 #./_run_planet_matlab.sh | tee -a "../logs/planet_matlab.log"
 #
 #cd ..
@@ -43,7 +43,7 @@ export HTTPS_PROXY="https://proxy:8080"
 
 cd..
 
-git checkout planet-models
+#git checkout planet-models
 git add .
 git commit -m "modeling continents"
 git push origin planet-models

@@ -118,7 +118,7 @@ class Transnet:
                 node_to_continue_id = line.last_node()
             elif Transnet.node_in_any_station(line.end_point_dict[line.last_node()], [station]):
                 node_to_continue_id = line.first_node()
-            if node_to_continue_id is not None:
+            if node_to_continue_id:
                 Transnet.covered_nodes = set(line.nodes)
                 Transnet.covered_nodes.remove(node_to_continue_id)
                 if line.id in station.covered_line_ids:
@@ -220,7 +220,7 @@ class Transnet:
 
     @staticmethod
     def parse_power(power_string):
-        if power_string is None:
+        if not power_string:
             return None
         power_string = power_string.replace(',', '.').replace('W', '')
         try:
@@ -293,7 +293,7 @@ class Transnet:
             return_code = call(command, shell=True)
             root_log.info('MATLAB return code {0}'.format(return_code))
         except Exception as ex:
-            root_log.error(ex)
+            root_log.error(ex.message)
 
     @staticmethod
     def run_matlab_for_countries(matlab_command, continent_folder, root_log):
@@ -312,7 +312,7 @@ class Transnet:
                 return_code = call(command, shell=True)
                 root_log.info('MATLAB return code {0}'.format(return_code))
             except Exception as ex:
-                root_log.error(ex)
+                root_log.error(ex.message)
 
     @staticmethod
     def try_parse_int(string):
@@ -326,8 +326,7 @@ class Transnet:
             continent_json = json.load(continent_file)
             for country in continent_json:
                 Transnet.prepare_poly_country(continent_name, country)
-                poly_parser = PolyParser()
-                boundary = poly_parser.poly_to_polygon('../data/{0}/{1}/pfile.poly'.format(continent_name, country))
+                boundary = PolyParser.poly_to_polygon('../data/{0}/{1}/pfile.poly'.format(continent_name, country))
                 where_clause = "st_intersects(l.way, st_transform(st_geomfromtext('" + boundary.wkt + "',4269),3857))"
                 query = '''SELECT DISTINCT(voltage) AS voltage, count(*)
                             AS num FROM planet_osm_line  l WHERE %s
@@ -406,9 +405,9 @@ class Transnet:
             end_points_geom_dict = dict()
             end_points_geom_dict[nodes[0]] = first_node
             end_points_geom_dict[nodes[-1]] = last_node
-            lines[id] = Line(id, line, srs_line, type, name.replace(',', ';') if name is not None else None,
+            lines[id] = Line(id, line, srs_line, type, name.replace(',', ';') if name else None,
                              ref.replace(',', ';') if ref is not None else None,
-                             voltage.replace(',', ';').replace('/', ';') if voltage is not None else None, cables,
+                             voltage.replace(',', ';').replace('/', ';') if voltage else None, cables,
                              nodes, tags, lat, lon,
                              end_points_geom_dict, length, raw_geom)
             equipment_points.append((lat, lon))
@@ -436,10 +435,8 @@ class Transnet:
                 polygon = wkb.loads(geom, hex=True)
                 raw_geom = geom
                 substations[id] = Station(id, polygon, type, name, ref,
-                                          voltage.replace(',', ';').replace('/',
-                                                                            ';') if voltage is not None else None,
-                                          None, tags, lat,
-                                          lon, raw_geom)
+                                          voltage.replace(',', ';').replace('/', ';') if voltage else None,
+                                          None, tags, lat, lon, raw_geom)
                 equipment_points.append((lat, lon))
             else:
                 substations[id] = all_substations[id]
@@ -467,10 +464,8 @@ class Transnet:
                 polygon = wkb.loads(geom, hex=True)
                 raw_geom = geom
                 generators[id] = Station(id, polygon, type, name, ref,
-                                         voltage.replace(',', ';').replace('/',
-                                                                           ';') if voltage is not None else None,
-                                         None, tags, lat,
-                                         lon, raw_geom)
+                                         voltage.replace(',', ';').replace('/', ';') if voltage else None,
+                                         None, tags, lat, lon, raw_geom)
                 generators[id].nominal_power = Transnet.parse_power(
                     output1) if output1 is not None else Transnet.parse_power(output2)
                 equipment_points.append((lat, lon))
@@ -499,7 +494,7 @@ class Transnet:
                         Transnet.reset_params()
                         self.modeling(continent)
                 except Exception as ex:
-                    root.error(ex)
+                    root.error(ex.message)
         elif self.chose_continent:
             with open('meta/{0}.json'.format(continent)) as continent_file:
                 continent_json = json.load(continent_file)
@@ -512,7 +507,7 @@ class Transnet:
                             Transnet.reset_params()
                             self.modeling(country)
                     except Exception as ex:
-                        root.error(ex)
+                        root.error(ex.message)
         else:
             self.modeling(self.db_name)
 
@@ -529,8 +524,7 @@ class Transnet:
         # build location where clause for succeeding queries
         boundary = None
         if self.poly:
-            poly_parser = PolyParser()
-            boundary = poly_parser.poly_to_polygon(self.poly)
+            boundary = PolyParser.poly_to_polygon(self.poly)
             where_clause = "st_intersects(l.way, st_transform(st_geomfromtext('" + boundary.wkt + "',4269),3857))"
         elif self.bpoly:
             boundary = wkt.loads(self.bpoly)
@@ -564,8 +558,8 @@ class Transnet:
         try:
             with open('{0}/relations.json'.format(self.destdir), 'w') as outfile:
                 json.dump([c.serialize() for c in all_circuits], outfile, indent=4)
-        except Exception as exp:
-            root.error(exp)
+        except Exception as ex:
+            root.error(ex.message)
 
         partition_by_station_dict = None
         population_by_station_dict = None
@@ -591,7 +585,7 @@ class Transnet:
 
         if validate:
             validator = InferenceValidator(self.cur)
-            if boundary is not None:
+            if boundary:
                 all_stations = all_substations.copy()
                 all_stations.update(all_generators)
                 validator.validate2(all_circuits, all_stations, boundary, self.voltage_levels)
@@ -692,6 +686,6 @@ if __name__ == '__main__':
         else:
             transnet_instance.run()
     except Exception as e:
-        root.error(e)
+        root.error(e.message)
         parser.print_help()
         exit()

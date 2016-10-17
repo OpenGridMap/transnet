@@ -1,9 +1,4 @@
 class Circuit:
-    members = None
-    voltage = None
-    name = None
-    ref = None
-
     def __init__(self, members, voltage, name, ref):
         self.members = members
         self.voltage = voltage

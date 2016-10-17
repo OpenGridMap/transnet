@@ -5,7 +5,8 @@ class PolyParser:
     def __init__(self):
         pass
 
-    def poly_to_polygon(self, file_name):
+    @staticmethod
+    def poly_to_polygon(file_name):
         with open(file_name) as f:
             content = f.readlines()
         return PolyParser.parse_poly(content)
@@ -18,6 +19,7 @@ class PolyParser:
 
             http://wiki.openstreetmap.org/wiki/Osmosis/Polygon_Filter_File_Format
         """
+        ring = None
         in_ring = False
         coords = []
 

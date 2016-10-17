@@ -60,9 +60,9 @@ class Plotter:
                          linewidth=self.thickness_dict[line.voltage.split(';')[0]], solid_capstyle='round',
                          zorder=self.zorder_dict[line.voltage.split(';')[0]], transform=ccrs.PlateCarree())
 
-        if cities is not None:
+        if cities:
             for city in cities:
-                if city.lon < xmax and city.lon > xmin and city.lat < ymax and city.lat > ymin:
+                if xmax > city.lon > xmin and ymax > city.lat > ymin:
                     plt.plot(city.lon, city.lat, marker='s', markerfacecolor='#ff0000', linestyle="None",
                              markersize=log(city.population, 10), zorder=1.5)
                     if city.population >= 200000 and 'DEUTSCHLAND' not in city.name:
@@ -82,7 +82,7 @@ class Plotter:
         plt.plot([], [], marker='s', markerfacecolor='black', linestyle="None", markersize=1, zorder=11,
                  label='station')
         for voltage in self.color_dict.keys():
-            label = voltage + 'V'
+            label = str(voltage) + 'V'
             plt.plot([], [], color=self.color_dict[voltage], lw=self.thickness_dict[voltage], zorder=11, label=label)
         l = plt.legend(numpoints=1, loc=4)
         l.set_zorder(11)
@@ -108,7 +108,7 @@ class Plotter:
         places_shp = shpreader.natural_earth(**kw)
         shp = shpreader.Reader(places_shp)
         for record, place in zip(shp.records(), shp.geometries()):
-            if place.x < xmax and place.x > xmin and place.y < ymax and place.y > ymin:
+            if xmax > place.x > xmin and ymax > place.y > ymin:
                 name = record.attributes['name'].decode('latin-1')
                 plt.plot(place.x, place.y, marker='o', markerfacecolor='#ff0000', linestyle="None",
                          markersize=2, zorder=11)

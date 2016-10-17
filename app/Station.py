@@ -9,8 +9,8 @@ class Station(Way):
     # for validation purposes
     connected_stations = None
 
-    def __init__(self, id, geom, type, name, ref, voltage, nodes, tags, lat, lon, raw_geom):
-        Way.__init__(self, id, geom, type, name, ref, voltage, nodes, tags, lat, lon, raw_geom)
+    def __init__(self, _id, geom, _type, name, ref, voltage, nodes, tags, lat, lon, raw_geom):
+        Way.__init__(self, _id, geom, _type, name, ref, voltage, nodes, tags, lat, lon, raw_geom)
         self.covered_line_ids = []
         self.connected_stations = dict()
         self.nominal_power = None
