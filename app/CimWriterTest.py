@@ -105,7 +105,7 @@ class CimWriterTest:
         lines = []
         for part in unsorted_relation:
             if isinstance(part, Station):
-                if station1 is not None:
+                if station1:
                     station2 = part
                 else:
                     station1 = part

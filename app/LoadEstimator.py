@@ -17,6 +17,7 @@ class LoadEstimator:
     root = logging.getLogger()
 
     def __init__(self, stations, boundary):
+        self.interpolation_fct = None
         self.stations = stations
         self.boundary = boundary
         self.cities = self.find_cities()
@@ -137,16 +138,19 @@ class LoadEstimator:
         (xmin, ymin, xmax, ymax) = self.boundary.bounds
         cnx = mysql.connector.connect(user='root', database='opengeodb')
         cursor = cnx.cursor()
-        query = (
-            "select i.int_val, c.lon, c.lat, t.text_val from geodb_intdata i, geodb_coordinates c, geodb_textdata t where"
-            " i.int_type = 600700000 and i.loc_id = c.loc_id and c.loc_id = t.loc_id and t.text_type = 500100002 and lat >= %s and lat <= %s and lon >= %s and lon <= %s")
-        cursor.execute(query, (str(ymin), str(ymax), str(xmin), str(xmax)))
-        cities = []
+        query = '''select i.int_val, c.lon, c.lat, t.text_val
+                  from geodb_intdata i, geodb_coordinates c, geodb_textdata t
+                  where i.int_type = 600700000 and i.loc_id = c.loc_id
+                  and c.loc_id = t.loc_id and t.text_type = 500100002
+                  and lat >= %s and lat <= %s and lon >= %s and lon <= %s''' \
+                % (str(ymin), str(ymax), str(xmin), str(xmax))
+        cursor.execute(query)
+        _cities = []
         for (population, lon, lat, name) in cursor:
-            cities.append(City(population, lat, lon, name))
+            _cities.append(City(population, lat, lon, name))
         cursor.close()
         cnx.close()
-        return cities
+        return _cities
 
     def population_of_region(self, region_polygon):
         population = 100  # offset

@@ -4,7 +4,7 @@ class Util:
 
     @staticmethod
     def have_common_voltage(vstring1, vstring2):
-        if vstring1 is None or vstring2 is None:
+        if not vstring1 or not vstring2:
             return True
         for v1 in vstring1.split(';'):
             for v2 in vstring2.split(';'):

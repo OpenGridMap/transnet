@@ -60,7 +60,7 @@ class Plotter:
                          linewidth=self.thickness_dict[line.voltage.split(';')[0]], solid_capstyle='round',
                          zorder=self.zorder_dict[line.voltage.split(';')[0]], transform=ccrs.PlateCarree())
 
-        if cities is not None:
+        if cities:
             for city in cities:
                 if xmax > city.lon > xmin and ymax > city.lat > ymin:
                     plt.plot(city.lon, city.lat, marker='s', markerfacecolor='#ff0000', linestyle="None",

@@ -118,7 +118,7 @@ class Transnet:
                 node_to_continue_id = line.last_node()
             elif Transnet.node_in_any_station(line.end_point_dict[line.last_node()], [station]):
                 node_to_continue_id = line.first_node()
-            if node_to_continue_id is not None:
+            if node_to_continue_id:
                 Transnet.covered_nodes = set(line.nodes)
                 Transnet.covered_nodes.remove(node_to_continue_id)
                 if line.id in station.covered_line_ids:
@@ -220,7 +220,7 @@ class Transnet:
 
     @staticmethod
     def parse_power(power_string):
-        if power_string is None:
+        if not power_string:
             return None
         power_string = power_string.replace(',', '.').replace('W', '')
         try:
@@ -405,9 +405,9 @@ class Transnet:
             end_points_geom_dict = dict()
             end_points_geom_dict[nodes[0]] = first_node
             end_points_geom_dict[nodes[-1]] = last_node
-            lines[id] = Line(id, line, srs_line, type, name.replace(',', ';') if name is not None else None,
+            lines[id] = Line(id, line, srs_line, type, name.replace(',', ';') if name else None,
                              ref.replace(',', ';') if ref is not None else None,
-                             voltage.replace(',', ';').replace('/', ';') if voltage is not None else None, cables,
+                             voltage.replace(',', ';').replace('/', ';') if voltage else None, cables,
                              nodes, tags, lat, lon,
                              end_points_geom_dict, length, raw_geom)
             equipment_points.append((lat, lon))
@@ -435,10 +435,8 @@ class Transnet:
                 polygon = wkb.loads(geom, hex=True)
                 raw_geom = geom
                 substations[id] = Station(id, polygon, type, name, ref,
-                                          voltage.replace(',', ';').replace('/',
-                                                                            ';') if voltage is not None else None,
-                                          None, tags, lat,
-                                          lon, raw_geom)
+                                          voltage.replace(',', ';').replace('/', ';') if voltage else None,
+                                          None, tags, lat, lon, raw_geom)
                 equipment_points.append((lat, lon))
             else:
                 substations[id] = all_substations[id]
@@ -466,10 +464,8 @@ class Transnet:
                 polygon = wkb.loads(geom, hex=True)
                 raw_geom = geom
                 generators[id] = Station(id, polygon, type, name, ref,
-                                         voltage.replace(',', ';').replace('/',
-                                                                           ';') if voltage is not None else None,
-                                         None, tags, lat,
-                                         lon, raw_geom)
+                                         voltage.replace(',', ';').replace('/', ';') if voltage else None,
+                                         None, tags, lat, lon, raw_geom)
                 generators[id].nominal_power = Transnet.parse_power(
                     output1) if output1 is not None else Transnet.parse_power(output2)
                 equipment_points.append((lat, lon))
@@ -589,7 +585,7 @@ class Transnet:
 
         if validate:
             validator = InferenceValidator(self.cur)
-            if boundary is not None:
+            if boundary:
                 all_stations = all_substations.copy()
                 all_stations.update(all_generators)
                 validator.validate2(all_circuits, all_stations, boundary, self.voltage_levels)
