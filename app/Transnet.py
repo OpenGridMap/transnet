@@ -359,7 +359,7 @@ class Transnet:
                 raw_voltages = [Transnet.try_parse_int(x) for x in str(voltage).strip().split(';')]
                 voltages = voltages.union(set(raw_voltages))
         for voltage in sorted(voltages):
-            if voltage > 199999:
+            if voltage > 99999:
                 if first_round:
                     voltages_string += str(voltage)
                     first_round = False
