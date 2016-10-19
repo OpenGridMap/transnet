@@ -46,7 +46,8 @@ class CSVWriter:
                 open(file_name + '_lines.csv', 'wb') as lines_file:
 
             nodes_writer = csv.writer(nodes_file, delimiter=',', quoting=csv.QUOTE_MINIMAL)
-            nodes_writer.writerow(['n_id', 'longitude', 'latitude', 'type', 'voltage', 'frequency', 'name', 'operator'])
+            nodes_writer.writerow(
+                ['n_id', 'longitude', 'latitude', 'type', 'voltage', 'frequency', 'name', 'operator', 'not_accurate'])
 
             lines_writer = csv.writer(lines_file, delimiter=',', quoting=csv.QUOTE_MINIMAL)
             lines_writer.writerow(['l_id', 'n_id_start', 'n_id_end', 'voltage', 'cables', 'type',
@@ -67,7 +68,7 @@ class CSVWriter:
                 c_nf_kms = set()
                 i_th_max_kms = set()
                 types = set()
-                not_accurate = False
+                not_accurate_line = False
 
                 for line_part in circuit.members[1:-1]:
                     tags_list = ast.literal_eval(str(line_part.tags))
@@ -79,16 +80,14 @@ class CSVWriter:
                     if 'frequency' in line_tags_keys:
                         frequencies.update([CSVWriter.try_parse_int(line_tags['frequency'])])
                     if 'operator' in line_tags_keys:
-                        operators.update([line_tags['operator'].replace("'", '').replace(';', '-')])
+                        operators.update([CSVWriter.sanitize_csv(line_tags['operator'])])
                     names.update([line_part.name if line_part.name else ''])
                     types.update([line_part.type])
 
                     line_length += line_part.length
 
-                if len(voltages) > 1 or len(cables) > 1 or len(frequencies) > 1 or len(names) > 1 or len(
-                        operators) > 1 or len(r_ohm_kms) > 1 or len(x_ohm_kms) > 1 or len(c_nf_kms) > 1 or len(
-                    i_th_max_kms) > 1 or len(types) > 1:
-                    not_accurate = True
+                if len(voltages) > 1 or len(cables) > 1 or len(frequencies) > 1 or len(types) > 1:
+                    not_accurate_line = True
 
                 for station in [station1, station2]:
                     if station not in id_by_station_dict:
@@ -97,16 +96,22 @@ class CSVWriter:
                         station_tags = dict(zip(tags_list[::2], tags_list[1::2]))
                         id_by_station_dict[station] = station.id
                         station_tags_keys = station_tags.keys()
+                        station_voltages = [CSVWriter.try_parse_int(v) for v in str(station.voltage).split(';')]
+                        not_accurate_node = False
+                        if len(station_voltages) > 1:
+                            not_accurate_node = True
+
                         nodes_writer.writerow(
                             [str(station.id),
                              str(station.lon),
                              str(station.lat),
                              str(station.type),
-                             CSVWriter.sanitize_csv(str(station.voltage)),
+                             CSVWriter.convert_min_set_to_string(station_voltages),
                              str(station_tags['frequency'] if 'frequency' in station_tags_keys else ''),
                              str(CSVWriter.sanitize_csv(station.name) if station.name else ''),
                              str(CSVWriter.sanitize_csv(station_tags['operator'])
-                                 if 'operator' in station_tags_keys else '')])
+                                 if 'operator' in station_tags_keys else ''),
+                             'Yes' if not_accurate_node else ''])
                 lines_writer.writerow([str(line_counter),
                                        str(id_by_station_dict[station1]),
                                        str(id_by_station_dict[station2]),
@@ -122,5 +127,5 @@ class CSVWriter:
                                        CSVWriter.convert_min_set_to_string(x_ohm_kms),
                                        CSVWriter.convert_min_set_to_string(c_nf_kms),
                                        CSVWriter.convert_min_set_to_string(i_th_max_kms),
-                                       'Yes' if not_accurate else ''])
+                                       'Yes' if not_accurate_line else ''])
                 line_counter += 1
