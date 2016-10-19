@@ -28,8 +28,14 @@ class CSVWriter:
         return ''
 
     @staticmethod
-    def convert_dict_to_string(dictionary):
-        return CSVWriter.sanitize_csv('-'.join([str(v) for v in dictionary]))
+    def convert_set_to_string(set_to_convert):
+        return CSVWriter.sanitize_csv('-'.join([str(v) for v in set_to_convert]))
+
+    @staticmethod
+    def convert_min_set_to_string(set_to_convert):
+        if len(set_to_convert):
+            return CSVWriter.sanitize_csv(str(sorted(set_to_convert)[0]))
+        return ''
 
     def publish(self, file_name):
 
@@ -45,7 +51,7 @@ class CSVWriter:
             lines_writer = csv.writer(lines_file, delimiter=',', quoting=csv.QUOTE_MINIMAL)
             lines_writer.writerow(['l_id', 'n_id_start', 'n_id_end', 'voltage', 'cables', 'type',
                                    'frequency', 'name', 'operator', 'length_m', 'r_ohm_km', 'x_ohm_km', 'c_nf_km',
-                                   'i_th_max_km'])
+                                   'i_th_max_km', 'not_accurate'])
 
             for circuit in self.circuits:
                 station1 = circuit.members[0]
@@ -61,6 +67,7 @@ class CSVWriter:
                 c_nf_kms = set()
                 i_th_max_kms = set()
                 types = set()
+                not_accurate = False
 
                 for line_part in circuit.members[1:-1]:
                     tags_list = ast.literal_eval(str(line_part.tags))
@@ -68,7 +75,7 @@ class CSVWriter:
                     line_tags_keys = line_tags.keys()
                     voltages.update([CSVWriter.try_parse_int(v) for v in line_part.voltage.split(';')])
                     if 'cables' in line_tags_keys:
-                        cables.update([line_tags['cables']])
+                        cables.update([CSVWriter.try_parse_int(line_tags['cables'])])
                     if 'frequency' in line_tags_keys:
                         frequencies.update([CSVWriter.try_parse_int(line_tags['frequency'])])
                     if 'operator' in line_tags_keys:
@@ -77,6 +84,12 @@ class CSVWriter:
                     types.update([line_part.type])
 
                     line_length += line_part.length
+
+                if len(voltages) > 1 or len(cables) > 1 or len(frequencies) > 1 or len(names) > 1 or len(
+                        operators) > 1 or len(r_ohm_kms) > 1 or len(x_ohm_kms) > 1 or len(c_nf_kms) > 1 or len(
+                    i_th_max_kms) > 1 or len(types) > 1:
+                    not_accurate = True
+
                 for station in [station1, station2]:
                     if station not in id_by_station_dict:
                         tags_list = [x.replace('"', "").replace('\\', "").strip() for x in
@@ -97,16 +110,17 @@ class CSVWriter:
                 lines_writer.writerow([str(line_counter),
                                        str(id_by_station_dict[station1]),
                                        str(id_by_station_dict[station2]),
-                                       CSVWriter.convert_dict_to_string(voltages),
-                                       CSVWriter.convert_dict_to_string(cables),
-                                       CSVWriter.convert_dict_to_string(types),
-                                       CSVWriter.convert_dict_to_string(frequencies),
-                                       CSVWriter.convert_dict_to_string(names),
-                                       CSVWriter.convert_dict_to_string(operators),
+                                       CSVWriter.convert_min_set_to_string(voltages),
+                                       CSVWriter.convert_min_set_to_string(cables),
+                                       CSVWriter.convert_min_set_to_string(types),
+                                       CSVWriter.convert_min_set_to_string(frequencies),
+                                       CSVWriter.convert_set_to_string(names),
+                                       CSVWriter.convert_set_to_string(operators),
                                        str(round(line_length)),
-                                       CSVWriter.convert_dict_to_string(r_ohm_kms),
+                                       CSVWriter.convert_min_set_to_string(r_ohm_kms),
                                        # http://www.electricalengineeringtoolbox.com/2009/11/calculation-of-cable-resistance.html
-                                       CSVWriter.convert_dict_to_string(x_ohm_kms),
-                                       CSVWriter.convert_dict_to_string(c_nf_kms),
-                                       CSVWriter.convert_dict_to_string(i_th_max_kms)])
+                                       CSVWriter.convert_min_set_to_string(x_ohm_kms),
+                                       CSVWriter.convert_min_set_to_string(c_nf_kms),
+                                       CSVWriter.convert_min_set_to_string(i_th_max_kms),
+                                       'Yes' if not_accurate else ''])
                 line_counter += 1
