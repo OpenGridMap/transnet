@@ -20,7 +20,7 @@ which python > ../logs/python_ver.txt
 export HTTP_PROXY="http://proxy:8080"
 export HTTPS_PROXY="https://proxy:8080"
 
-./_prepare_db_planet.sh | tee -a "../logs/planet_db.log"
+#./_prepare_db_planet.sh | tee -a "../logs/planet_db.log"
 
 ./_prepare_planet_poly_and_voltages.sh | tee -a "../logs/planet_poly_and_voltages.log"
 
