@@ -4,9 +4,9 @@ import sys
 import urllib
 from datetime import datetime
 from optparse import OptionParser
-from os import makedirs
+from os import makedirs, remove
 from os import walk
-from os.path import dirname
+from os.path import dirname, getsize
 from os.path import exists
 from os.path import join
 from subprocess import call
@@ -321,6 +321,10 @@ class Transnet:
         except ValueError:
             return 0
 
+    @staticmethod
+    def convert_size_mega_byte(size):
+        return size / 1048576.0
+
     def prepare_continent_json(self, continent_name):
         with open('meta/{0}.json'.format(continent_name), 'r+') as continent_file:
             continent_json = json.load(continent_file)
@@ -366,6 +370,20 @@ class Transnet:
                 else:
                     voltages_string += '|' + str(voltage)
         return voltages_string
+
+    def export_to_json(self, all_circuits):
+        try:
+            with open('{0}/relations.json'.format(self.destdir), 'w') as outfile:
+                json.dump([c.serialize() for c in all_circuits], outfile, indent=4)
+            file_size = Transnet.convert_size_mega_byte(getsize('{0}/relations.json'.format(self.destdir)))
+
+            if file_size >= 100:
+                command = 'split --bytes=50M {0}/relations.json {0}/_relations'.format(self.destdir)
+                return_code = call(command, shell=True)
+                root.info('Relation file split return {0}'.format(return_code))
+                remove('{0}/relations.json'.format(self.destdir))
+        except Exception as ex:
+            root.error(ex.message)
 
     def inference_for_voltage(self, voltage_level, where_clause, length_found_lines, equipment_points, all_substations,
                               all_generators, boundary):
@@ -555,11 +573,7 @@ class Transnet:
         all_circuits = Transnet.remove_duplicates(all_circuits)
         root.info('Inference took %s millies', str(datetime.now() - time))
 
-        try:
-            with open('{0}/relations.json'.format(self.destdir), 'w') as outfile:
-                json.dump([c.serialize() for c in all_circuits], outfile, indent=4)
-        except Exception as ex:
-            root.error(ex.message)
+        transnet_instance.export_to_json(all_circuits)
 
         partition_by_station_dict = None
         population_by_station_dict = None
