@@ -10,3 +10,4 @@
 ./run_continent_matlab.sh ../configs/continents/southamerica.conf -g
 #./run_continent_matlab.sh ../configs/continents/europe.conf -g
 #./run_continent_matlab.sh ../configs/continents/northamerica.conf -g
+#./run_continent_matlab.sh ../configs/continents/usa.conf -g
