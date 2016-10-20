@@ -56,11 +56,7 @@ class Transnet:
         if not exists('../data/{0}/{1}/'.format(continent_name, country)):
             makedirs('../data/{0}/{1}/'.format(continent_name, country))
         root.info('Downloading poly for {0}'.format(country))
-        if country == 'usa':
-            download_string = 'http://svn.openstreetmap.org/applications/utils/' \
-                              'osm-extract/polygons/united_states_inc_ak_and_hi.poly'
-        elif continent_name == 'north-america' and \
-                (country != 'canada' and country != 'greenland' and country != 'mexico'):
+        if continent_name == 'usa':
             download_string = 'http://download.geofabrik.de/{0}/us/{1}.poly'.format(continent_name, country)
         else:
             download_string = 'http://download.geofabrik.de/{0}/{1}.poly'.format(continent_name, country)
@@ -71,7 +67,11 @@ class Transnet:
         if not exists('../data/planet/{0}/'.format(continent_name)):
             makedirs('../data/planet/{0}/'.format(continent_name))
         root.info('Downloading poly for {0}'.format(continent_name))
-        download_string = 'http://download.geofabrik.de/{0}.poly'.format(continent_name)
+        if continent_name == 'usa':
+            download_string = 'http://svn.openstreetmap.org/applications/utils/' \
+                              'osm-extract/polygons/united_states_inc_ak_and_hi.poly'
+        else:
+            download_string = 'http://download.geofabrik.de/{0}.poly'.format(continent_name)
         urllib.URLopener().retrieve(download_string, '../data/planet/{0}/pfile.poly'.format(continent_name))
 
     @staticmethod
