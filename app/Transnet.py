@@ -57,7 +57,8 @@ class Transnet:
             makedirs('../data/{0}/{1}/'.format(continent_name, country))
         root.info('Downloading poly for {0}'.format(country))
         if continent_name == 'usa':
-            download_string = 'http://download.geofabrik.de/{0}/us/{1}.poly'.format(continent_name, country)
+            download_string = 'http://download.geofabrik.de/north-america/us/{0}.poly'.format(country)
+            root.info(download_string)
         else:
             download_string = 'http://download.geofabrik.de/{0}/{1}.poly'.format(continent_name, country)
         urllib.URLopener().retrieve(download_string, '../data/{0}/{1}/pfile.poly'.format(continent_name, country))
