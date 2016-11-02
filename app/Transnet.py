@@ -59,6 +59,9 @@ class Transnet:
         if continent_name == 'usa':
             download_string = 'http://download.geofabrik.de/north-america/us/{0}.poly'.format(country)
             root.info(download_string)
+        elif continent_name == 'germany':
+            download_string = 'http://download.geofabrik.de/europe/germany/{0}.poly'.format(country)
+            root.info(download_string)
         else:
             download_string = 'http://download.geofabrik.de/{0}/{1}.poly'.format(continent_name, country)
         urllib.URLopener().retrieve(download_string, '../data/{0}/{1}/pfile.poly'.format(continent_name, country))
@@ -71,6 +74,8 @@ class Transnet:
         if continent_name == 'usa':
             download_string = 'http://svn.openstreetmap.org/applications/utils/' \
                               'osm-extract/polygons/united_states_inc_ak_and_hi.poly'
+        elif continent_name == 'germany':
+            download_string = 'http://download.geofabrik.de/europe/germany.poly'
         else:
             download_string = 'http://download.geofabrik.de/{0}.poly'.format(continent_name)
         urllib.URLopener().retrieve(download_string, '../data/planet/{0}/pfile.poly'.format(continent_name))
