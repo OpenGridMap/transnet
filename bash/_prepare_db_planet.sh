@@ -9,4 +9,5 @@
 ./prepare_db.sh ../configs/continents/centralamerica.conf
 ./prepare_db.sh ../configs/continents/southamerica.conf
 ./prepare_db.sh ../configs/continents/europe.conf
+./prepare_db.sh ../configs/continents/germany.conf
 ./prepare_db.sh ../configs/continents/northamerica.conf
