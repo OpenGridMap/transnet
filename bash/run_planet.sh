@@ -24,7 +24,7 @@ export HTTPS_PROXY="https://proxy:8080"
 
 ./_prepare_planet_poly_and_voltages.sh | tee -a "../logs/planet_poly_and_voltages.log"
 
-./_run_planet_topology.sh | tee -a "../logs/planet_topology.log"
+#./_run_planet_topology.sh | tee -a "../logs/planet_topology.log"
 
 #./_run_planet_matlab.sh | tee -a "../logs/planet_matlab.log"
 #
@@ -37,7 +37,7 @@ export HTTPS_PROXY="https://proxy:8080"
 #
 #cd bash
 
-./_run_whole_continent_topology.sh | tee -a "../logs/whole_continent_topology.log"
+#./_run_whole_continent_topology.sh | tee -a "../logs/whole_continent_topology.log"
 
 #./_run_whole_continent_matlab.sh | tee -a "../logs/whole_continent_matlab.log"
 
