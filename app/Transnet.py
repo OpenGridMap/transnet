@@ -338,6 +338,12 @@ class Transnet:
                 Transnet.prepare_poly_country(continent_name, country)
                 boundary = PolyParser.poly_to_polygon('../data/{0}/{1}/pfile.poly'.format(continent_name, country))
                 where_clause = "st_intersects(l.way, st_transform(st_geomfromtext('" + boundary.wkt + "',4269),3857))"
+
+                # where_clause = "ST_Intersects(ST_GeographyFromText(s.geom_str), st_transform(st_geomfromtext('" + boundary.wkt + "',4269),4326))"
+                # with open('../data/{0}/{1}/where_clause'.format(continent_name, country), 'w') as wfile:
+                #     wfile.write(where_clause)
+
+
                 query = '''SELECT DISTINCT(voltage) AS voltage, count(*)
                             AS num FROM planet_osm_line  l WHERE %s
                             GROUP BY voltage ORDER BY num DESC''' % where_clause
