@@ -41,9 +41,9 @@ export HTTPS_PROXY="https://proxy:8080"
 
 #./_run_whole_continent_matlab.sh | tee -a "../logs/whole_continent_matlab.log"
 
-#cd..
+cd..
 
 #git checkout planet-models
-#git add .
-#git commit -m "modeling continents"
-#git push origin planet-models
+git add .
+git commit -m "modeling continents"
+git push origin planet-models
