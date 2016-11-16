@@ -20,7 +20,7 @@ which python > ../logs/python_ver.txt
 export HTTP_PROXY="http://proxy:8080"
 export HTTPS_PROXY="https://proxy:8080"
 
-./_prepare_db_planet.sh | tee -a "../logs/planet_db.log"
+#./_prepare_db_planet.sh | tee -a "../logs/planet_db.log"
 
 ./_prepare_planet_poly_and_voltages.sh | tee -a "../logs/planet_poly_and_voltages.log"
 
@@ -37,7 +37,7 @@ export HTTPS_PROXY="https://proxy:8080"
 #
 #cd bash
 
-./_run_whole_continent_topology.sh | tee -a "../logs/whole_continent_topology.log"
+#./_run_whole_continent_topology.sh | tee -a "../logs/whole_continent_topology.log"
 
 #./_run_whole_continent_matlab.sh | tee -a "../logs/whole_continent_matlab.log"
 
