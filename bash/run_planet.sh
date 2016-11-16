@@ -37,11 +37,11 @@ export HTTPS_PROXY="https://proxy:8080"
 #
 #cd bash
 
-./_run_whole_continent_topology.sh | tee -a "../logs/whole_continent_topology.log"
+#./_run_whole_continent_topology.sh | tee -a "../logs/whole_continent_topology.log"
 
 #./_run_whole_continent_matlab.sh | tee -a "../logs/whole_continent_matlab.log"
 
-cd..
+cd ..
 
 #git checkout planet-models
 git add .
