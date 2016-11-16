@@ -23,6 +23,7 @@ conda install scipy
 conda install -c anaconda mysql-connector-python=2.0.3
 conda install matplotlib
 conda install gdal
+#conda install libgdal
 ```
 
 ## Database Setup

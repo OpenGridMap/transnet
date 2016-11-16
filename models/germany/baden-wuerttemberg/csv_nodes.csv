@@ -1,15 +1,15 @@
 n_id,longitude,latitude,type,voltage,frequency,name,operator,not_accurate
 174530566,8.0392344736,47.559285503,substation,0,,,,
 31367937,8.25192553515,47.6397698295,substation,110000,50,Umspannwerk Gurtweil,EnBW,Yes
-202831211,7.9558939891,47.563941137,station,0,,,,
+202831211,7.9558939891,47.563941137,substation,0,,,,
 43667465,9.06393608176,48.8333167006,station,0,,Umspannwerk Ditzingen,,
 43688805,9.04543543998,48.9029609997,substation,110000,50,380kV-Umspannwerk Pulverdingen,EnBW Transportnetze AG,Yes
 43667469,9.151011737,48.8909498087,substation,110000,,Umspannwerk Ludwigsburg West,,
 146363949,9.17749520185,48.9056124112,station,0,,Umspannwerk Eglosheim,,
 46887602,9.07617408266,48.8886040126,substation,0,,,EnBW,
-136394387,9.0865481355,48.9583849031,station,0,,,,
+136394387,9.08655778664,48.958279342,substation,0,,,Netze BW,
 43667471,9.18549876805,48.8781730586,substation,110000,50,Kornwestheim Nord,,
-45403140,9.26068617603,48.8694147867,station,0,,Umspannwerk Aldingen,,
+45403140,9.26069164337,48.8694198441,substation,0,,Umspannwerk Aldingen,,
 48428875,9.37760581243,48.8126068961,substation,110000,,EnBW Umspannwerk Endersbach,Netze BW,Yes
 41334801,9.202285969,49.0426790955,substation,110000,16.7,Schaltwerk Neckarwestheim,DB_Energie,
 147878692,9.17745970593,49.0378099056,substation,110000,50;16.7,Umrichterwerk Neckarwestheim,DB Energie GmbH,Yes
@@ -18,11 +18,11 @@ n_id,longitude,latitude,type,voltage,frequency,name,operator,not_accurate
 41252346,9.18430255489,48.8447738471,substation,15000,16.7,Zentraleinspeisstelle Stuttgart-Zazenhausen,DB_Energie,Yes
 35796599,8.97461726333,48.7932823496,substation,15000,16.7,Unterwerk Leonberg,DB_Energie,Yes
 22989574,9.10991273652,48.7139008327,substation,15000,16.7,Unterwerk Rohr,DB_Energie,Yes
-47083624,8.65501276381,48.1324834701,substation,15000,16.7,Unterwerk Rottweil,DB_Energie,Yes
-102745802,8.86144829987,47.7641944243,substation,0,,,,
-47086829,8.88178058234,47.7581923601,substation,15000,16.7,Unterwerk Singen,DB_Energie,Yes
+47083624,8.65501262378,48.1324835261,substation,15000,16.7,Unterwerk Rottweil,DB_Energie,Yes
 87916414,8.96958474476,47.7562346866,station,0,,,,
 102743264,8.86152579503,47.8064353598,substation,110000,50,Beuren,,Yes
+102745802,8.86144829987,47.7641944243,substation,0,,,,
+47086829,8.88178058234,47.7581923601,substation,15000,16.7,Unterwerk Singen,DB_Energie,Yes
 47077788,8.31160243522,48.1277521736,substation,15000,16.7,Unterwerk Sommerau,DB_Energie,Yes
 47076497,8.77909360291,48.4798648838,substation,15000,16.7,Unterwerk Eutingen,DB_Energie,Yes
 43367491,8.85039573433,48.9565950801,substation,110000,50,110kV-Umspannwerk Mühlacker,,
@@ -35,7 +35,7 @@ n_id,longitude,latitude,type,voltage,frequency,name,operator,not_accurate
 46832824,10.0419822065,48.8223812829,substation,15000,16.7,Unterwerk Aalen,DB_Energie,Yes
 38485609,9.8769645792,48.5690500641,substation,15000,16.7,Unterwerk Amstetten,DB_Energie,Yes
 46611148,9.11675379131,49.3391985626,substation,15000,16.7,Unterwerk Neckarelz,DB Energie GmbH,Yes
-57737995,9.20362416019,48.9702648591,station,0,,Kraftwerk Pleidelsheim,,
+57737995,9.20362416019,48.9702648591,plant,0,,Kraftwerk Pleidelsheim,,
 25786404,9.19675656605,48.9129634617,substation,110000,50,Umspannwerk Hoheneck EnBW,EnBW,Yes
 97825259,9.23641291791,48.9269583939,substation,110000,50,Marbach,,Yes
 46625712,9.14317723777,49.143525621,sub_station,110000,,Süwag-Umspannwerk Großgartach,Süwag Gruppe,
@@ -50,7 +50,7 @@ n_id,longitude,latitude,type,voltage,frequency,name,operator,not_accurate
 26294923,8.96632334031,48.9433007421,substation,15000,16.7,Unterwerk Vaihingen (Enz),DB Energie GmbH,Yes
 25802269,9.19078745457,48.9144168974,substation,110000,50,Umspannstation Hoheneck Amprion,Amprion,Yes
 26566431,9.25811925028,48.8114633282,station,0,,,,
-331597830,9.2346441527,48.3189315697,substation,110000,50,EnBW Umspannwerk Trochtelfingen,EnBW Regional AG,
+331597830,9.23464415235,48.3189315709,substation,110000,50,EnBW Umspannwerk Trochtelfingen,EnBW Regional AG,
 35549690,9.03909701967,48.2698772012,substation,110000,50,Umspannwerk Staufenbühl,EnBW Regional AG,
 31105067,10.2316415842,48.5297623115,substation,110000,50,Umspannwerk Niederstotzingen,EnBW,Yes
 169348252,9.96056331118,48.4730586914,substation,110000,,Umspannwerk Dornstadt,Netze BW,
@@ -58,29 +58,29 @@ n_id,longitude,latitude,type,voltage,frequency,name,operator,not_accurate
 144441550,10.228378301,48.6268467065,substation,110000,50,Umspannwerk Giengen,EnBW,
 25165811,10.1750716456,48.6824221603,substation,110000,50,Umspannwerk Schmittenberg,ENBW,
 179671698,10.1673696873,48.6499292079,substation,110000,50,Umspannwerk Mergelstetten,EnBW,
-144437238,10.1679997316,48.627544882,substation,110000,50,Umspannwerk Herbrechtingen,EN BW Netze BW,
+144437238,10.1679851673,48.6275492372,substation,110000,50,Umspannwerk Herbrechtingen,EN BW Netze BW,
 38486453,9.67863633176,48.5713906383,substation,0,,Albwerk Umspannwerk Gosbach,EnBW,
 38145600,9.70859263925,48.4948465407,substation,110000,,,,
 38483832,9.87073765587,48.5682556256,substation,110000,50,Umspannwerk Amstetten,,
 33113856,9.84960640351,48.628856164,substation,110000,50,Umspannwerk Eybacher Tal,EnBW,
 110569516,9.83142726918,48.817115419,sub_station,110000,,Umspannwerk Schießtal,Stadtwerke Schwäbisch Gmünd,
 95250413,9.7112901959,49.1016749347,substation,110000,,,,
-57377061,9.77746703124,48.9859034738,substation,0,,,,
+57377061,9.77746703124,48.9859034738,substation,0,,Umspannwerk,,
 362202373,9.65629154874,48.8424463459,substation,110000,,Umspannwerk Pfahlbronn,Netze BW,
 97825257,9.23527056637,48.9262990712,substation,0,,,,
 95860781,10.0419361081,48.3153096436,station,110000,,,,
-31019937,10.0837513337,48.2688675073,station,110000,50,Vöhringen LEW,LEW,Yes
+31019937,10.0837513337,48.2688675073,substation,110000,50,Vöhringen LEW,LEW,Yes
 95841598,9.99206780606,48.3836593555,station,110000,,,,
 164964701,8.46230757334,49.4573790778,station,0,,,,
 152506744,8.49576580904,49.4444745165,plant,0,50;16.7,Großkraftwerk Mannheim,Grosskraftwerk Mannheim Aktiengesellschaft,
 25598006,9.15401968238,48.4948605048,substation,0,,FairNetz Umspannwerk West,FairNetz,
 34872551,9.09916213446,48.5211321212,station,0,,Kabelgarten Großholz,Netze BW,
-35208446,9.05674003855,48.4355787513,station,110000,,EnBW Umspannwerk Nehren,EnBW,
+35208446,9.05695436356,48.4356650217,substation,110000,,EnBW Umspannwerk Nehren,EnBW,
 46627531,9.23235253066,48.45422056,substation,110000,,EnBW Umspannwerk Pfullingen,EnBW,
 88901641,7.83856448747,47.5862399053,substation,0,,,,
 202837119,7.84448188901,47.5851738954,substation,0,,,,
-109029717,7.80029591176,47.571403649,station,0,,,,
-88394944,7.67241229053,47.6227181416,sub_station,0,,,,
+109029717,7.80029591176,47.571403649,substation,0,,Rheinfelden,,
+88394944,7.67241229053,47.6227181416,substation,0,,Lörrach,,
 89146723,7.75900337708,47.6423185958,substation,0,,,,
 149139318,7.52678349355,47.6812617117,substation,0,,,,
 60319818,7.61075996165,47.6178520444,substation,0,,Umspannwerk Haltingen,,
@@ -102,7 +102,7 @@ n_id,longitude,latitude,type,voltage,frequency,name,operator,not_accurate
 72987572,8.34530216262,48.773490027,substation,110000,50,110-kV-Umspannwerk Gernsbach,,
 32725957,8.44554253981,48.9860882004,substation,110000,50,Umspannwerk Oberwald,,Yes
 149076077,8.1990203913,48.7804457786,substation,0,,,,
-39011884,8.12061826656,48.7053527235,substation,110000,50,Bühl,EnBW,Yes
+39011884,8.12059599791,48.7053687671,substation,110000,50,Umspannwerk Bühl,EnBW,Yes
 48046379,7.97310512561,48.5436376795,substation,15000,16.7,Unterwerk Appenweier,DB_Energie,Yes
 47057003,7.76924216955,48.2326209168,substation,15000,16.7,Unterwerk Herbolzheim,DB_Energie,Yes
 47056998,7.82817796095,47.9812477249,substation,15000,16.7,Unterwerk Freiburg,DB_Energie,Yes
@@ -117,9 +117,9 @@ n_id,longitude,latitude,type,voltage,frequency,name,operator,not_accurate
 33378397,8.96448224385,48.6732046185,station,110000,,,,
 23098846,8.87500310995,48.6025484866,substation,0,,Netze BW Umspannwerk Herrenberg,Netze BW,
 26814283,8.78579309094,48.5837674332,substation,110000,50,Netze BW Umspannwerk Oberjettingen,Netze BW,Yes
-196088258,9.11410919826,48.6908029692,substation,0,,Umspannwerk Musberg,,
+196088258,9.1141024174,48.6907991619,substation,0,,Umspannwerk Musberg,,
 198922257,7.75655454692,48.2267947262,substation,0,,,,
-149119609,7.78996848225,48.2796732556,station,0,,,,
+149119609,7.78991213676,48.2796863672,substation,0,,,,
 146962222,7.91072937249,48.5012883583,substation,110000,50,Umspannwerk Weier,EnBW,Yes
 147616179,7.84036097087,48.4088140741,substation,110000,,,,
 102998127,8.23260922043,47.9047444004,substation,0,,,,
@@ -136,7 +136,7 @@ n_id,longitude,latitude,type,voltage,frequency,name,operator,not_accurate
 27590782,9.54701556026,48.6256730539,station,110000,,EnBW Umspannwerk Weilheim/Teck,EnBW,
 64864388,8.6446262135,48.1453721051,station,0,,Umspannwerk Prim,ENRW Energieversorgung Rottweil GmbH & Co. KG,
 102864181,8.65446514755,48.1406390466,station,0,,EnBW Umspannwerk Rottweil,EnBW,
-22888584,9.13249041039,48.7261895653,substation,110000,,Umspannwerk Möhringen,,
+22888584,9.13249216562,48.7261885396,substation,110000,,Umspannwerk Möhringen,,
 5544326,8.98919392303,48.7140222703,substation,110000,50,Umspannwerk Sindelfingen,,
 204548234,9.65738368264,48.7337978497,substation,0,,,,
 189658209,9.54332619448,48.7993285381,substation,0,,,,
@@ -168,7 +168,7 @@ n_id,longitude,latitude,type,voltage,frequency,name,operator,not_accurate
 142993613,9.10133600305,49.0630028886,substation,0,,,,
 103968970,8.76233950941,48.5336786788,station,0,,Wolfsberg,,
 88573642,8.93461592061,48.4924382507,substation,0,,Netze BW Umspannwerk Rottenburg,Netze BW,
-33912002,9.03025143694,48.5063422176,substation,0,,,Netze BW,
+33912002,9.03024605266,48.5063347244,substation,0,,Netze BW Umspannwerk Rappenberghalde,Netze BW,
 148249921,9.15789779387,49.0170210434,substation,0,,,,
 202279124,10.3504571649,48.8857501093,substation,0,,,,
 143854536,9.69465643287,49.2325925666,substation,110000,50,Umspannwerk Kupferzell,EnBW,Yes
@@ -198,13 +198,13 @@ n_id,longitude,latitude,type,voltage,frequency,name,operator,not_accurate
 155030753,8.38260059493,48.5173769912,station,0,,,,
 142287111,7.94859132333,48.0844553775,substation,0,,,,
 93522878,7.91148129016,48.0756353921,substation,20000,,Umspannwerk Denzlingen,,Yes
-127574782,7.99963709689,48.1207662606,substation,0,,Umspannwerk Bleibach,,
+127574782,7.99963366919,48.1207591977,substation,0,,Umspannwerk Bleibach,,
 25557259,9.14855609111,49.1426549567,substation,0,,,,
 145002769,9.44691873301,49.5902629417,substation,110000,50,Umspannwerk Höpfingen,EnBW,Yes
 143903369,9.0918353045,49.2946188999,substation,110000,50,Umspannwerk Hüffenhardt,,Yes
 152480573,9.50150482121,49.7500634807,substation,0,,Wartberg,,
 173333015,9.48236389922,49.7803965363,substation,0,,Bestenheid,,
-110660831,9.33185319849,49.7467138961,station,0,,,,
+110660831,9.33185319849,49.7467138961,plant,0,,,,
 54741271,10.1584969858,48.7346404496,substation,110000,50,Umspannwerk Aufhausen,EnBW,
 144437237,10.0989875429,48.8521096696,substation,110000,50,,,
 144432365,10.111217209,48.8270932709,substation,0,,,,
@@ -214,14 +214,13 @@ n_id,longitude,latitude,type,voltage,frequency,name,operator,not_accurate
 60402098,7.82139115128,48.5799189302,station,0,,,,
 200448330,9.10722442741,47.9965505891,substation,0,,,,
 139080618,9.27175363013,47.9145161546,substation,0,,,,
-31367936,9.01340237137,47.8453486126,substation,110000,50,Umspannwerk Stockach,,Yes
-107254597,7.70692914888,47.5396010079,station,0,,,,
+31367936,9.0134196316,47.8453531969,substation,110000,50,Umspannwerk Stockach,,Yes
+107254597,7.70692799862,47.539601107,station,0,,,,
 41447769,8.43068743554,49.1048950983,substation,20000,50,110-kV-Umspannwerk Leopoldshafen,,Yes
 33124821,8.34624653685,49.0630300516,station,0,,,,
 152261133,8.31334019953,49.0090434813,substation,110000,50,Karlsruhe-Daxlanden,EnBW,Yes
 161446245,8.66439505584,49.4556320734,substation,0,,Umspannwerk Dossenheim,NetzeBW,
 182177552,8.59765093746,49.4836075775,substation,0,,,,
-159483017,8.5668554187,49.5238257047,sub_station,20000,,Umspannwerk Viernheim,,Yes
 153089322,8.54438075534,49.4356912431,station,110000,50,Umspannwerk Rheinau,EnBW,
 160929097,8.62716127931,49.5435953074,station,110000,50,Umspannwerk Weinheim,,Yes
 32137605,8.56162070438,49.4546934381,substation,0,,Umspannwerk 5,MVV Energie,
@@ -231,7 +230,7 @@ n_id,longitude,latitude,type,voltage,frequency,name,operator,not_accurate
 97385939,9.82755537606,47.6599769356,substation,0,,,,
 102625864,9.5620657627,47.6843955585,substation,110000,50,Umspannwerk Buch,EnBW,
 102614597,9.59053462535,47.7537040458,substation,0,,,,
-25306752,9.42551240462,48.0643508455,substation,110000,,Umspannwerk Herbertingen,EnBW,Yes
+25306752,9.42534404541,48.0644397267,substation,110000,,Umspannwerk Herbertingen,EnBW,Yes
 139078467,9.46676312712,47.6747789195,substation,110000,50,Umspannwerk Jettenhausen,EnBW,
 102640013,9.30244934922,47.7924200623,substation,0,,,EnBW,
 102640012,9.28774515148,47.6973825777,substation,110000,50,Umspannwerk Meersburg,,
@@ -243,7 +242,7 @@ n_id,longitude,latitude,type,voltage,frequency,name,operator,not_accurate
 42697523,7.94672789341,48.660685371,substation,0,,Überlandwerk,EnBW,
 38151583,9.72640039907,48.3598358635,substation,110000,,110kV-Umspannwerk Schmiechen,EnBW,
 41389594,9.88551515679,48.30407438,substation,110000,50,Umspannwerk Dellmensingen,EnBW,Yes
-41393668,9.79022969754,48.3934197599,substation,110000,50,110kV-Umspannwerk Blaubeuren,EnBW,
+41393668,9.79022969754,48.3934197599,substation,110000,50,110kV-Umspannwerk Beiningen,EnBW,
 38156962,9.72046378004,48.2895156983,substation,110000,,110kV-Umspannwerk Ehingen,,
 31129218,9.50347419943,48.1589655847,substation,110000,,110kV-Umspannwerk Riedlingen,EnBW,
 41393661,9.63693894783,48.2368483473,substation,110000,,110kV-Umspannwerk Munderkingen,EnBW,
@@ -272,7 +271,7 @@ n_id,longitude,latitude,type,voltage,frequency,name,operator,not_accurate
 153332488,9.17820232458,49.0395229914,substation,12500,16.7,,,Yes
 153332485,9.17800383789,49.0393713627,substation,12500,16.7,,,Yes
 149151456,7.90848471262,47.7987194755,station,0,,,,
-426662540,7.84679257788,47.6994361078,substation,0,,,,
+426662540,7.84679653701,47.6994499329,substation,0,,Zell,,
 31130143,9.65109042935,47.9806245583,station,110000,,110kV-Umspannwerk Otterswang,EnBW,
 31130146,9.51218109318,48.0025898217,substation,110000,,110kV-Umspannwerk Saulgau,EnBW,
 148651195,8.72842689078,49.3005746172,substation,110000,,Umspannwerk Baiertal,,
@@ -287,9 +286,9 @@ n_id,longitude,latitude,type,voltage,frequency,name,operator,not_accurate
 31653753,9.94618227191,49.5780882815,station,0,,Umspannwerk Stalldorf,,
 95589003,9.77271010112,49.474258042,station,110000,,,,
 43838029,8.60055982654,48.7727898295,substation,110000,50,110 kV-Umspannwerk Calmbach,,
-31692357,8.55491593994,48.838561877,substation,0,,Umspannwerk Schwann,EnBW Regional,
+31692357,8.55491776702,48.8385566604,substation,0,,Umspannwerk Schwann,EnBW Regional,
 26260046,9.36453875331,48.6682447849,station,0,,EnBW Umspannwerk Unterboihingen,,
-31876680,9.34910946319,48.6088536087,substation,110000,50,EnBW Umspannwerk Nürtingen,EnBW,
+31876680,9.34909836976,48.6088561034,substation,110000,50,Netze BW Umspannwerk Nürtingen,Netze BW,
 26260052,9.40058895618,48.6669524437,substation,110000,,EnBW Umspannwerk Wendlingen,,Yes
 43838031,8.64744336145,48.874342151,station,0,,110kV-Umspannwerk Pforzheim-West,,
 44991615,8.66466700317,48.8829243108,substation,0,,,Stadtwerke Pforzheim,
@@ -309,14 +308,13 @@ n_id,longitude,latitude,type,voltage,frequency,name,operator,not_accurate
 172360829,9.23246595559,48.4844844922,substation,0,,,,
 36974024,9.28665756609,48.504904319,station,110000,,EnBW Umspannwerk Glems,EnBW,
 32352963,9.56122636,48.7138739666,station,110000,50,EnBW Umspannwerk Uhingen,EnBW,
-146331205,9.48845169383,49.2098338603,station,0,,,,
-59298667,9.21736591534,49.1970101311,substation,0,,,,
 148251350,9.1716588102,49.0409558262,substation,0,,,,
 132752094,7.60133283465,47.8674003356,substation,0,,,,
 37228444,7.58910578042,47.8069306142,substation,0,,,access,
 34868476,7.6619748389,47.9146820875,substation,110000,,Umspannstation,,
 362083053,8.50314346842,49.4451433175,substation,110000,50;16.7,Umrichterwerk Mannheim,DB Energie GmbH,
 108016218,8.19231849086,47.6180089323,plant,0,,Kraftwerk Waldshut,,
+448357447,8.25160262192,47.6880565694,substation,0,,,,
 406693451,8.18784092803,47.7549060801,plant,0,,Kraftwerk Häusern,Schluchseewerk AG,
 202869426,8.33785190023,47.5708354503,generator,0,,,,
 22960899,9.21565020993,48.8523053561,substation,110000,50,Umspannwerk Mühlhausen,EnBW AG,Yes
@@ -324,6 +322,8 @@ n_id,longitude,latitude,type,voltage,frequency,name,operator,not_accurate
 41252351,9.29765361038,48.8254080517,substation,15000,16.7,Unterwerk Waiblingen,DB_Energie,Yes
 31367940,8.25885999843,47.6342116713,substation,110000,50,Tiengen,Amprion,Yes
 202822460,8.13312035518,47.5857548827,substation,0,,,,
+142047364,9.22001297626,49.2091123996,sub_station,0,,,,
+59298667,9.21736591534,49.1970101311,substation,0,,,,
 41954101,8.79463752798,49.0716844321,station,0,,110kV-Umspannwerk Oberderdingen,,
 25722296,8.75511221003,49.0185527419,substation,110000,,Umspannwerk Knittlingen,EnBW,
 134446294,10.2970158454,48.7640034308,substation,110000,,,,
@@ -333,7 +333,6 @@ n_id,longitude,latitude,type,voltage,frequency,name,operator,not_accurate
 155009887,8.54831673729,48.9734327695,station,0,,,,
 32404366,8.50103239277,48.923135707,substation,0,,110kV Umspannwerk Langensteinbach,EnBW,
 32725960,8.51893299234,49.0067167897,substation,110000,50,Umspannwerk Berghausen,Netze BW,
-32726626,8.48199968641,49.0694469543,substation,110000,50,Blankenloch,EnBW,
 219355965,9.05248495203,48.8017939271,substation,110000,,Gerlingen,,
 27396984,9.31993940931,48.7295863149,station,0,,Umspannwerk Esslingen Ost,EnBW,
 127564668,8.07598126276,48.2883081202,substation,0,,Umspannwerk Bollenbach,,
@@ -354,6 +353,7 @@ n_id,longitude,latitude,type,voltage,frequency,name,operator,not_accurate
 194137597,8.75817960139,48.1477490126,station,110000,,Umspannwerk Gosheim,EnBW Regional Ag,
 154730260,9.63150870022,47.83764009,substation,0,,Umspannwerk Baienfurt Schachen,EnBW,
 89185338,9.20790719769,49.1805322538,substation,0,,Umspannwerk Heilbronn,,
+146331205,9.48845169383,49.2098338603,station,0,,,,
 89187763,9.28906345221,49.1600436479,substation,0,,Umspannwerk Weinsberg,,
 242386104,7.99160714648,48.5544797984,substation,0,,,,
 242386096,8.05923249945,48.5384133993,substation,0,,,,
@@ -367,10 +367,9 @@ n_id,longitude,latitude,type,voltage,frequency,name,operator,not_accurate
 37721673,9.37657114126,48.7205712448,substation,0,,EnBW Umspannwerk Altbach 2,,
 150394743,8.58014123435,49.3907992162,substation,110000,50,Umspannwerk Borsigstraße,EnBW,
 156501278,8.49767896514,49.1551750134,substation,110000,50,Graben-Neudorf,EnBW,
-294242567,9.5905557908,47.7537416058,substation,0,,,,
 102864172,8.92148153352,48.0118486954,station,0,,,,
 102864180,8.79592658701,47.9886808584,station,110000,,Umspannwerk Tuttlingen,EnBW Regional AG,
-102864187,8.72726206134,48.0659093044,station,0,,,,
+102864187,8.72726206134,48.0659093044,substation,0,50,,,
 138473003,9.18545967421,48.9230693766,station,0,,,,
 33282844,9.1575097316,49.017964245,generator,0,,Kraftwerk Walheim,EnBW,
 150283589,9.56494804147,48.5033791892,substation,0,,,,
@@ -391,13 +390,13 @@ n_id,longitude,latitude,type,voltage,frequency,name,operator,not_accurate
 203241263,7.82252730419,48.6007477849,station,0,,,,
 129790129,9.42428005004,48.0632490765,station,0,,,,
 41334805,9.20522979288,49.0422373741,substation,220000,50,Drehstromschaltwerk Neckarwestheim,EnBW,
-50319857,8.04936553103,47.5508771255,substation,220000,50,Laufenburg,,Yes
+50319857,8.04936847283,47.550875121,substation,220000,50,Laufenburg,,Yes
 207248812,8.62320969884,49.35658227,substation,220000,50,Umspannwerk Neurott,EnBW,Yes
 146723308,9.07628583545,49.3649337191,generator,0,,"Kernkraftwerk Obrigheim, stillgelegt",,
 202865176,7.95753586496,47.5721889636,substation,220000,,,,
 129989100,7.95921954403,47.5783599815,plant,0,,Kavernenkraftwerk Säckingen,Schluchseewerk AG,
 88916034,7.95807590411,47.5954779876,substation,220000,50,Lastverteilung/Schaltanlage Kühmoos,Schluchseewerk AG,Yes
-32725958,8.45161993287,49.0073970157,substation,110000,50,Umspannwerk Karlsruhe-Ost,Transnet BW,Yes
+32725958,8.45161649053,49.0073997721,substation,110000,50,Umspannwerk Karlsruhe-Ost,Transnet BW,Yes
 153334076,9.1708895771,49.0403868024,sub_station,0,,,,
 156676050,8.66378320317,49.3600874127,substation,110000,50,Umspannanlage Heidelberg-Süd,Stadtwerke Heidelberg Netze GmbH,Yes
 158222562,9.70452104139,48.4650429714,substation,0,,,,
@@ -408,7 +407,7 @@ n_id,longitude,latitude,type,voltage,frequency,name,operator,not_accurate
 194446360,8.3062626988,49.0128258792,substation,380000,50,,EnBW AG,
 202865177,7.93694055759,47.64911348,substation,380000,,Kabelanfang PSP Wehr,,
 31131320,9.80131718925,47.6525043579,substation,380000,50,Umspannwerk Obermooweiler,,
-152261126,8.30565662708,49.013455199,plant,0,,Rheinhafen-Dampfkraftwerk,,
+152261126,8.30565498145,49.0134582137,plant,0,,Rheinhafen-Dampfkraftwerk,,
 35840165,8.18338852855,47.598960218,substation,380000,,Leibstadt,,
 35840166,8.18355961654,47.6013237694,plant,0,,Kernkraftwerk Leibstadt,,
 154110133,8.43380499586,49.254066678,substation,380000,50,,EnBW,
