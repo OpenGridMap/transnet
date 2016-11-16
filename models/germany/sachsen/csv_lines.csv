@@ -1,7 +1,7 @@
 l_id,n_id_start,n_id_end,voltage,cables,type,frequency,name,operator,length_m,r_ohm_km,x_ohm_km,c_nf_km,i_th_max_km,not_accurate
 1,149402624,36183042,110000,3,line,50,,enviaM,19407.0,,,,,Yes
 2,149402624,176222682,110000,6,line,50,,enviaM,9370.0,,,,,
-3,36183042,166604824,110000,6,line,50,,,19386.0,,,,,
+3,36183042,166604824,110000,6,line,50,Crottendorf - Zwönitz,,19386.0,,,,,
 4,36183042,150279447,110000,3,line,50,Zwönitz-Auerbach Erzgebirge,enviaM,12248.0,,,,,Yes
 5,36183042,35931184,110000,3,line,50,Zwönitz-Annaberg-Pockau-Olbernhau,,37709.0,,,,,Yes
 6,36183042,173145567,110000,3,line,50,,,22036.0,,,,,Yes
@@ -54,9 +54,9 @@ l_id,n_id_start,n_id_end,voltage,cables,type,frequency,name,operator,length_m,r_
 53,60570171,149263207,110000,6,line,50,,ENSO,32493.0,,,,,
 54,60570171,296009976,110000,6,line,50,,ENSO,25178.0,,,,,
 55,60570171,23241863,110000,5,line,0,-110 kV Bahnstrom Niedersedlitz - Böhla 1|2-110 kV Bahnstrom Niedersedlitz - Böhla-110 kV Anlage 201/9223- Anlage 201/9226- 110 kV Bahnstrom Niedersedlitz - Böhla 1|2,ENSO,49449.0,,,,,Yes
-56,60570171,25358758,110000,4,line,0,-110 kV Bahnstrom Niedersedlitz - Böhla 1|2-110 kV Bahnstrom Niedersedlitz - Böhla-110 kV Anlage 201/9223- Anlage 201/9226- 110 kV Bahnstrom Niedersedlitz - Böhla 1|2,ENSO-DB_Energie,49904.0,,,,,Yes
+56,60570171,25358758,110000,4,line,0,-110 kV Bahnstrom Niedersedlitz - Böhla 1|2-110 kV Bahnstrom Niedersedlitz - Böhla-110 kV Anlage 201/9223- Anlage 201/9226- 110 kV Bahnstrom Niedersedlitz - Böhla 1|2,ENSO-DB_Energie,49917.0,,,,,Yes
 57,60570171,45490898,110000,5,line,0,-110 kV Bahnstrom Niedersedlitz - Böhla 1|2-110 kV Bahnstrom Niedersedlitz - Böhla,ENSO,43601.0,,,,,Yes
-58,60570171,148087099,110000,3,line,0,-110 kV Bahnstrom Niedersedlitz - Böhla 1|2-110 kV Bahnstrom Niedersedlitz - Böhla-Radeburg - ??,ENSO-DB_Energie,69733.0,,,,,Yes
+58,60570171,148087099,110000,3,line,0,-110 kV Bahnstrom Niedersedlitz - Böhla 1|2-110 kV Bahnstrom Niedersedlitz - Böhla-Radeburg - ??,ENSO-DB_Energie,69732.0,,,,,Yes
 59,60570171,62358454,15000,4,line,0,-110 kV Bahnstrom Niedersedlitz - Böhla 1|2-110 kV Bahnstrom Niedersedlitz - Böhla,enso-ENSO-DB_Energie,105485.0,,,,,Yes
 60,60570171,40151235,15000,2,line,0,-110 kV Bahnstrom Niedersedlitz - Böhla 1|2-110 kV Bahnstrom Niedersedlitz - Böhla-Niedersedlitz - Riesa-Riesa - Muldenstein-Niedersedlitz - Riesa-Böhla - Muldenstein,enso-ENSO-DB_Energie,117337.0,,,,,Yes
 61,60570171,154078303,15000,2,line,0,-110 kV Bahnstrom Niedersedlitz - Böhla-Böhla - Muldenstein-Riesa - Muldenstein-110 kV Bahnstrom Niedersedlitz - Böhla 1|2-Niedersedlitz - Riesa-Böhla - Muldenstein-Abzweig Wurzen,enso-ENSO-DB_Energie,163345.0,,,,,Yes
@@ -114,10 +114,10 @@ l_id,n_id_start,n_id_end,voltage,cables,type,frequency,name,operator,length_m,r_
 113,149724789,174320033,110000,6,abandoned:line,50,-Graustrein 3/4,enviaM-Vattenfall,17237.0,,,,,Yes
 114,103123062,54702868,110000,3,line,50,,Stadtwerke Leipzig,3171.0,,,,,Yes
 115,174766356,174766352,110000,6,line,,,,42089.0,,,,,
-116,23241863,149377226,110000,6,line,,,,5585.0,,,,,
-117,23241863,31150745,110000,3,line,,,,15646.0,,,,,Yes
-118,23241863,210187579,110000,6,line,,,,10991.0,,,,,
-119,23241863,23117235,110000,6,line,,,,9566.0,,,,,
+116,23241863,149377226,110000,6,line,,,,5571.0,,,,,
+117,23241863,31150745,110000,3,line,,,,15644.0,,,,,Yes
+118,23241863,210187579,110000,6,line,,,,10990.0,,,,,
+119,23241863,23117235,110000,6,line,,,,9565.0,,,,,
 120,23241863,87685891,110000,3,line,,,ENSO Strom AG,25029.0,,,,,Yes
 121,23241863,87686819,110000,3,line,50,,ENSO,27975.0,,,,,Yes
 122,56223890,175315863,110000,6,line,,,,14536.0,,,,,
@@ -163,11 +163,12 @@ l_id,n_id_start,n_id_end,voltage,cables,type,frequency,name,operator,length_m,r_
 162,23241863,109917397,380000,6,line,,-Schmölln - Dresden Süd - Röhrsdorf,50Hertz Transmission-Vattenfall_Europe_Transmission,47910.0,,,,,Yes
 163,23241863,23117075,380000,3,line,,-Schmölln - Dresden Süd - Röhrsdorf-591 Dresden-Süd,50Hertz Transmission-Vattenfall_Europe_Transmission,85509.0,,,,,Yes
 164,23241863,157807291,380000,6,line,,-Schmölln - Dresden-Süd - Röhrsdorf,50Hertz Transmission GmbH-Vattenfall_Europe_Transmission,36646.0,,,,,Yes
-165,32843531,157328339,380000,3,line,50,585-586 Eula - Streumen-585-Streumen-Eula,50Hertz Transmission-50Hertz,63044.0,,,,,Yes
-166,157806991,157328339,380000,3,line,50,557-558 Streumen-Bärwalde-558-557,50Hertz,62920.0,,,,,Yes
-167,157806991,157807291,380000,3,line,50,551-551- 552,50Hertz,45992.0,,,,,Yes
-168,157806991,178167136,380000,3,line,50,MN- MP-MN,50Hertz,4723.0,,,,,Yes
-169,157806991,30164703,380000,3,line,50,565- 566-566,50Hertz_Transmission-50Hertz,21893.0,,,,,Yes
-170,23117075,157328339,380000,3,line,50,571-571-572 Streumen - Röhrsdorf,50Hertz,20053.0,,,,,Yes
-171,59026005,157807291,380000,3,line,50,,50Hertz Transmission GmbH-50Hertz,56774.0,,,,,Yes
-172,30164703,58421134,380000,3,line,50,,50Hertz_Transmission,9496.0,,,,,Yes
+165,32843531,442199284,380000,3,line,50,,50Hertz Transmission-50Hertz,20132.0,,,,,Yes
+166,32843531,157328339,380000,3,line,50,585-586 Eula - Streumen-585-Streumen-Eula,50Hertz Transmission-50Hertz,63044.0,,,,,Yes
+167,157806991,157328339,380000,3,line,50,557-558 Streumen-Bärwalde-558-557,50Hertz,62920.0,,,,,Yes
+168,157806991,157807291,380000,3,line,50,551-551- 552,50Hertz,45992.0,,,,,Yes
+169,157806991,178167136,380000,3,line,50,MN- MP-MN,50Hertz,4723.0,,,,,Yes
+170,157806991,30164703,380000,3,line,50,565- 566-566,50Hertz_Transmission-50Hertz,21893.0,,,,,Yes
+171,23117075,157328339,380000,3,line,50,571-571-572 Streumen - Röhrsdorf,50Hertz,20053.0,,,,,Yes
+172,59026005,157807291,380000,3,line,50,,50Hertz Transmission GmbH-50Hertz,56774.0,,,,,Yes
+173,30164703,58421134,380000,3,line,50,,50Hertz_Transmission,9496.0,,,,,Yes
