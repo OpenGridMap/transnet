@@ -1,0 +1,6 @@
+# cronjob for weekly executing the process would look like rather something like this
+
+SHELL=/bin/sh
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/home/leimhofe/.conda/envs/transnet/bin/
+
+30 15   * * 3   cd ~/transnet/bash/ && ./run_planet.sh
