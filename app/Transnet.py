@@ -34,6 +34,10 @@ class Transnet:
 
     def __init__(self, _database, _user, _host, _port, _password, _ssid, _poly, _bpoly, _verbose, _validate,
                  _topology, _voltage_levels, _load_estimation, _destdir, _continent, _whole_planet):
+        self.length_all = 0
+        self.all_lines = dict()
+        self.all_stations = dict()
+
         self.db_name = _database
         self.ssid = _ssid
         self.poly = _poly
@@ -273,7 +277,7 @@ class Transnet:
         total_line_length = 0
         for circuit in circuits:
             station1 = circuit.members[0]
-            station2 = circuit.members[- 1]
+            station2 = circuit.members[-1]
             for line in circuit.members[1:-1]:
                 total_line_length += line.length
             if str(station1.id) + str(station2.id) + str(circuit.voltage) in covered_connections \
@@ -608,6 +612,31 @@ class Transnet:
         root.info('CIM model generation started ...')
         cim_writer = CimWriter(all_circuits, map_centroid, population_by_station_dict, self.voltage_levels)
         cim_writer.publish(self.destdir + '/cim')
+
+        # for circuit in all_circuits:
+        #     for line in circuit.members[1:-1]:
+        #         if line.id not in self.all_lines:
+        #             self.length_all += line.length
+        #             self.all_lines[line.id] = line.id
+        #
+        # root.info('All lines length without duplicates %s', str(self.length_all / 1000))
+        #
+        # self.length_all = 0
+        # for circuit in all_circuits:
+        #     for line in circuit.members[1:-1]:
+        #         self.length_all += line.length
+        #
+        # root.info('All lines length with duplicates %s', str(self.length_all / 1000))
+        #
+        # for circuit in all_circuits:
+        #     sts = [circuit.members[0], circuit.members[-1]]
+        #     for st in sts:
+        #         if st.id not in self.all_stations:
+        #             self.all_stations[st.id] = 1
+        #         else:
+        #             self.all_stations[st.id] += 1
+        #
+        # root.info('All Stations %s', str(self.all_stations))
 
         if validate:
             validator = InferenceValidator(self.cur)
