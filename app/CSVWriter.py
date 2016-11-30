@@ -134,9 +134,15 @@ class CSVWriter:
                 cables_selected = CSVWriter.convert_max_set_to_string(cables)
                 voltage_selected = CSVWriter.convert_max_set_to_string(voltages)
                 wires_selected = CSVWriter.convert_max_set_to_string(wires)
+
+                voltage_selected_round = 0
+                if 360000 <= int(voltage_selected) <= 400000:
+                    voltage_selected_round = 380000
+                elif 180000 <= int(voltage_selected) <= 260000:
+                    voltage_selected_round = 220000
                 if length_selected and cables_selected and int(
-                        voltage_selected) in self.coeffs_of_voltage and wires_selected:
-                    coeffs = self.coeffs_of_voltage[int(voltage_selected)]
+                        voltage_selected_round) in self.coeffs_of_voltage and wires_selected:
+                    coeffs = self.coeffs_of_voltage[int(voltage_selected_round)]
                     # Specific resistance of the transmission lines.
                     r_ohm_kms = coeffs['r'] / (int(wires_selected) / coeffs['wires_typical']) / (
                         int(cables_selected) / 3.0)
@@ -166,4 +172,3 @@ class CSVWriter:
                                        str(i_th_max_kms) if i_th_max_kms else '',
                                        'Yes' if not_accurate_line else ''])
                 line_counter += 1
-
