@@ -33,10 +33,11 @@ class Transnet:
     covered_nodes = None
 
     def __init__(self, _database, _user, _host, _port, _password, _ssid, _poly, _bpoly, _verbose, _validate,
-                 _topology, _voltage_levels, _load_estimation, _destdir, _continent, _whole_planet):
+                 _topology, _voltage_levels, _load_estimation, _destdir, _continent, _whole_planet, _find_missing_data):
         self.length_all = 0
         self.all_lines = dict()
         self.all_stations = dict()
+        self.all_power_planet = dict()
 
         self.db_name = _database
         self.ssid = _ssid
@@ -50,6 +51,7 @@ class Transnet:
         self.destdir = _destdir
         self.chose_continent = _continent
         self.whole_planet = _whole_planet
+        self.find_missing_data = _find_missing_data
 
         self.connection = {'database': _database, 'user': _user, 'host': _host, 'port': _port}
         self.conn = psycopg2.connect(password=_password, **self.connection)
@@ -636,7 +638,24 @@ class Transnet:
         #         else:
         #             self.all_stations[st.id] += 1
         #
-        # root.info('All Stations %s', str(self.all_stations))
+        # root.info('All Stations count %s', str(len(self.all_stations)))
+        #
+        # # for circuit in all_circuits:
+        # #     for gen in [circuit.members[0], circuit.members[-1]]:
+        # #         tags_list = [x.replace('"', "").replace('\\', "").strip() for x in
+        # #                      str(gen.tags).replace(',', '=>').split('=>')]
+        # #         if gen.type in ['plant', 'generator'] and not any([x.startswith('solar') for x in tags_list]):
+        # #             if gen.id not in self.all_power_planet:
+        # #                 self.all_power_planet[gen.id] = '%s_%s' % (gen.lat, gen.lon)
+        #
+        # for circuit in all_circuits:
+        #     for gen in [circuit.members[0], circuit.members[-1]]:
+        #
+        #         if gen.type in ['plant', 'generator']:
+        #             if gen.id not in self.all_power_planet:
+        #                 self.all_power_planet[gen.id] = '%s_%s' % (gen.lat, gen.lon)
+        #
+        # root.info('All power Planets count %s', str(len(self.all_power_planet)))
 
         if validate:
             validator = InferenceValidator(self.cur)
