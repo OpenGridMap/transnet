@@ -38,7 +38,7 @@ class Line(Way):
         }
 
         if self.missing_cables_estimatate or self.missing_voltage_estimatate:
-            line['estmiated_cables'] = self.missing_cables_estimatate
-            line['estmiated_voltage'] = self.missing_voltage_estimatate
+            line['estimated_cables'] = self.missing_cables_estimatate
+            line['estimated_voltage'] = self.missing_voltage_estimatate
 
         return line

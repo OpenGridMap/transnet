@@ -461,6 +461,8 @@ class Transnet:
                   AND l.power ~ 'line|cable|minor_line' AND l.voltage ~ '%s' AND %s''' \
               % (self.voltage_levels, voltage_level, where_clause)
 
+        print sql
+
         self.cur.execute(sql)
         result = self.cur.fetchall()
         # noinspection PyShadowingBuiltins,PyShadowingBuiltins
@@ -489,6 +491,8 @@ class Transnet:
                 WHERE l.osm_id >= 0 AND p.osm_id >= 0 AND p.power ~ 'plant|generator'
                 AND st_intersects(l.way, p.way) AND l.power ~ 'line|cable|minor_line'
                 AND l.voltage ~ '%s' AND %s''' % (voltage_level, where_clause)
+
+        print sql
 
         self.cur.execute(sql)
         result = self.cur.fetchall()
@@ -576,7 +580,7 @@ class Transnet:
                         st_length(st_transform(l.way, 4326), TRUE) AS spheric_length
                         FROM planet_osm_line l, planet_osm_ways w
                         WHERE l.osm_id >= 0 AND l.power ~ 'line|cable|minor_line'
-                        AND l.voltage IS NULL AND l.osm_id = w.id AND %s''' % where_clause
+                        AND (l.voltage IS NULL OR l.cables IS NULL) AND l.osm_id = w.id AND %s''' % where_clause
 
         self.cur.execute(lines_sql)
         lines_result = self.cur.fetchall()
@@ -601,7 +605,9 @@ class Transnet:
                 temp_line.add_missing_data_estimation(voltage=voltages_cable_str, cables=cables_cable_str)
             elif power_type == 'minor_line':
                 temp_line.add_missing_data_estimation(voltage=voltages_minor_line_str, cables=cables_minor_line_str)
-            lines[osm_id] = temp_line
+
+            if power_type in ['line', 'cable', 'minor_line']:
+                lines[osm_id] = temp_line
 
         with open('{0}/lines_with_missing_data.json'.format(self.destdir), 'w') as outfile:
             json.dump([l.serialize() for osm_id, l in lines.iteritems()], outfile, indent=4)
@@ -856,3 +862,35 @@ if __name__ == '__main__':
         root.error(e.message)
         parser.print_help()
         exit()
+
+
+
+# SELECT DISTINCT
+#   (p.osm_id)                                   AS id,
+#   p.power                                      AS type,
+#   p.name,
+#   p.ref,
+#   p.voltage,
+#   p.tags,
+#   ST_Y(ST_Transform(ST_Centroid(p.way), 4326)) AS lat,
+#   ST_X(ST_Transform(ST_Centroid(p.way), 4326)) AS lon
+#
+# FROM planet_osm_polygon p
+#   JOIN planet_osm_line l
+#     ON ST_Disjoint(p.way, l.way)
+# WHERE p.voltage IS NOT NULL AND l.power ~ 'line|cable|minor_line' AND
+#       p.power ~ 'substation|station|sub_station|plant|generator';
+#
+#
+# SELECT DISTINCT
+#   (p.osm_id)                                   AS id,
+#   p.power                                      AS type,
+#   p.name,
+#   p.ref,
+#   p.voltage,
+#   p.tags,
+#   ST_Y(ST_Transform(ST_Centroid(p.way), 4326)) AS lat,
+#   ST_X(ST_Transform(ST_Centroid(p.way), 4326)) AS lon
+#
+# FROM planet_osm_polygon p
+# WHERE p.voltage IS NULL;
