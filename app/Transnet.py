@@ -718,6 +718,7 @@ class Transnet:
                 temp_station = Station(osm_id, polygon, power_type, name, ref,
                                        voltage.replace(',', ';').replace('/', ';') if voltage else None,
                                        None, tags, lat, lon, raw_geom)
+                temp_station.add_missing_connection()
                 if power_type in ['substation', 'sub_station']:
                     temp_station.add_missing_data_estimation(voltage=voltages_substations_str)
                 elif power_type == 'station':

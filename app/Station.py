@@ -16,6 +16,7 @@ class Station(Way):
         self.nominal_power = None
 
         self.missing_voltage_estimatate = None
+        self.missing_connection = False
 
     def __str__(self):
         return 'Station - ' + Way.__str__(self)
@@ -27,6 +28,9 @@ class Station(Way):
 
     def add_missing_data_estimation(self, voltage=None):
         self.missing_voltage_estimatate = voltage
+
+    def add_missing_connection(self):
+        self.missing_connection = True
 
     def serialize(self):
         station = {
@@ -46,5 +50,8 @@ class Station(Way):
 
         if self.missing_voltage_estimatate:
             station['estimated_voltage'] = self.missing_voltage_estimatate
+
+        if self.missing_connection:
+            station['missing_connection'] = self.missing_connection
 
         return station
