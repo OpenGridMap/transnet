@@ -516,8 +516,27 @@ class Transnet:
 
         return length_found_lines, equipment_points, generators, substations, circuits
 
-    def find_missing_data_for_country(self, where_clause, where_clause_station):
+    def find_missing_data_for_country(self):
         root.info('Finding missing data')
+
+        if not exists(self.destdir):
+            makedirs(self.destdir)
+
+        if self.poly:
+            boundary = PolyParser.poly_to_polygon(self.poly)
+            where_clause = "st_intersects(l.way, st_transform(st_geomfromtext('" + boundary.wkt + "',4269),3857))"
+            where_clause_station = "st_intersects(p.way, st_transform(st_geomfromtext('" + \
+                                   boundary.wkt + "',4269),3857))"
+        elif self.bpoly:
+            boundary = wkt.loads(self.bpoly)
+            where_clause = "st_intersects(l.way, st_transform(st_geomfromtext('" + boundary.wkt + "',4269),3857))"
+            where_clause_station = "st_intersects(p.way, st_transform(st_geomfromtext('" + \
+                                   boundary.wkt + "',4269),3857))"
+        else:
+            where_clause = "st_distance(l.way, (select way from planet_osm_polygon where osm_id = " + str(
+                self.ssid) + ")) <= 300000"
+            where_clause_station = "st_distance(p.way, (select way from planet_osm_polygon where osm_id = " + str(
+                self.ssid) + ")) <= 300000"
 
         voltages_line = set()
         voltages_cable = set()
@@ -745,11 +764,13 @@ class Transnet:
                 continent_json = json.load(continent_file)
                 try:
                     self.voltage_levels = continent_json[self.chose_continent]['voltages']
+                    self.poly = '../data/planet/{0}/pfile.poly'.format(continent)
+                    self.destdir = '../models/planet/{0}/'.format(continent)
                     if self.voltage_levels:
-                        self.poly = '../data/planet/{0}/pfile.poly'.format(continent)
-                        self.destdir = '../models/planet/{0}/'.format(continent)
                         Transnet.reset_params()
                         self.modeling(continent)
+                    if self.find_missing_data:
+                        self.find_missing_data_for_country()
                 except Exception as ex:
                     root.error(ex.message)
         elif self.chose_continent:
@@ -758,15 +779,19 @@ class Transnet:
                 for country in continent_json:
                     try:
                         self.voltage_levels = continent_json[country]['voltages']
+                        self.poly = '../data/{0}/{1}/pfile.poly'.format(continent, country)
+                        self.destdir = '../models/{0}/{1}/'.format(continent, country)
                         if self.voltage_levels:
-                            self.poly = '../data/{0}/{1}/pfile.poly'.format(continent, country)
-                            self.destdir = '../models/{0}/{1}/'.format(continent, country)
                             Transnet.reset_params()
                             self.modeling(country)
+                        if self.find_missing_data:
+                            self.find_missing_data_for_country()
                     except Exception as ex:
                         root.error(ex.message)
         else:
             self.modeling(self.db_name)
+            if self.find_missing_data:
+                self.find_missing_data_for_country()
 
     def modeling(self, country_name):
 
@@ -783,17 +808,11 @@ class Transnet:
         if self.poly:
             boundary = PolyParser.poly_to_polygon(self.poly)
             where_clause = "st_intersects(l.way, st_transform(st_geomfromtext('" + boundary.wkt + "',4269),3857))"
-            where_clause_station = "st_intersects(p.way, st_transform(st_geomfromtext('" + \
-                                   boundary.wkt + "',4269),3857))"
         elif self.bpoly:
             boundary = wkt.loads(self.bpoly)
             where_clause = "st_intersects(l.way, st_transform(st_geomfromtext('" + boundary.wkt + "',4269),3857))"
-            where_clause_station = "st_intersects(p.way, st_transform(st_geomfromtext('" + \
-                                   boundary.wkt + "',4269),3857))"
         else:
             where_clause = "st_distance(l.way, (select way from planet_osm_polygon where osm_id = " + str(
-                self.ssid) + ")) <= 300000"
-            where_clause_station = "st_distance(p.way, (select way from planet_osm_polygon where osm_id = " + str(
                 self.ssid) + ")) <= 300000"
 
         # do inference for each voltage level
@@ -892,9 +911,6 @@ class Transnet:
                 validator.validate2(all_circuits, all_stations, boundary, self.voltage_levels)
             else:
                 validator.validate(self.ssid, all_circuits, None, self.voltage_levels)
-
-        if self.find_missing_data:
-            self.find_missing_data_for_country(where_clause, where_clause_station)
 
         root.info('Took %s in total', str(datetime.now() - time))
 
