@@ -461,8 +461,6 @@ class Transnet:
                   AND l.power ~ 'line|cable|minor_line' AND l.voltage ~ '%s' AND %s''' \
               % (self.voltage_levels, voltage_level, where_clause)
 
-        print sql
-
         self.cur.execute(sql)
         result = self.cur.fetchall()
         # noinspection PyShadowingBuiltins,PyShadowingBuiltins
@@ -492,8 +490,6 @@ class Transnet:
                 AND st_intersects(l.way, p.way) AND l.power ~ 'line|cable|minor_line'
                 AND l.voltage ~ '%s' AND %s''' % (voltage_level, where_clause)
 
-        print sql
-
         self.cur.execute(sql)
         result = self.cur.fetchall()
         # noinspection PyShadowingBuiltins,PyShadowingBuiltins
@@ -520,7 +516,7 @@ class Transnet:
 
         return length_found_lines, equipment_points, generators, substations, circuits
 
-    def find_missing_data_for_country(self, where_clause):
+    def find_missing_data_for_country(self, where_clause, where_clause_station):
         root.info('Finding missing data')
 
         voltages_line = set()
@@ -568,7 +564,6 @@ class Transnet:
 
         lines = dict()
 
-        # create lines dictionary
         lines_sql = '''SELECT l.osm_id AS osm_id,
                         st_transform(create_line(l.osm_id), 4326) AS geom,
                         l.way AS srs_geom, l.power AS power_type,
@@ -609,8 +604,140 @@ class Transnet:
             if power_type in ['line', 'cable', 'minor_line']:
                 lines[osm_id] = temp_line
 
-        with open('{0}/lines_with_missing_data.json'.format(self.destdir), 'w') as outfile:
+        with open('{0}/lines_missing_data.json'.format(self.destdir), 'w') as outfile:
             json.dump([l.serialize() for osm_id, l in lines.iteritems()], outfile, indent=4)
+
+        file_size = Transnet.convert_size_mega_byte(getsize('{0}/lines_missing_data.json'.format(self.destdir)))
+
+        if file_size >= 100:
+            command = 'split --bytes=50M {0}/lines_missing_data.json {0}/_lines_missing_data'.format(self.destdir)
+            return_code = call(command, shell=True)
+            root.info('Lines Missing Data file split return {0}'.format(return_code))
+            remove('{0}/lines_missing_data.json'.format(self.destdir))
+
+        stations_missing_connections_sql = '''SELECT DISTINCT
+                                              p.osm_id                                     AS osm_id,
+                                              st_transform(p.way, 4326)                    AS geom,
+                                              p.power                                      AS power_type,
+                                              p.name,
+                                              p.ref,
+                                              p.voltage,
+                                              p.tags,
+                                              ST_Y(ST_Transform(ST_Centroid(p.way), 4326)) AS lat,
+                                              ST_X(ST_Transform(ST_Centroid(p.way), 4326)) AS lon
+                                            FROM planet_osm_polygon p
+                                            WHERE %s
+                                            EXCEPT
+                                            SELECT DISTINCT
+                                              p.osm_id                                     AS osm_id,
+                                              st_transform(p.way, 4326)                    AS geom,
+                                              p.power                                      AS power_type,
+                                              p.name,
+                                              p.ref,
+                                              p.voltage,
+                                              p.tags,
+                                              ST_Y(ST_Transform(ST_Centroid(p.way), 4326)) AS lat,
+                                              ST_X(ST_Transform(ST_Centroid(p.way), 4326)) AS lon
+                                            FROM planet_osm_line l, planet_osm_polygon p
+                                            WHERE %s
+                                                  AND l.osm_id >= 0
+                                                  AND p.osm_id >= 0
+                                                  AND p.power ~ 'substation|station|sub_station|plant|generator'
+                                                  AND l.power ~ 'line|cable|minor_line'
+                                                  AND st_intersects(l.way, p.way);''' % \
+                                           (where_clause_station, where_clause)
+
+        stations_missing_voltage = '''SELECT DISTINCT
+                                      p.osm_id                                     AS osm_id,
+                                      st_transform(p.way, 4326)                    AS geom,
+                                      p.power                                      AS power_type,
+                                      p.name,
+                                      p.ref,
+                                      p.voltage,
+                                      p.tags,
+                                      ST_Y(ST_Transform(ST_Centroid(p.way), 4326)) AS lat,
+                                      ST_X(ST_Transform(ST_Centroid(p.way), 4326)) AS lon
+                                    FROM planet_osm_polygon p
+                                    WHERE %s
+                                    AND p.voltage IS NULL;''' % where_clause_station
+
+        stations_voltages = '''SELECT
+                              p.voltage AS voltage,
+                              p.power AS power_type,
+                              count(*) AS num
+                            FROM planet_osm_polygon p
+                            WHERE %s
+                            GROUP BY power, voltage;''' % where_clause_station
+
+        voltages_substations = set()
+        voltages_stations = set()
+        voltages_plant = set()
+        self.cur.execute(stations_voltages)
+        result_station_voltages = self.cur.fetchall()
+        for (voltage, power_type, num) in result_station_voltages:
+            if num > 30 and voltage:
+                raw_voltages = [Transnet.try_parse_int(x) for x in str(voltage).strip().split(';')]
+                if power_type in ['substation', 'sub_station']:
+                    voltages_substations = voltages_substations.union(set(raw_voltages))
+                elif power_type == 'station':
+                    voltages_stations = voltages_stations.union(set(raw_voltages))
+                elif power_type in ['plant', 'generator']:
+                    voltages_plant = voltages_plant.union(set(raw_voltages))
+
+        voltages_substations_str = ';'.join([str(x) for x in voltages_substations])
+        voltages_stations_str = ';'.join([str(x) for x in voltages_stations])
+        voltages_plant_str = ';'.join([str(x) for x in voltages_plant])
+
+        stations_missing_data = dict()
+
+        self.cur.execute(stations_missing_connections_sql)
+        result_statoins_missing_connection = self.cur.fetchall()
+        for (osm_id, geom, power_type, name, ref, voltage, tags, lat, lon) in result_statoins_missing_connection:
+            if osm_id not in stations_missing_data:
+                polygon = wkb.loads(geom, hex=True)
+                raw_geom = geom
+                temp_station = Station(osm_id, polygon, power_type, name, ref,
+                                       voltage.replace(',', ';').replace('/', ';') if voltage else None,
+                                       None, tags, lat, lon, raw_geom)
+                if power_type in ['substation', 'sub_station']:
+                    temp_station.add_missing_data_estimation(voltage=voltages_substations_str)
+                elif power_type == 'station':
+                    temp_station.add_missing_data_estimation(voltage=voltages_stations_str)
+                elif power_type in ['plant', 'generator']:
+                    temp_station.add_missing_data_estimation(voltage=voltages_plant_str)
+
+                if power_type in ['substation', 'sub_station', 'station', 'plant', 'generator']:
+                    stations_missing_data[osm_id] = temp_station
+
+        self.cur.execute(stations_missing_voltage)
+        result_statoins_missing_voltage = self.cur.fetchall()
+        for (osm_id, geom, power_type, name, ref, voltage, tags, lat, lon) in result_statoins_missing_voltage:
+            if osm_id not in stations_missing_data:
+                polygon = wkb.loads(geom, hex=True)
+                raw_geom = geom
+                temp_station = Station(osm_id, polygon, power_type, name, ref,
+                                       voltage.replace(',', ';').replace('/', ';') if voltage else None,
+                                       None, tags, lat, lon, raw_geom)
+                if power_type in ['substation', 'sub_station']:
+                    temp_station.add_missing_data_estimation(voltage=voltages_substations_str)
+                elif power_type == 'station':
+                    temp_station.add_missing_data_estimation(voltage=voltages_stations_str)
+                elif power_type in ['plant', 'generator']:
+                    temp_station.add_missing_data_estimation(voltage=voltages_plant_str)
+
+                if power_type in ['substation', 'sub_station', 'station', 'plant', 'generator']:
+                    stations_missing_data[osm_id] = temp_station
+
+        with open('{0}/stations_missing_data.json'.format(self.destdir), 'w') as outfile:
+            json.dump([s.serialize() for osm_id, s in stations_missing_data.iteritems()], outfile, indent=4)
+
+        file_size = Transnet.convert_size_mega_byte(getsize('{0}/stations_missing_data.json'.format(self.destdir)))
+
+        if file_size >= 100:
+            command = 'split --bytes=50M {0}/stations_missing_data.json {0}/_stations_missing_data'.format(self.destdir)
+            return_code = call(command, shell=True)
+            root.info('Stations Missing Data file split return {0}'.format(return_code))
+            remove('{0}/stations_missing_data.json'.format(self.destdir))
 
     def run(self):
         if self.whole_planet and self.chose_continent:
@@ -656,11 +783,17 @@ class Transnet:
         if self.poly:
             boundary = PolyParser.poly_to_polygon(self.poly)
             where_clause = "st_intersects(l.way, st_transform(st_geomfromtext('" + boundary.wkt + "',4269),3857))"
+            where_clause_station = "st_intersects(p.way, st_transform(st_geomfromtext('" + \
+                                   boundary.wkt + "',4269),3857))"
         elif self.bpoly:
             boundary = wkt.loads(self.bpoly)
             where_clause = "st_intersects(l.way, st_transform(st_geomfromtext('" + boundary.wkt + "',4269),3857))"
+            where_clause_station = "st_intersects(p.way, st_transform(st_geomfromtext('" + \
+                                   boundary.wkt + "',4269),3857))"
         else:
             where_clause = "st_distance(l.way, (select way from planet_osm_polygon where osm_id = " + str(
+                self.ssid) + ")) <= 300000"
+            where_clause_station = "st_distance(p.way, (select way from planet_osm_polygon where osm_id = " + str(
                 self.ssid) + ")) <= 300000"
 
         # do inference for each voltage level
@@ -761,7 +894,7 @@ class Transnet:
                 validator.validate(self.ssid, all_circuits, None, self.voltage_levels)
 
         if self.find_missing_data:
-            self.find_missing_data_for_country(where_clause)
+            self.find_missing_data_for_country(where_clause, where_clause_station)
 
         root.info('Took %s in total', str(datetime.now() - time))
 
@@ -862,35 +995,3 @@ if __name__ == '__main__':
         root.error(e.message)
         parser.print_help()
         exit()
-
-
-
-# SELECT DISTINCT
-#   (p.osm_id)                                   AS id,
-#   p.power                                      AS type,
-#   p.name,
-#   p.ref,
-#   p.voltage,
-#   p.tags,
-#   ST_Y(ST_Transform(ST_Centroid(p.way), 4326)) AS lat,
-#   ST_X(ST_Transform(ST_Centroid(p.way), 4326)) AS lon
-#
-# FROM planet_osm_polygon p
-#   JOIN planet_osm_line l
-#     ON ST_Disjoint(p.way, l.way)
-# WHERE p.voltage IS NOT NULL AND l.power ~ 'line|cable|minor_line' AND
-#       p.power ~ 'substation|station|sub_station|plant|generator';
-#
-#
-# SELECT DISTINCT
-#   (p.osm_id)                                   AS id,
-#   p.power                                      AS type,
-#   p.name,
-#   p.ref,
-#   p.voltage,
-#   p.tags,
-#   ST_Y(ST_Transform(ST_Centroid(p.way), 4326)) AS lat,
-#   ST_X(ST_Transform(ST_Centroid(p.way), 4326)) AS lon
-#
-# FROM planet_osm_polygon p
-# WHERE p.voltage IS NULL;
