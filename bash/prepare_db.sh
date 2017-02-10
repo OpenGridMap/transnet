@@ -34,7 +34,7 @@ psql -U $duser -d transnet_template -h localhost -c "CREATE DATABASE $dname WITH
 echo "3. filter all power nodes/ways of relations tagged with power=*"
 osmosis --read-pbf file="$ddump" --tag-filter accept-relations power=* --tag-filter accept-ways power=* --tag-filter accept-nodes power=* --used-node --buffer --bounding-polygon file="$pfile" completeRelations=yes --write-pbf file="../data/$destdir/power_extract1.pbf"
 
-echo "f4. ilter all relations tagged with route=power"
+echo "4. filter all relations tagged with route=power"
 osmosis --read-pbf file="$ddump" --tag-filter accept-relations route=power --used-way --used-node --buffer --bounding-polygon file="$pfile" completeRelations=yes completeWays=yes --write-pbf file="../data/$destdir/power_extract2.pbf"
 
 echo "5. filter all ways and its corresponding nodes tagged with power=*"

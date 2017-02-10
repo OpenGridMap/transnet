@@ -15,6 +15,9 @@ class Station(Way):
         self.connected_stations = dict()
         self.nominal_power = None
 
+        self.missing_voltage_estimatate = None
+        self.missing_connection = False
+
     def __str__(self):
         return 'Station - ' + Way.__str__(self)
 
@@ -23,8 +26,14 @@ class Station(Way):
             self.connected_stations[voltage] = set()
         self.connected_stations[voltage].add(station_id)
 
+    def add_missing_data_estimation(self, voltage=None):
+        self.missing_voltage_estimatate = voltage
+
+    def add_missing_connection(self):
+        self.missing_connection = True
+
     def serialize(self):
-        return {
+        station = {
             'id': self.id,
             'geom': str(self.geom),
             'type': self.type,
@@ -38,3 +47,11 @@ class Station(Way):
             'raw_geom': str(self.raw_geom),
             'nominal_power': str(self.nominal_power)
         }
+
+        if self.missing_voltage_estimatate:
+            station['estimated_voltage'] = self.missing_voltage_estimatate
+
+        if self.missing_connection:
+            station['missing_connection'] = self.missing_connection
+
+        return station

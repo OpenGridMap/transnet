@@ -23,7 +23,7 @@ mkdir -p "../logs/$destdir"
 # run transnet
 cdir=`pwd`
 cd ../app
-python Transnet.py -p "../data/$destdir/pfile.poly" -D $dname -U $duser -X $dpassword -d $destdir -V $vlevels $trans_args | tee "../logs/$destdir/transnet.log"
+python Transnet.py -p "../data/$destdir/pfile.poly" -D $dname -U $duser -X $dpassword -d $destdir -V $vlevels $trans_args -f | tee "../logs/$destdir/transnet.log"
 cd $cdir
 
 #run matlab
