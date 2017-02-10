@@ -3,12 +3,12 @@ n_id,longitude,latitude,type,voltage,frequency,name,operator,not_accurate
 87637074,10.9385101806,54.2843647132,substation,110000,50,Göhl,Schleswig-Holstein Netz AG,
 35702899,10.5887964529,54.2879164739,substation,110000,50,Helmstorf,Schleswig-Holstein Netz,
 150574599,8.96172697252,54.6765747849,substation,110000,50,Umspannwerk Loheide,Schleswig-Holstein Netz AG,
-89430569,8.8607512905,54.7923844606,substation,20000,50,Niebüll,Schleswig-Holstein Netz AG,Yes
+89430569,8.8607512905,54.7923844606,substation,110000;60000;20000,50,Niebüll,Schleswig-Holstein Netz AG,
 88520246,8.99837570948,54.6420327432,substation,110000,,Dörpum,,
 89007103,8.98699772883,54.6002348293,substation,110000,,Breklum,,
 401194997,9.06288570889,54.6278815833,substation,0,,Vollstedt,,
-130794504,10.6414678006,53.9191626822,substation,30000,50,Lübeck,TenneT-Schleswig-Holstein Netz,Yes
-74893662,10.7608353105,53.9097453618,substation,110000,,Umspannwerk Siems,,Yes
+130794504,10.6414678006,53.9191626822,substation,220000;110000;30000,50,Lübeck,TenneT-Schleswig-Holstein Netz,
+74893662,10.7608353105,53.9097453618,substation,380000;220000;110000,,Umspannwerk Siems,,
 97387973,10.8326707149,53.9603252033,substation,110000,50,,,
 87649129,10.7789986731,54.1102009128,substation,110000,50,,,
 208672835,10.59668682,53.8245060958,substation,110000,50,Niendorf,Schleswig-Holstein Netz,
@@ -19,12 +19,12 @@ n_id,longitude,latitude,type,voltage,frequency,name,operator,not_accurate
 33910224,9.83339325084,54.49799663,substation,110000,50,Barkelsby,EON_Netz,
 87952813,9.40949578807,54.6700748919,substation,110000,50,Tarp,EON_Netz,
 226085135,9.44332757784,54.6371343847,substation,110000,50,Umspannwerk Sieverstedt,EON_Netz,
-87962811,9.40580100302,54.7527160843,substation,20000,50,Weding,Schleswig-Holstein Netz,Yes
-32265241,9.77037375393,53.7703433068,substation,10000,50,UW Heede,Schleswig-Holstein Netz AG,Yes
-25306938,9.77654483983,53.6906353016,substation,110000,50,Kummerfeld,TenneT,Yes
+87962811,9.40580100302,54.7527160843,substation,110000;60000;20000,50,Weding,Schleswig-Holstein Netz,
+32265241,9.77037375393,53.7703433068,substation,110000;10000,50,UW Heede,Schleswig-Holstein Netz AG,
+25306938,9.77654483983,53.6906353016,substation,220000;110000,50,Kummerfeld,TenneT,
 52246487,9.69134368736,53.7426520003,substation,110000,,Umspannwerk Elmshorn-Ost,Schleswig-Holstein Netz AG,
-146225295,9.486287731,53.9316872558,substation,60000,,Umspannwerk Itzehoe-Mitte,Schleswig-Holstein Netz AG,Yes
-60032354,9.44963657331,53.9672865118,substation,110000,50,Itzehoe/West,TenneT,Yes
+146225295,9.486287731,53.9316872558,substation,110000;60000,,Umspannwerk Itzehoe-Mitte,Schleswig-Holstein Netz AG,
+60032354,9.44963657331,53.9672865118,substation,220000;110000,50,Itzehoe/West,TenneT,
 29342689,9.50029210974,53.9110656415,substation,110000,50,Umspannwerk Itzehoe-Süd,EON_Netz,
 230063654,9.38355039211,54.7335366257,sub_station,0,,,Energiequelle GmbH,
 230063648,9.38260792938,54.7347817837,generator,0,,,WIRSOL SOLAR AG,
@@ -33,49 +33,49 @@ n_id,longitude,latitude,type,voltage,frequency,name,operator,not_accurate
 64387633,10.0545163549,54.1791468656,substation,110000,50,Wattenbek,,
 36834679,10.2089840686,54.1329312377,substation,110000,50,Stolpe,,
 33653655,10.3640130295,54.2014845785,substation,110000,50,Trent,Schleswig-Holstein Netz,
-27124619,10.1562825032,54.2755482899,substation,110000,50,Kiel-Süd,TenneT-Schleswig-Holstein Netz,Yes
+27124619,10.1562825032,54.2755482899,substation,220000;110000,50,Kiel-Süd,TenneT-Schleswig-Holstein Netz,
 69330350,9.95087595365,54.3227891444,substation,110000,50,Umspannwerk Felde,Schleswig-Holstein Netz AG,
-59145566,10.0227460366,54.0867945887,substation,60000,50,Brachenfeld,Schleswig-Holstein Netz AG,Yes
+59145566,10.0227460366,54.0867945887,substation,110000;60000,50,Brachenfeld,Schleswig-Holstein Netz AG,
 30057522,10.4144410982,53.4143437552,substation,110000,,,access,
-23583867,10.1575057489,53.5551266387,substation,110000,50,Umspannwerk Hamburg/Ost,50Hertz Transmission-Stromnetz Hamburg GmbH,Yes
-38487390,10.2997203383,53.92763303,substation,11000,50,Bad Segeberg,Schleswig-Holstein Netz AG,Yes
-65052398,10.2098537261,53.9430728957,substation,11000,50,Umspannwerk Wahlstedt,Schleswig-Holstein Netz AG,Yes
+23583867,10.1575057489,53.5551266387,substation,380000;110000,50,Umspannwerk Hamburg/Ost,50Hertz Transmission-Stromnetz Hamburg GmbH,
+38487390,10.2997203383,53.92763303,substation,110000;11000,50,Bad Segeberg,Schleswig-Holstein Netz AG,
+65052398,10.2098537261,53.9430728957,substation,110000;30000;11000,50,Umspannwerk Wahlstedt,Schleswig-Holstein Netz AG,
 87861865,10.2325290211,54.0634848021,substation,110000,50,Bornhöved,Schleswig-Holstein Netz AG,
 32263740,9.63959759275,53.7565766268,substation,110000,50,Umspannwerk Elmshorn-Mitte,EON_Netz,
-29340834,9.64907305125,53.6902965708,substation,10000,50,Uetersen-West,Schleswig-Holstein Netz,Yes
+29340834,9.64907305125,53.6902965708,substation,110000;30000;10000,50,Uetersen-West,Schleswig-Holstein Netz,
 89205592,10.2675475055,53.7403072749,substation,110000,50,,Schleswig-Holstein Netz AG,
 42923115,10.2582303326,53.683738147,substation,110000,50,Umspannwerk Gewerbegebiet Ahrensburg,Schleswig-Holstein Netz AG,
 97337276,10.4026059729,53.8116916312,substation,110000,50,Umspannwerk Bad Oldesloe,Schleswig-Holstein Netz AG,
 97337277,10.4833311793,53.6855279958,substation,110000,50,,Schleswig-Holstein Netz AG,
-89195343,10.6665494466,53.6226305151,substation,11000,50,Umspannwerk Mölln West,Schleswig-Holstein Netz AG,Yes
+89195343,10.6665494466,53.6226305151,substation,110000;11000,50,Umspannwerk Mölln West,Schleswig-Holstein Netz AG,
 196991814,10.4886549667,53.510147495,substation,110000,50,Schwarzenbek,Schleswig-Holstein Netz AG,
 98399164,10.53829778,53.3863443438,substation,110000,50,Lauenburg/Elbe,,
-87651493,11.043237298,54.3617286829,substation,20000,50,Lütjenbrode,Schleswig-Holstein Netz,Yes
+87651493,11.043237298,54.3617286829,substation,110000;20000,50,Lütjenbrode,Schleswig-Holstein Netz,
 87651497,10.9773551098,54.3617161514,substation,110000,50,Heiligenhafen,Schleswig-Holstein Netz AG,
-29342292,9.93732284411,53.7440518779,substation,30000,50,Quickborn-Ost,Schleswig-Holstein Netz AG,Yes
-28008024,9.98853665221,53.7662776795,substation,30000,50,Hamburg Nord,TenneT-Schleswig-Holstein Netz AG,Yes
-29087070,9.86646617546,53.6295558736,substation,10000,50,Halstenbek,Schleswig-Holstein Netz AG,Yes
+29342292,9.93732284411,53.7440518779,substation,110000;30000,50,Quickborn-Ost,Schleswig-Holstein Netz AG,
+28008024,9.98853665221,53.7662776795,substation,220000;110000;30000,50,Hamburg Nord,TenneT-Schleswig-Holstein Netz AG,
+29087070,9.86646617546,53.6295558736,substation,110000;30000;10000,50,Halstenbek,Schleswig-Holstein Netz AG,
 32997200,9.78151981001,53.6663959551,substation,110000,50,Pinneberg-Mitte,EON_Netz,
-60675896,9.97224464143,53.6874415935,substation,30000,50,Garstedt,Schleswig-Holstein Netz AG,Yes
+60675896,9.97224464143,53.6874415935,substation,110000;30000,50,Garstedt,Schleswig-Holstein Netz AG,
 59295319,9.19386760939,53.909688552,substation,110000,50,Ostermoor-West,Schleswig-Holstein Netz,
 89004431,9.06345803205,54.0838336028,substation,110000,50,Meldorf,EON_Netz,
 65104367,9.10759137374,54.1868082141,substation,110000,50,Heide,EON_Netz,
 165625451,9.1891974551,53.9072950143,substation,0,,,,
 350314909,9.21483484638,53.9103407621,substation,0,,Ostermoor/Ost,,
-30622610,9.20240039878,53.8955623139,substation,110000,50,Umspannwerk Kernkraftwerk Brunsbüttel,50Hertz Transmission,Yes
+30622610,9.20240039878,53.8955623139,substation,380000;220000;110000,50,Umspannwerk Kernkraftwerk Brunsbüttel,50Hertz Transmission,
 55015415,9.44873234767,53.9664490476,plant,0,50,Gasturbinenkraftwerk Itzehoe,Uniper Kraftwerke GmbH,
-47184692,9.89338603772,53.9148613257,substation,11000,50,Umspannwerk Bad Bramstedt,Schleswig-Holstein Netz AG,Yes
+47184692,9.89338603772,53.9148613257,substation,110000;11000,50,Umspannwerk Bad Bramstedt,Schleswig-Holstein Netz AG,
 33241180,9.98615251489,54.4012281948,substation,110000,50,Umspannwerk Gettorf,EON_Netz,
 59862401,9.81307053166,54.4297775684,substation,110000,50,Umspannwerk Goosefeld,EON_Netz,
 41365603,9.69148365005,54.3088007653,substation,110000,50,Rendsburg Mitte,Schleswig-Holstein Netz AG,
 41365617,9.71608985749,54.3017638917,substation,110000,50,Umspannwerk Schacht,Schleswig-Holstein Netz AG,
 32299827,10.2337987663,53.5279278653,substation,110000,50,,Schleswig-Holstein Netz AG,
-33148774,9.72699275599,54.2914209888,substation,110000,50,Audorf,TenneT-Schleswig-Holstein Netz AG,Yes
+33148774,9.72699275599,54.2914209888,substation,220000;110000,50,Audorf,TenneT-Schleswig-Holstein Netz AG,
 232951410,10.1472262293,54.2843025855,substation,110000,50,,,
 33755994,10.3730110932,54.3672562485,substation,110000,50,Höhndorf,Schleswig-Holstein Netz AG,
 34964715,10.2989883357,54.4112212672,substation,110000,50,,EON_Netz,
-54327058,10.1804211104,54.3422699286,substation,110000,50,,EON_Netz,
-22720647,9.98460987842,53.7411288197,substation,110000,50,Umspannwerk Hamburg-Nord,50Hertz Transmission,Yes
+54327058,10.179822938,54.3421452391,substation,110000,50,,EON_Netz,
+22720647,9.98460987842,53.7411288197,substation,380000;220000;110000,50,Umspannwerk Hamburg-Nord,50Hertz Transmission,
 22984348,10.0563664775,53.6745125526,substation,0,,,,
 29342344,9.5799293565,53.8445016129,substation,110000,50,Umspannwerk Steinburg,EON_Netz,
 29342449,9.58107152544,53.8728349824,substation,110000,50,,,
@@ -83,20 +83,20 @@ n_id,longitude,latitude,type,voltage,frequency,name,operator,not_accurate
 94840464,10.4755911913,54.0435831224,substation,110000,50,,,
 83428533,10.621121176,54.1233740691,substation,110000,50,,,
 60585697,9.66131720358,53.6166398531,substation,0,,Holm,EON_Netz,
-25673030,9.71287770462,53.5940283671,substation,10000,50,Wedel/Nord,Schleswig-Holstein Netz,Yes
+25673030,9.71287770462,53.5940283671,substation,110000;30000;10000,50,Wedel/Nord,Schleswig-Holstein Netz,
 87967859,9.10902139787,54.3733684831,substation,110000,50,Friedrichstadt,EON_Netz,
 87965406,9.09626214981,54.4727075642,substation,110000,50,Rosendahl,EON_Netz,
 64952003,9.18136170572,54.2557895904,substation,110000,50,Linden,EON_Netz,
 65104361,9.01370264426,54.2750582895,substation,110000,50,Hemme/West,EON_Netz,
-87952821,9.31819528239,54.7160494381,substation,20000,50,Flensburg,TenneT,Yes
+87952821,9.31819528239,54.7160494381,substation,380000;220000;110000;20000,50,Flensburg,TenneT,
 87962820,9.23239568204,54.6835756307,substation,110000,50,Umspannwerk Schobüll,EON_Netz,
 241976797,9.14645345671,54.6338276753,substation,0,,Löwenstedt,,
-303602660,9.29935344508,54.7010681387,substation,30000,50,,ABE Betriebsgesellschaft GmbH,Yes
-35431117,9.40942186536,54.5571623374,substation,15000,50;16.7,Unterwerk Jübek,DB_Energie,Yes
-32539644,9.94712210224,54.1090104117,substation,15000,16.7,Unterwerk Neumünster,DB_Energie,Yes
+303602660,9.29935344508,54.7010681387,substation,110000;30000,50,,ABE Betriebsgesellschaft GmbH,
+35431117,9.40942186536,54.5571623374,substation,110000;15000,50;16.7,Unterwerk Jübek,DB_Energie,
+32539644,9.94712210224,54.1090104117,substation,110000;15000,16.7,Unterwerk Neumünster,DB_Energie,
 79277567,9.47593999902,54.5179326187,substation,110000,50,Schuby,EON_Netz,
 23427799,10.4177976727,53.4247686353,substation,110000,50,Umspannwerk Grüner Jäger,,
-23366603,10.4149924163,53.4126068888,substation,110000,,Krümmel,50Hertz,Yes
+23366603,10.4149924163,53.4126068888,substation,380000;110000,,Krümmel,50Hertz,
 81131224,9.92170537909,54.144822877,substation,110000,50,UW Kamp,EON_Netz,
 71270250,9.85278430366,54.1730655715,substation,110000,50,UW Nortorf,Schleswig-Holstein Netz AG,
 59145558,9.97607411593,54.1176081236,substation,110000,50,,EON_Netz,
@@ -114,20 +114,21 @@ n_id,longitude,latitude,type,voltage,frequency,name,operator,not_accurate
 292390670,9.11456848989,54.8445339834,substation,110000,,UW Süderlügum,,
 95179399,9.65448104299,54.3168473867,substation,110000,,Umspannwerk Büdelsdorf,Schleswig-Holstein Netz AG,
 89005341,9.40843402657,54.1169974821,substation,110000,50,Hademarschen,Schleswig-Holstein Netz AG,
-35176751,9.72592508227,54.2877859018,substation,110000,50,Audorf,TenneT,Yes
+35176751,9.72592508227,54.2877859018,substation,380000;110000,50,Audorf,TenneT,
 61954443,10.1471965722,54.2854268787,substation,110000,,,SWKiel Netz,
 96153941,9.98947060267,54.081856249,substation,110000,50,Neumünster/Mitte,Schleswig-Holstein Netz AG,
 70497082,9.9756673353,54.0630262707,sub_station,110000,50,Neumünster/West,Schleswig-Holstein Netz AG,
 31696338,9.97612235362,54.1181674634,substation,110000,50,Einfeld,Schleswig-Holstein Netz AG,
-74893659,10.8023580119,53.8975474463,substation,110000,,HGÜ Baltic-Cable - Stromrichterstation Herrenwyk,,Yes
+74893659,10.8023580119,53.8975474463,substation,380000;110000,,HGÜ Baltic-Cable - Stromrichterstation Herrenwyk,,
 69691861,9.9869543053,54.0497089909,sub_station,110000,50,Neumünster/Süd,Schleswig-Holstein Netz AG,
 59145568,9.98732465313,54.1178807218,substation,110000,50,Umspannwerk Neumünster/Nord,Schleswig-Holstein Netz AG,
 87465956,10.0067727914,54.0846491558,sub_station,110000,50,Umspannwerk Ost,Stadtwerke Neumünster,
 41225256,9.7227336615,54.2903383525,plant,0,50,Kraftwerk Audorf,Uniper Kraftwerke GmbH,
-29341067,9.65473538145,53.7627421379,substation,15000,16.7,Unterwerk Elmshorn,DB_Energie,Yes
+29341067,9.65473538145,53.7627421379,substation,110000;15000,16.7,Unterwerk Elmshorn,DB_Energie,
 275650140,9.3450367706,53.8521498182,plant,0,,Kernkraftwerk Brokdorf,E.ON,
-27646106,10.0604081396,54.3487708404,substation,110000,50,Umspannwerk Kiel West,TenneT,Yes
-149869159,10.1787557232,54.3389740023,plant,0,,Gemeinschaftskraftwerk Kiel,,
+27646106,10.0604081396,54.3487708404,substation,220000;110000,50,Umspannwerk Kiel West,TenneT,
+149869159,10.1787534746,54.3389734802,plant,0,,Gemeinschaftskraftwerk Kiel,,
 28502915,9.34476104626,53.9218370866,substation,380000,50,Umspannwerk Wilster,TenneT,
-87722999,9.34400180742,53.8517775008,substation,220000,,Brokdorf,TenneT,Yes
-301158539,9.19699687595,54.8510976422,substation,20000,,Umspannwerk Jardelund,,Yes
+87722999,9.34400180742,53.8517775008,substation,380000;220000,,Brokdorf,TenneT,
+136034396,9.23495376771,53.9168466327,substation,380000;320000;250000,,Konverterstation Büttel,,
+301158539,9.19699687595,54.8510976422,substation,380000;110000;20000,,Umspannwerk Jardelund,,
