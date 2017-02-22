@@ -862,48 +862,49 @@ class Transnet:
         cim_writer = CimWriter(all_circuits, map_centroid, population_by_station_dict, self.voltage_levels)
         cim_writer.publish(self.destdir + '/cim')
 
-        # for circuit in all_circuits:
-        #     for line in circuit.members[1:-1]:
-        #         if line.id not in self.all_lines:
-        #             self.length_all += line.length
-        #             self.all_lines[line.id] = line.id
-        #
-        # root.info('All lines length without duplicates %s', str(self.length_all / 1000))
-        #
-        # self.length_all = 0
-        # for circuit in all_circuits:
-        #     for line in circuit.members[1:-1]:
-        #         self.length_all += line.length
-        #
-        # root.info('All lines length with duplicates %s', str(self.length_all / 1000))
-        #
-        # for circuit in all_circuits:
-        #     sts = [circuit.members[0], circuit.members[-1]]
-        #     for st in sts:
-        #         if st.id not in self.all_stations:
-        #             self.all_stations[st.id] = 1
-        #         else:
-        #             self.all_stations[st.id] += 1
-        #
-        # root.info('All Stations count %s', str(len(self.all_stations)))
-        #
-        # # for circuit in all_circuits:
-        # #     for gen in [circuit.members[0], circuit.members[-1]]:
-        # #         tags_list = [x.replace('"', "").replace('\\', "").strip() for x in
-        # #                      str(gen.tags).replace(',', '=>').split('=>')]
-        # #         if gen.type in ['plant', 'generator'] and not any([x.startswith('solar') for x in tags_list]):
-        # #             if gen.id not in self.all_power_planet:
-        # #                 self.all_power_planet[gen.id] = '%s_%s' % (gen.lat, gen.lon)
-        #
+        ###########################################################
+        for circuit in all_circuits:
+            for line in circuit.members[1:-1]:
+                if line.id not in self.all_lines:
+                    self.length_all += line.length
+                    self.all_lines[line.id] = line.id
+
+        root.info('All lines length without duplicates %d', round(self.length_all / 1000))
+
+        self.length_all = 0
+        for circuit in all_circuits:
+            for line in circuit.members[1:-1]:
+                self.length_all += line.length
+
+        root.info('All lines length with duplicates %d', round(self.length_all / 1000))
+
+        for circuit in all_circuits:
+            sts = [circuit.members[0], circuit.members[-1]]
+            for st in sts:
+                if st.id not in self.all_stations:
+                    self.all_stations[st.id] = 1
+                else:
+                    self.all_stations[st.id] += 1
+
+        root.info('All Stations count %d', len(self.all_stations))
+
         # for circuit in all_circuits:
         #     for gen in [circuit.members[0], circuit.members[-1]]:
-        #
-        #         if gen.type in ['plant', 'generator']:
+        #         tags_list = [x.replace('"', "").replace('\\', "").strip() for x in
+        #                      str(gen.tags).replace(',', '=>').split('=>')]
+        #         if gen.type in ['plant', 'generator'] and not any([x.startswith('solar') for x in tags_list]):
         #             if gen.id not in self.all_power_planet:
         #                 self.all_power_planet[gen.id] = '%s_%s' % (gen.lat, gen.lon)
-        #
-        # root.info('All power Planets count %s', str(len(self.all_power_planet)))
 
+        for circuit in all_circuits:
+            for gen in [circuit.members[0], circuit.members[-1]]:
+
+                if gen.type in ['plant', 'generator']:
+                    if gen.id not in self.all_power_planet:
+                        self.all_power_planet[gen.id] = '%s_%s' % (gen.lat, gen.lon)
+
+        root.info('All power Planets count %s', len(self.all_power_planet))
+        #####################################################
         if self.validate:
             validator = InferenceValidator(self.cur)
             if boundary:
@@ -1008,6 +1009,8 @@ if __name__ == '__main__':
                 transnet_instance.prepare_planet_json(continent)
         else:
             transnet_instance.run()
+
+        logging.info("#################################################")
     except Exception as e:
         root.error(e.message)
         parser.print_help()
