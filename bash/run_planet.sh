@@ -27,7 +27,7 @@ git checkout planet-models
 
 cd bash
 
-#./_prepare_db_planet.sh | tee -a "../logs/planet_db.log"
+./_prepare_db_planet.sh | tee -a "../logs/planet_db.log"
 
 ./_prepare_planet_poly_and_voltages.sh | tee -a "../logs/planet_poly_and_voltages.log"
 
