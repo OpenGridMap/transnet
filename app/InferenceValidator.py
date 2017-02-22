@@ -47,30 +47,41 @@ class InferenceValidator:
     def validate2(self, circuits, stations_dict, boundary, voltage_levels):
 
         logging.info("Starting inference validation")
-        sql = '''SELECT DISTINCT(id), get_stations(r.parts),
-                  hstore(r.tags)->'voltage'
+
+        sql = '''SELECT DISTINCT r.id AS osm_id,
+                  r.parts AS parts,
+                  hstore(r.tags)->'voltage' AS voltage
                   FROM planet_osm_rels r, planet_osm_polygon s1,
                   planet_osm_polygon s2 '''
-        sql += '''where (s1.power ~ 'substation|station|sub_station'
-        and s1.voltage ~ '%s' or s1.power ~ 'generator|plant')
+
+        sql += '''where ((s1.power ~ 'substation|station|sub_station'
+                and s1.voltage ~ '%s') or s1.power ~ 'generator|plant')
                 and ARRAY[s1.osm_id]::bigint[] <@ r.parts
                 and st_within(s1.way, st_transform(st_geomfromtext('%s',4269),3857)) ''' \
                % (voltage_levels, boundary.wkt)
-        sql += '''and (s2.power ~ 'substation|station|sub_station'
-                and s2.voltage ~ '%s'
+
+        sql += '''and ((s2.power ~ 'substation|station|sub_station'
+                and s2.voltage ~ '%s')
                 or s2.power ~ 'generator|plant')
                 and ARRAY[s2.osm_id]::bigint[] <@ r.parts
                 and st_within(s2.way, st_transform(st_geomfromtext('%s',4269),3857)) ''' % \
                (voltage_levels, boundary.wkt)
+
         sql += '''and s1.osm_id <> s2.osm_id
             and hstore(r.tags)->'route'='power' '''
+
         self.cur.execute(sql)
         result = self.cur.fetchall()
+
         num_eligible_relations = len(result)
+
         hits = 0
         not_hit_connections = []
-        for (_id, station_ids, voltage) in result:
-            if not voltage or int(voltage) < 220000:
+
+        voltages = sorted([int(v) for v in voltage_levels.split('|')])
+
+        for (_id, parts, voltage) in result:
+            if not voltage or int(voltage) < voltages[0]:
                 sql = "SELECT parts FROM planet_osm_rels WHERE id = " + str(_id)
                 self.cur.execute(sql)
                 result2 = self.cur.fetchall()
@@ -86,7 +97,7 @@ class InferenceValidator:
                         if not part_voltage:
                             voltage = None
                             continue
-                        if ';' not in part_voltage and ',' not in part_voltage and int(part_voltage) >= 220000:
+                        if ';' not in part_voltage and ',' not in part_voltage and int(part_voltage) >= voltages[0]:
                             voltage = part_voltage
                             break
 
@@ -97,6 +108,16 @@ class InferenceValidator:
 
             relation_covered = False
             num_hit_p2p_connections = 0
+
+            sql_stations_ids = '''SELECT array_agg(s.osm_id) AS stations_ids
+                FROM planet_osm_polygon s
+                WHERE ARRAY [s.osm_id] :: INTEGER [] <@ %s AND
+                ((s.power ~ 'substation|station|sub_station' AND s.voltage ~ %s) OR
+                 s.power ~ 'plant|generator')'''
+
+            self.cur.execute(sql_stations_ids, [parts, voltage_levels])
+            station_ids = self.cur.fetchone()[0]
+
             for circuit in circuits:
                 if Util.have_common_voltage(circuit.voltage, voltage):
                     station1 = circuit.members[0]
@@ -110,6 +131,7 @@ class InferenceValidator:
                             num_hit_p2p_connections += 1
                         index1 += 1
                         index2 = index1 + 1
+
                 if num_hit_p2p_connections == len(station_ids) - 1:
                     relation_covered = True
                     break
@@ -117,17 +139,22 @@ class InferenceValidator:
                 hits += 1
             else:
                 not_hit_connections.append(_id)
+
         hit_rate = hits * 1.0 / num_eligible_relations
         logging.info('Found %d of %d eligible point-to-point connections (%.2lf)', hits, num_eligible_relations,
                      hit_rate)
         logging.info('Not hit point-to-point connections: %s', str(not_hit_connections))
+        logging.info('Number of all found relations %d ' % len(circuits))
+        logging.info('Number of all eligible OSM relations %d ' % num_eligible_relations)
 
     @staticmethod
     def find_connected_stations(stations, voltage, connected_stations, covered_stations):
         for station_id in connected_stations.difference(covered_stations):
             covered_stations.add(station_id)
-            connected_stations.update(InferenceValidator.find_connected_stations(stations, voltage, stations[
-                station_id].connected_stations[voltage], covered_stations))
+            connected_stations.update(
+                InferenceValidator.find_connected_stations(stations, voltage,
+                                                           stations[station_id].connected_stations[voltage],
+                                                           covered_stations))
         return connected_stations
 
     @staticmethod
