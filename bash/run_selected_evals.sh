@@ -17,7 +17,7 @@ source activate transnet
 
 which python > ../logs/python_ver.txt
 
-cat /dev/null > ../logs/evals.log
+cat /dev/null > ../configs/evals/evals.log
 
 ./run_country.sh ../configs/evals/austria.conf | tee -a "../configs/evals/evals.log"
 
