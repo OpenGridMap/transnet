@@ -77,6 +77,7 @@ class InferenceValidator:
 
         hits = 0
         not_hit_connections = []
+        not_hit_connection_percentage = []
 
         voltages = sorted([int(v) for v in voltage_levels.split('|')])
 
@@ -138,14 +139,18 @@ class InferenceValidator:
             if relation_covered:
                 hits += 1
             else:
+                not_hit_connection_percentage.append(num_hit_p2p_connections / (len(station_ids) - 1))
                 not_hit_connections.append(_id)
 
         hit_rate = hits * 1.0 / num_eligible_relations
         logging.info('Found %d of %d eligible point-to-point connections (%.2lf)', hits, num_eligible_relations,
                      hit_rate)
-        logging.info('Not hit point-to-point connections: %s', str(not_hit_connections))
+        # logging.info('Not hit point-to-point connections: %s', str(not_hit_connections))
+        logging.info('Not hit point-to-point connections percentage average: %s',
+                     str(sum(not_hit_connection_percentage) / len(not_hit_connections)))
         logging.info('Number of all found relations %d ' % len(circuits))
         logging.info('Number of all eligible OSM relations %d ' % num_eligible_relations)
+
 
     @staticmethod
     def find_connected_stations(stations, voltage, connected_stations, covered_stations):
