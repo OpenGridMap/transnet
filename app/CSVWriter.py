@@ -144,17 +144,18 @@ class CSVWriter:
                         voltage_selected_round) in self.coeffs_of_voltage and wires_selected:
                     coeffs = self.coeffs_of_voltage[int(voltage_selected_round)]
                     # Specific resistance of the transmission lines.
-                    r_ohm_kms = coeffs['r'] / (int(wires_selected) / coeffs['wires_typical']) / (
+                    if coeffs['wires_typical']:
+                        r_ohm_kms = coeffs['r'] / (int(wires_selected) / coeffs['wires_typical']) / (
                         int(cables_selected) / 3.0)
-                    # Specific reactance of the transmission lines.
-                    x_ohm_kms = coeffs['x'] / (int(wires_selected) / coeffs['wires_typical']) / (
-                        int(cables_selected) / 3.0)
-                    # Specific capacitance of the transmission lines.
-                    c_nf_kms = coeffs['c'] * (int(wires_selected) / coeffs['wires_typical']) * (
-                        int(cables_selected) / 3.0)
-                    # Specific maximum current of the transmission lines.
-                    i_th_max_kms = coeffs['i'] * (int(wires_selected) / coeffs['wires_typical']) * (
-                        int(cables_selected) / 3.0)
+                        # Specific reactance of the transmission lines.
+                        x_ohm_kms = coeffs['x'] / (int(wires_selected) / coeffs['wires_typical']) / (
+                            int(cables_selected) / 3.0)
+                        # Specific capacitance of the transmission lines.
+                        c_nf_kms = coeffs['c'] * (int(wires_selected) / coeffs['wires_typical']) * (
+                            int(cables_selected) / 3.0)
+                        # Specific maximum current of the transmission lines.
+                        i_th_max_kms = coeffs['i'] * (int(wires_selected) / coeffs['wires_typical']) * (
+                            int(cables_selected) / 3.0)
 
                 lines_writer.writerow([str(line_counter),
                                        str(id_by_station_dict[station1]),
