@@ -27,6 +27,14 @@ git checkout planet-models
 
 cd bash
 
+cat /dev/null > ../logs/planet_db.log
+cat /dev/null > ../logs/planet_poly_and_voltages.log
+cat /dev/null > ../logs/planet_topology.log
+cat /dev/null > ../logs/planet_matlab.log
+cat /dev/null > ../logs/whole_continent_topology.log
+cat /dev/null > ../logs/whole_continent_matlab.log
+
+
 ./_prepare_db_planet.sh | tee -a "../logs/planet_db.log"
 
 ./_prepare_planet_poly_and_voltages.sh | tee -a "../logs/planet_poly_and_voltages.log"
