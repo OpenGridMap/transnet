@@ -14,11 +14,7 @@ Total length of all found lines is 13815716.4553 meters
 Remove duplicates from 81 circuits
 67 circuits remain
 Line length with duplicates is 4147276.22179 meters
-Inference took 0:00:06.994564 millies
-CSV generation started ...
-CIM model generation started ...
-1141 CIM objects serialised in 0.13s.
-1141 CIM objects serialised in 0.12s.
+Inference took 0:00:04.484452 millies
 All lines length without duplicates 3481
 All lines length with duplicates 3698
 All Stations count 67
@@ -27,7 +23,7 @@ Starting inference validation
 Found 0 of 0 eligible point-to-point connections (1.00)
 Number of all found relations 67 
 Number of all eligible OSM relations 0 
-Took 0:00:14.916678 in total
+Took 0:00:11.358024 in total
 #################################################
 Machine: leimhofe
 Running for ../models/countries/europe/belgium 
@@ -45,11 +41,7 @@ Total length of all found lines is 1240590.29704 meters
 Remove duplicates from 96 circuits
 52 circuits remain
 Line length with duplicates is 1912530.46671 meters
-Inference took 0:00:04.225383 millies
-CSV generation started ...
-CIM model generation started ...
-854 CIM objects serialised in 0.09s.
-854 CIM objects serialised in 0.09s.
+Inference took 0:00:04.113004 millies
 All lines length without duplicates 1019
 All lines length with duplicates 1409
 All Stations count 48
@@ -58,7 +50,7 @@ Starting inference validation
 Found 0 of 0 eligible point-to-point connections (1.00)
 Number of all found relations 52 
 Number of all eligible OSM relations 0 
-Took 0:00:05.385938 in total
+Took 0:00:04.758045 in total
 #################################################
 Machine: leimhofe
 Running for ../models/countries/south-america/chile 
@@ -76,11 +68,7 @@ Total length of all found lines is 8023471.42645 meters
 Remove duplicates from 130 circuits
 105 circuits remain
 Line length with duplicates is 6570512.33203 meters
-Inference took 0:00:09.062332 millies
-CSV generation started ...
-CIM model generation started ...
-1971 CIM objects serialised in 0.20s.
-1971 CIM objects serialised in 0.20s.
+Inference took 0:00:05.782940 millies
 All lines length without duplicates 4203
 All lines length with duplicates 4849
 All Stations count 113
@@ -89,7 +77,7 @@ Starting inference validation
 Found 0 of 0 eligible point-to-point connections (1.00)
 Number of all found relations 105 
 Number of all eligible OSM relations 0 
-Took 0:00:11.087066 in total
+Took 0:00:06.259549 in total
 #################################################
 Machine: leimhofe
 Running for ../models/countries/europe/france 
@@ -111,50 +99,18 @@ Total length of all found lines is 36728378.9093 meters
 Remove duplicates from 1476 circuits
 904 circuits remain
 Line length with duplicates is 40705041.8773 meters
-Inference took 0:08:32.006402 millies
-CSV generation started ...
-float division by zero
-Usage: Transnet.py [options]
-
-Options:
-  -h, --help            show this help message and exit
-  -D DBNAME, --dbname=DBNAME
-                        database name of the topology network
-  -H DBHOST, --dbhost=DBHOST
-                        database host address of the topology network
-  -P DBPORT, --dbport=DBPORT
-                        database port of the topology network
-  -U DBUSER, --dbuser=DBUSER
-                        database user name of the topology network
-  -X DBPWRD, --dbpwrd=DBPWRD
-                        database user password of the topology network
-  -s SSID, --ssid=SSID  substation id to start the inference from
-  -p POLY, --poly=POLY  poly file that defines the region to perform the
-                        inference for
-  -b BOUNDING_POLYGON, --bpoly=BOUNDING_POLYGON
-                        defines the region to perform the inference for within
-                        the specified polygon in WKT, e.g.'POLYGON((128.74
-                        41.68, 142.69 41.68, 142.69 30.84, 128.74 30.84,
-                        128.74 41.68))'
-  -v, --verbose         enable verbose logging
-  -e, --evaluate        enable inference-to-existing-relation evaluation
-  -t, --topology        enable plotting topology graph
-  -V VOLTAGE_LEVELS, --voltage=VOLTAGE_LEVELS
-                        voltage levels in format 'level 1|...|level n', e.g.
-                        '220000|380000'
-  -l, --loadestimation  enable load estimation based on Voronoi partitions
-  -d DESTDIR, --destdir=DESTDIR
-                        destination of the inference results; results will be
-                        stored in directory transnet/models/<destdir>
-  -c CONTINENT, --continent=CONTINENT
-                        name of continent, options: 'africa', 'antarctica',
-                        'asia', 'australia-oceania', 'central-america',
-                        'europe', 'north-america', 'south-america'
-  -m MATLAB, --matlab=MATLAB
-                        run matlab for all countries in continent modeling
-  -j, --preparejson     prepare json files of planet
-  -g, --globe           run global commmands
-  -f, --findmissing     find missing data from OSM
+Inference took 0:08:29.791032 millies
+All lines length without duplicates 22577
+All lines length with duplicates 27029
+All Stations count 727
+All power Planets count 42
+Starting inference validation
+Found 617 of 666 eligible point-to-point connections (0.93)
+Not hit point-to-point connections percentage average: 0
+Number of all found relations 904 
+Number of all eligible OSM relations 666 
+Took 9:14:35.656320 in total
+#################################################
 Machine: leimhofe
 Running for ../models/countries/europe/great-britain 
 Running for europe 
@@ -175,50 +131,18 @@ Total length of all found lines is 21255556.5397 meters
 Remove duplicates from 1240 circuits
 849 circuits remain
 Line length with duplicates is 26737542.6665 meters
-Inference took 0:04:54.131438 millies
-CSV generation started ...
-float division by zero
-Usage: Transnet.py [options]
-
-Options:
-  -h, --help            show this help message and exit
-  -D DBNAME, --dbname=DBNAME
-                        database name of the topology network
-  -H DBHOST, --dbhost=DBHOST
-                        database host address of the topology network
-  -P DBPORT, --dbport=DBPORT
-                        database port of the topology network
-  -U DBUSER, --dbuser=DBUSER
-                        database user name of the topology network
-  -X DBPWRD, --dbpwrd=DBPWRD
-                        database user password of the topology network
-  -s SSID, --ssid=SSID  substation id to start the inference from
-  -p POLY, --poly=POLY  poly file that defines the region to perform the
-                        inference for
-  -b BOUNDING_POLYGON, --bpoly=BOUNDING_POLYGON
-                        defines the region to perform the inference for within
-                        the specified polygon in WKT, e.g.'POLYGON((128.74
-                        41.68, 142.69 41.68, 142.69 30.84, 128.74 30.84,
-                        128.74 41.68))'
-  -v, --verbose         enable verbose logging
-  -e, --evaluate        enable inference-to-existing-relation evaluation
-  -t, --topology        enable plotting topology graph
-  -V VOLTAGE_LEVELS, --voltage=VOLTAGE_LEVELS
-                        voltage levels in format 'level 1|...|level n', e.g.
-                        '220000|380000'
-  -l, --loadestimation  enable load estimation based on Voronoi partitions
-  -d DESTDIR, --destdir=DESTDIR
-                        destination of the inference results; results will be
-                        stored in directory transnet/models/<destdir>
-  -c CONTINENT, --continent=CONTINENT
-                        name of continent, options: 'africa', 'antarctica',
-                        'asia', 'australia-oceania', 'central-america',
-                        'europe', 'north-america', 'south-america'
-  -m MATLAB, --matlab=MATLAB
-                        run matlab for all countries in continent modeling
-  -j, --preparejson     prepare json files of planet
-  -g, --globe           run global commmands
-  -f, --findmissing     find missing data from OSM
+Inference took 0:04:54.058764 millies
+All lines length without duplicates 13355
+All lines length with duplicates 17906
+All Stations count 859
+All power Planets count 31
+Starting inference validation
+Found 202 of 223 eligible point-to-point connections (0.91)
+Not hit point-to-point connections percentage average: 0
+Number of all found relations 849 
+Number of all eligible OSM relations 223 
+Took 0:07:31.166082 in total
+#################################################
 Machine: leimhofe
 Running for ../models/countries/asia/india 
 Running for asia 
@@ -243,11 +167,7 @@ Total length of all found lines is 208842702.544 meters
 Remove duplicates from 729 circuits
 592 circuits remain
 Line length with duplicates is 40418218.4293 meters
-Inference took 0:07:56.773225 millies
-CSV generation started ...
-CIM model generation started ...
-11120 CIM objects serialised in 1.17s.
-11120 CIM objects serialised in 1.19s.
+Inference took 0:07:00.302931 millies
 All lines length without duplicates 29829
 All lines length with duplicates 31881
 All Stations count 683
@@ -256,7 +176,7 @@ Starting inference validation
 Found 0 of 0 eligible point-to-point connections (1.00)
 Number of all found relations 592 
 Number of all eligible OSM relations 0 
-Took 0:08:11.048627 in total
+Took 0:07:06.557200 in total
 #################################################
 Machine: leimhofe
 Running for ../models/countries/asia/japan 
@@ -282,11 +202,7 @@ Total length of all found lines is 19452389.6992 meters
 Remove duplicates from 436 circuits
 289 circuits remain
 Line length with duplicates is 16502004.1796 meters
-Inference took 0:00:49.330399 millies
-CSV generation started ...
-CIM model generation started ...
-4845 CIM objects serialised in 0.69s.
-4845 CIM objects serialised in 0.53s.
+Inference took 0:00:37.462969 millies
 All lines length without duplicates 10237
 All lines length with duplicates 10873
 All Stations count 275
@@ -296,7 +212,7 @@ Found 16 of 18 eligible point-to-point connections (0.89)
 Not hit point-to-point connections percentage average: 0
 Number of all found relations 289 
 Number of all eligible OSM relations 18 
-Took 0:01:03.350049 in total
+Took 0:00:45.627657 in total
 #################################################
 Machine: leimhofe
 Running for ../models/countries/africa/morocco 
@@ -314,11 +230,7 @@ Total length of all found lines is 8682573.80069 meters
 Remove duplicates from 99 circuits
 77 circuits remain
 Line length with duplicates is 7442868.61611 meters
-Inference took 0:00:06.159328 millies
-CSV generation started ...
-CIM model generation started ...
-1148 CIM objects serialised in 0.12s.
-1148 CIM objects serialised in 0.12s.
+Inference took 0:00:03.978483 millies
 All lines length without duplicates 4381
 All lines length with duplicates 5749
 All Stations count 61
@@ -327,7 +239,7 @@ Starting inference validation
 Found 0 of 0 eligible point-to-point connections (1.00)
 Number of all found relations 77 
 Number of all eligible OSM relations 0 
-Took 0:00:08.097579 in total
+Took 0:00:05.064077 in total
 #################################################
 Machine: leimhofe
 Running for ../models/countries/europe/netherlands 
@@ -345,11 +257,7 @@ Total length of all found lines is 1473269.16825 meters
 Remove duplicates from 99 circuits
 66 circuits remain
 Line length with duplicates is 2348208.8396 meters
-Inference took 0:00:06.792263 millies
-CSV generation started ...
-CIM model generation started ...
-1025 CIM objects serialised in 0.11s.
-1025 CIM objects serialised in 0.11s.
+Inference took 0:00:06.663895 millies
 All lines length without duplicates 1259
 All lines length with duplicates 1393
 All Stations count 59
@@ -358,7 +266,7 @@ Starting inference validation
 Found 6 of 6 eligible point-to-point connections (1.00)
 Number of all found relations 66 
 Number of all eligible OSM relations 6 
-Took 0:00:11.571568 in total
+Took 0:00:10.873719 in total
 #################################################
 Machine: leimhofe
 Running for ../models/countries/europe/poland 
@@ -376,47 +284,15 @@ Total length of all found lines is 11616380.4157 meters
 Remove duplicates from 326 circuits
 190 circuits remain
 Line length with duplicates is 11842762.7554 meters
-Inference took 0:00:20.628805 millies
-CSV generation started ...
-float division by zero
-Usage: Transnet.py [options]
-
-Options:
-  -h, --help            show this help message and exit
-  -D DBNAME, --dbname=DBNAME
-                        database name of the topology network
-  -H DBHOST, --dbhost=DBHOST
-                        database host address of the topology network
-  -P DBPORT, --dbport=DBPORT
-                        database port of the topology network
-  -U DBUSER, --dbuser=DBUSER
-                        database user name of the topology network
-  -X DBPWRD, --dbpwrd=DBPWRD
-                        database user password of the topology network
-  -s SSID, --ssid=SSID  substation id to start the inference from
-  -p POLY, --poly=POLY  poly file that defines the region to perform the
-                        inference for
-  -b BOUNDING_POLYGON, --bpoly=BOUNDING_POLYGON
-                        defines the region to perform the inference for within
-                        the specified polygon in WKT, e.g.'POLYGON((128.74
-                        41.68, 142.69 41.68, 142.69 30.84, 128.74 30.84,
-                        128.74 41.68))'
-  -v, --verbose         enable verbose logging
-  -e, --evaluate        enable inference-to-existing-relation evaluation
-  -t, --topology        enable plotting topology graph
-  -V VOLTAGE_LEVELS, --voltage=VOLTAGE_LEVELS
-                        voltage levels in format 'level 1|...|level n', e.g.
-                        '220000|380000'
-  -l, --loadestimation  enable load estimation based on Voronoi partitions
-  -d DESTDIR, --destdir=DESTDIR
-                        destination of the inference results; results will be
-                        stored in directory transnet/models/<destdir>
-  -c CONTINENT, --continent=CONTINENT
-                        name of continent, options: 'africa', 'antarctica',
-                        'asia', 'australia-oceania', 'central-america',
-                        'europe', 'north-america', 'south-america'
-  -m MATLAB, --matlab=MATLAB
-                        run matlab for all countries in continent modeling
-  -j, --preparejson     prepare json files of planet
-  -g, --globe           run global commmands
-  -f, --findmissing     find missing data from OSM
+Inference took 0:00:20.264125 millies
+All lines length without duplicates 6096
+All lines length with duplicates 7818
+All Stations count 142
+All power Planets count 17
+Starting inference validation
+Found 128 of 146 eligible point-to-point connections (0.88)
+Not hit point-to-point connections percentage average: 0
+Number of all found relations 190 
+Number of all eligible OSM relations 146 
+Took 0:01:03.259887 in total
+#################################################
