@@ -997,7 +997,8 @@ if __name__ == '__main__':
         exit()
 
     try:
-
+        #import sys
+	#sys.setrecursionlimit(30000)
         logging.info("Running for %s " % destdir)
         logging.info("Running for %s " % dbname)
 

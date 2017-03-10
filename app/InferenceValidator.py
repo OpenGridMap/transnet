@@ -118,6 +118,7 @@ class InferenceValidator:
 
             self.cur.execute(sql_stations_ids, [parts, voltage_levels])
             station_ids = self.cur.fetchone()[0]
+	    covered_stations = dict()
 
             for circuit in circuits:
                 if Util.have_common_voltage(circuit.voltage, voltage):
@@ -127,9 +128,10 @@ class InferenceValidator:
                     index1 = 0
                     index2 = index1 + 1
                     while index2 < len(station_ids):
-                        if station_ids[index1] in station1_connected_stations and \
-                                        station_ids[index2] in station1_connected_stations:
+			pairs = '{0}-{1}'.format(station_ids[index1], station_ids[index2])
+                        if pairs not in covered_stations and (station_ids[index1] in station1_connected_stations and  station_ids[index2] in station1_connected_stations):
                             num_hit_p2p_connections += 1
+			    covered_stations[pairs] = pairs
                         index1 += 1
                         index2 = index1 + 1
 
@@ -138,7 +140,9 @@ class InferenceValidator:
                     break
             if relation_covered:
                 hits += 1
+		print 'RR' +  str(len(station_ids)) + ', ' + str(_id)  + ', yes'  
             else:
+		print 'RR' +  str(len(station_ids)) + ', ' + str(_id)  + ', no'
                 if len(station_ids) - 1 > 0:
                     not_hit_connection_percentage.append(num_hit_p2p_connections / (len(station_ids) - 1))
                 not_hit_connections.append(_id)
