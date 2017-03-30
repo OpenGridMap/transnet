@@ -184,7 +184,7 @@ class Transnet:
                 if new_node_to_continue_id in Transnet.covered_nodes:
                     relation.append(line)
                     root.debug('Encountered loop - stopping inference at line (%s): %s', str(line.id),
-                               Transnet.to_overpass_string(relation))
+                              Transnet.to_overpass_string(relation))
                     relation.remove(line)
                     Transnet.covered_nodes.update(line.nodes)
                     continue
