@@ -15,6 +15,8 @@ import psycopg2
 from shapely import wkb, wkt
 from shapely.geometry import MultiPoint
 
+from CSVWriter import CSVWriter
+from CimWriter import CimWriter
 from Circuit import Circuit
 from InferenceValidator import InferenceValidator
 from Line import Line
@@ -22,8 +24,6 @@ from LoadEstimator import LoadEstimator
 from Plotter import Plotter
 from PolyParser import PolyParser
 from Station import Station
-from app.CSVWriter import CSVWriter
-from app.CimWriter import CimWriter
 
 root = logging.getLogger()
 root.setLevel(logging.DEBUG)
@@ -309,7 +309,7 @@ class Transnet:
 
     @staticmethod
     def run_matlab_for_countries(matlab_command, continent_folder, root_log):
-        dirs = [x[0] for x in walk(join(dirname(__file__), '../models/{0}/'.format(continent_folder)))]
+        dirs = [x[0] for x in walk(join(dirname(__file__), '../../transnet-models/{0}/'.format(continent_folder)))]
         matlab_dir = join(dirname(__file__), '../matlab')
         for DIR in dirs[1:]:
             try:
@@ -766,7 +766,7 @@ class Transnet:
                 try:
                     self.voltage_levels = continent_json[self.chose_continent]['voltages']
                     self.poly = '../data/planet/{0}/pfile.poly'.format(continent)
-                    self.destdir = '../models/planet/{0}/'.format(continent)
+                    self.destdir = '../../transnet-models/planet/{0}/'.format(continent)
                     if self.voltage_levels:
                         Transnet.reset_params()
                         self.modeling(continent)
@@ -781,7 +781,7 @@ class Transnet:
                     try:
                         self.voltage_levels = continent_json[country]['voltages']
                         self.poly = '../data/{0}/{1}/pfile.poly'.format(continent, country)
-                        self.destdir = '../models/{0}/{1}/'.format(continent, country)
+                        self.destdir = '../../transnet-models/{0}/{1}/'.format(continent, country)
                         if self.voltage_levels:
                             Transnet.reset_params()
                             self.modeling(country)
@@ -999,8 +999,8 @@ if __name__ == '__main__':
     try:
         # import sys
         # sys.setrecursionlimit(30000)
-        logging.info("Running for %s " % destdir)
-        logging.info("Running for %s " % dbname)
+        # logging.info("Running for %s " % destdir)
+        # logging.info("Running for %s " % dbname)
 
         transnet_instance = Transnet(_database=dbname, _host=dbhost, _port=dbport,
                                      _user=dbuser, _password=dbpwrd, _ssid=ssid,
