@@ -15,8 +15,6 @@ import psycopg2
 from shapely import wkb, wkt
 from shapely.geometry import MultiPoint
 
-from CSVWriter import CSVWriter
-from CimWriter import CimWriter
 from Circuit import Circuit
 from InferenceValidator import InferenceValidator
 from Line import Line
@@ -24,6 +22,8 @@ from LoadEstimator import LoadEstimator
 from Plotter import Plotter
 from PolyParser import PolyParser
 from Station import Station
+from app.CSVWriter import CSVWriter
+from app.CimWriter import CimWriter
 
 root = logging.getLogger()
 root.setLevel(logging.DEBUG)
@@ -184,7 +184,7 @@ class Transnet:
                 if new_node_to_continue_id in Transnet.covered_nodes:
                     relation.append(line)
                     root.debug('Encountered loop - stopping inference at line (%s): %s', str(line.id),
-                              Transnet.to_overpass_string(relation))
+                               Transnet.to_overpass_string(relation))
                     relation.remove(line)
                     Transnet.covered_nodes.update(line.nodes)
                     continue
@@ -854,13 +854,13 @@ class Transnet:
             plotter = Plotter(self.voltage_levels)
             plotter.plot_topology(all_circuits, equipments_multipoint, partition_by_station_dict, cities, self.destdir)
 
-        # root.info('CSV generation started ...')
-        # csv_writer = CSVWriter(all_circuits)
-        # csv_writer.publish(self.destdir + '/csv')
+        root.info('CSV generation started ...')
+        csv_writer = CSVWriter(all_circuits)
+        csv_writer.publish(self.destdir + '/csv')
 
-        # root.info('CIM model generation started ...')
-        # cim_writer = CimWriter(all_circuits, map_centroid, population_by_station_dict, self.voltage_levels)
-        # cim_writer.publish(self.destdir + '/cim')
+        root.info('CIM model generation started ...')
+        cim_writer = CimWriter(all_circuits, map_centroid, population_by_station_dict, self.voltage_levels)
+        cim_writer.publish(self.destdir + '/cim')
 
         ###########################################################
         for circuit in all_circuits:
@@ -997,8 +997,8 @@ if __name__ == '__main__':
         exit()
 
     try:
-        #import sys
-	#sys.setrecursionlimit(30000)
+        # import sys
+        # sys.setrecursionlimit(30000)
         logging.info("Running for %s " % destdir)
         logging.info("Running for %s " % dbname)
 

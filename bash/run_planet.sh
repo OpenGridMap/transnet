@@ -20,13 +20,6 @@ which python > ../logs/python_ver.txt
 export HTTP_PROXY="http://proxy:8080"
 export HTTPS_PROXY="https://proxy:8080"
 
-cd ..
-git add .
-git commit -m "changing branch to start modeling"
-git checkout planet-models
-
-cd bash
-
 cat /dev/null > ../logs/planet_db.log
 cat /dev/null > ../logs/planet_poly_and_voltages.log
 cat /dev/null > ../logs/planet_topology.log
@@ -47,7 +40,7 @@ cat /dev/null > ../logs/whole_continent_matlab.log
 
 #./_run_whole_continent_matlab.sh | tee -a "../logs/whole_continent_matlab.log"
 
-cd ..
+cd ../../transnet-models
 git add .
 git commit -m "modeling continents"
-git push origin planet-models
+git push origin master
