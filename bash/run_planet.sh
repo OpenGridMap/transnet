@@ -30,7 +30,7 @@ cat /dev/null > ../../transnet-models/logs/whole_continent_topology.log
 cat /dev/null > ../../transnet-models/logs/whole_continent_matlab.log
 
 
-#./_prepare_db_planet.sh | tee -a "../../transnet-models/logs/planet_db.log"
+./_prepare_db_planet.sh | tee -a "../../transnet-models/logs/planet_db.log"
 
 ./_prepare_planet_poly_and_voltages.sh | tee -a "../../transnet-models/logs/planet_poly_and_voltages.log"
 
