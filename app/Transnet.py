@@ -854,13 +854,18 @@ class Transnet:
             plotter = Plotter(self.voltage_levels)
             plotter.plot_topology(all_circuits, equipments_multipoint, partition_by_station_dict, cities, self.destdir)
 
-        root.info('CSV generation started ...')
-        csv_writer = CSVWriter(all_circuits)
-        csv_writer.publish(self.destdir + '/csv')
-
-        root.info('CIM model generation started ...')
-        cim_writer = CimWriter(all_circuits, map_centroid, population_by_station_dict, self.voltage_levels)
-        cim_writer.publish(self.destdir + '/cim')
+        try:
+            root.info('CSV generation started ...')
+            csv_writer = CSVWriter(all_circuits)
+            csv_writer.publish(self.destdir + '/csv')
+        except Exception as ex:
+            root.error(ex.message)
+        try:
+            root.info('CIM model generation started ...')
+            cim_writer = CimWriter(all_circuits, map_centroid, population_by_station_dict, self.voltage_levels)
+            cim_writer.publish(self.destdir + '/cim')
+        except Exception as ex:
+            root.error(ex.message)
 
         ###########################################################
         for circuit in all_circuits:

@@ -78,6 +78,9 @@ class InferenceValidator:
         hits = 0
         not_hit_connections = []
         not_hit_connection_percentage = []
+        length_of_eligible_relation = 0
+        length_of_covered_eligible_relation = 0
+        length_of_inferred_relation_covering = 0
 
         voltages = sorted([int(v) for v in voltage_levels.split('|')])
 
@@ -120,6 +123,22 @@ class InferenceValidator:
             station_ids = self.cur.fetchone()[0]
             covered_stations = dict()
 
+            sql_lines = '''SELECT l.osm_id AS osm_id,
+                            l.voltage AS voltages,
+                            st_length(st_transform(l.way, 4326), TRUE) AS spheric_length
+                            FROM planet_osm_line l
+                            WHERE ARRAY [l.osm_id] :: INTEGER [] <@ %s 
+                            AND  l.power ~ 'line|cable|minor_line' AND l.voltage ~ %s '''
+
+            self.cur.execute(sql_lines, [parts, voltage_levels])
+            circuit_lines = self.cur.fetchall()
+
+            length_of_manual_relation = 0
+            for (_id, voltages, length,) in circuit_lines:
+                length_of_manual_relation += length
+
+            length_of_eligible_relation += length_of_manual_relation
+
             for circuit in circuits:
                 if Util.have_common_voltage(circuit.voltage, voltage):
                     station1 = circuit.members[0]
@@ -130,10 +149,12 @@ class InferenceValidator:
                     while index2 < len(station_ids):
                         pairs = '{0}-{1}'.format(station_ids[index1], station_ids[index2])
                         if pairs not in covered_stations and (
-                                station_ids[index1] in station1_connected_stations and station_ids[
-                            index2] in station1_connected_stations):
+                                        station_ids[index1] in station1_connected_stations and station_ids[
+                                    index2] in station1_connected_stations):
                             num_hit_p2p_connections += 1
                             covered_stations[pairs] = pairs
+                            for line in circuit.members[1:-1]:
+                                length_of_inferred_relation_covering += line.length
                         index1 += 1
                         index2 = index1 + 1
 
@@ -142,6 +163,7 @@ class InferenceValidator:
                     break
             if relation_covered:
                 hits += 1
+                length_of_covered_eligible_relation += length_of_manual_relation
             else:
                 if len(station_ids) - 1 > 0:
                     not_hit_connection_percentage.append(num_hit_p2p_connections / (len(station_ids) - 1))
@@ -159,6 +181,10 @@ class InferenceValidator:
                          str(sum(not_hit_connection_percentage) / len(not_hit_connections)))
         logging.info('Number of all found relations %d ' % len(circuits))
         logging.info('Number of all eligible OSM relations %d ' % num_eligible_relations)
+        logging.info('Length of eligible relations %d ' % round(length_of_eligible_relation / 1000))
+        logging.info(
+            'length of covered eligible relations %d ' % round(length_of_covered_eligible_relation / 1000))
+        logging.info('Length of inferred relations covering %d ' % round(length_of_inferred_relation_covering / 1000))
 
     @staticmethod
     def find_connected_stations(stations, voltage, connected_stations, covered_stations):
