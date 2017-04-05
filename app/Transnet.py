@@ -1004,8 +1004,8 @@ if __name__ == '__main__':
     try:
         # import sys
         # sys.setrecursionlimit(30000)
-        # logging.info("Running for %s " % destdir)
-        # logging.info("Running for %s " % dbname)
+        logging.info("Running for %s " % destdir)
+        logging.info("Running for %s " % dbname)
 
         transnet_instance = Transnet(_database=dbname, _host=dbhost, _port=dbport,
                                      _user=dbuser, _password=dbpwrd, _ssid=ssid,
