@@ -10,15 +10,15 @@ class Line(Way):
         self.end_point_dict = end_point_dict
         self.length = length
 
-        self.missing_voltage_estimatate = None
-        self.missing_cables_estimatate = None
+        self.missing_voltage_estimate = None
+        self.missing_cables_estimate = None
 
     def __str__(self):
         return 'Line - ' + Way.__str__(self)
 
     def add_missing_data_estimation(self, voltage=None, cables=None):
-        self.missing_voltage_estimatate = voltage
-        self.missing_cables_estimatate = cables
+        self.missing_voltage_estimate = voltage
+        self.missing_cables_estimate = cables
 
     def serialize(self):
         line = {
@@ -37,8 +37,8 @@ class Line(Way):
             'raw_geom': str(self.raw_geom)
         }
 
-        if self.missing_cables_estimatate or self.missing_voltage_estimatate:
-            line['estimated_cables'] = self.missing_cables_estimatate
-            line['estimated_voltage'] = self.missing_voltage_estimatate
+        if self.missing_cables_estimate or self.missing_voltage_estimate:
+            line['estimated_cables'] = self.missing_cables_estimate
+            line['estimated_voltage'] = self.missing_voltage_estimate
 
         return line

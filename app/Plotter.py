@@ -76,6 +76,7 @@ class Plotter:
             xmax + sidebar_width / 4, xmax + 3 * sidebar_width / 4, ymax - sidebar_height / 3,
             ymax - sidebar_height / 2),
                   zorder=11)
+        # noinspection PyTypeChecker
         text = AnchoredText('(c) OpenGridMap', loc=1, prop={'size': 12}, frameon=True, borderpad=0.8)
         text.set_zorder(11)
         ax.add_artist(text)

@@ -93,24 +93,19 @@ class Transnet:
     @staticmethod
     def create_relations(stations, lines, _ssid, voltage):
         # root.info('\nStart inference for Substation %s', str(ssid))
-        station_id = long(_ssid)
-
         relations = []
-        relations.extend(Transnet.infer_relations(stations, lines, stations[station_id]))
+        relations.extend(Transnet.infer_relations(stations, lines, stations[_ssid]))
 
         circuits = []
         for relation in relations:
-            if Transnet.num_subs_in_relation(relation) == 2 and len(
-                    relation) >= 3:  # at least two end points + one line
-
+            # at least two end points + one line
+            if Transnet.num_subs_in_relation(relation) == 2 and len(relation) >= 3:
                 first_line = relation[1]
                 station1 = relation[0]
                 station2 = relation[-1]
                 station1.add_connected_station(station2.id, voltage)
                 station2.add_connected_station(station1.id, voltage)
-
                 circuit = Circuit(relation, voltage, first_line.name, first_line.ref)
-
                 circuits.append(circuit)
 
         return circuits
@@ -507,7 +502,7 @@ class Transnet:
                 generators[id] = all_generators[id]
         root.info('Found %s generators', str(len(generators)))
 
-        if boundary is not None:
+        if boundary:
             circuits = Transnet.create_relations_of_region(substations, generators, lines, voltage_level)
         else:
             stations = substations.copy()
@@ -710,8 +705,8 @@ class Transnet:
         stations_missing_data = dict()
 
         self.cur.execute(stations_missing_connections_sql)
-        result_statoins_missing_connection = self.cur.fetchall()
-        for (osm_id, geom, power_type, name, ref, voltage, tags, lat, lon) in result_statoins_missing_connection:
+        result_stations_missing_connection = self.cur.fetchall()
+        for (osm_id, geom, power_type, name, ref, voltage, tags, lat, lon) in result_stations_missing_connection:
             if osm_id not in stations_missing_data:
                 polygon = wkb.loads(geom, hex=True)
                 raw_geom = geom
@@ -730,8 +725,8 @@ class Transnet:
                     stations_missing_data[osm_id] = temp_station
 
         self.cur.execute(stations_missing_voltage)
-        result_statoins_missing_voltage = self.cur.fetchall()
-        for (osm_id, geom, power_type, name, ref, voltage, tags, lat, lon) in result_statoins_missing_voltage:
+        result_stations_missing_voltage = self.cur.fetchall()
+        for (osm_id, geom, power_type, name, ref, voltage, tags, lat, lon) in result_stations_missing_voltage:
             if osm_id not in stations_missing_data:
                 polygon = wkb.loads(geom, hex=True)
                 raw_geom = geom
@@ -1002,8 +997,6 @@ if __name__ == '__main__':
         exit()
 
     try:
-        # import sys
-        # sys.setrecursionlimit(30000)
         logging.info("Running for %s " % destdir)
         logging.info("Running for %s " % dbname)
 
