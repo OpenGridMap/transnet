@@ -10,8 +10,9 @@ class CSVWriter:
         380000: dict(wires_typical=4.0, r=0.025, x=0.25, c=13.7, i=2.6)
     }
 
-    def __init__(self, circuits):
+    def __init__(self, circuits, logger):
         self.circuits = circuits
+        self.logger = logger
 
     @staticmethod
     def convert_wire_names_to_numbers(string):
@@ -51,7 +52,6 @@ class CSVWriter:
         return ''
 
     def publish(self, file_name):
-
         id_by_station_dict = dict()
         line_counter = 1
 
@@ -140,22 +140,25 @@ class CSVWriter:
                     voltage_selected_round = 380000
                 elif 180000 <= int(voltage_selected) <= 260000:
                     voltage_selected_round = 220000
-                if length_selected and cables_selected and int(
-                        voltage_selected_round) in self.coeffs_of_voltage and wires_selected:
-                    coeffs = self.coeffs_of_voltage[int(voltage_selected_round)]
-                    # Specific resistance of the transmission lines.
-                    if coeffs['wires_typical']:
-                        r_ohm_kms = coeffs['r'] / (int(wires_selected) / coeffs['wires_typical']) / (
-                        int(cables_selected) / 3.0)
-                        # Specific reactance of the transmission lines.
-                        x_ohm_kms = coeffs['x'] / (int(wires_selected) / coeffs['wires_typical']) / (
-                            int(cables_selected) / 3.0)
-                        # Specific capacitance of the transmission lines.
-                        c_nf_kms = coeffs['c'] * (int(wires_selected) / coeffs['wires_typical']) * (
-                            int(cables_selected) / 3.0)
-                        # Specific maximum current of the transmission lines.
-                        i_th_max_kms = coeffs['i'] * (int(wires_selected) / coeffs['wires_typical']) * (
-                            int(cables_selected) / 3.0)
+                try:
+                    if length_selected and cables_selected and int(
+                            voltage_selected_round) in self.coeffs_of_voltage and wires_selected:
+                        coeffs = self.coeffs_of_voltage[int(voltage_selected_round)]
+                        # Specific resistance of the transmission lines.
+                        if coeffs['wires_typical']:
+                            r_ohm_kms = coeffs['r'] / (int(wires_selected) / coeffs['wires_typical']) / (
+                                int(cables_selected) / 3.0)
+                            # Specific reactance of the transmission lines.
+                            x_ohm_kms = coeffs['x'] / (int(wires_selected) / coeffs['wires_typical']) / (
+                                int(cables_selected) / 3.0)
+                            # Specific capacitance of the transmission lines.
+                            c_nf_kms = coeffs['c'] * (int(wires_selected) / coeffs['wires_typical']) * (
+                                int(cables_selected) / 3.0)
+                            # Specific maximum current of the transmission lines.
+                            i_th_max_kms = coeffs['i'] * (int(wires_selected) / coeffs['wires_typical']) * (
+                                int(cables_selected) / 3.0)
+                except Exception as ex:
+                    self.logger.error(ex.message)
 
                 lines_writer.writerow([str(line_counter),
                                        str(id_by_station_dict[station1]),

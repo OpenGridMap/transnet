@@ -856,7 +856,7 @@ class Transnet:
 
         try:
             root.info('CSV generation started ...')
-            csv_writer = CSVWriter(all_circuits)
+            csv_writer = CSVWriter(all_circuits, root)
             csv_writer.publish(self.destdir + '/csv')
         except Exception as ex:
             root.error(ex.message)
