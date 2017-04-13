@@ -120,7 +120,6 @@ class InferenceValidator:
 
             self.cur.execute(sql_stations_ids, [parts, voltage_levels])
             station_ids = self.cur.fetchone()[0]
-            print len(station_ids)
             if len(station_ids) > 1:
                 station1 = station_ids[0]
                 station2 = station_ids[1]
