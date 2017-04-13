@@ -89,8 +89,8 @@ class InferenceValidator:
                 sql = "SELECT parts FROM planet_osm_rels WHERE id = " + str(_id)
                 self.cur.execute(sql)
                 result2 = self.cur.fetchall()
-                for (parts,) in result2:
-                    for part in parts:
+                for (parts2,) in result2:
+                    for part in parts2:
                         sql = "SELECT hstore(tags)->'voltage' FROM planet_osm_ways WHERE id = " + str(part)
                         self.cur.execute(sql)
                         result3 = self.cur.fetchall()
@@ -134,7 +134,7 @@ class InferenceValidator:
             circuit_lines = self.cur.fetchall()
 
             length_of_manual_relation = 0
-            for (_id, voltages, length,) in circuit_lines:
+            for (line_id, voltages, length,) in circuit_lines:
                 length_of_manual_relation += length
 
             length_of_eligible_relation += length_of_manual_relation
@@ -149,8 +149,8 @@ class InferenceValidator:
                     while index2 < len(station_ids):
                         pairs = '{0}-{1}'.format(station_ids[index1], station_ids[index2])
                         if pairs not in covered_stations and (
-                                        station_ids[index1] in station1_connected_stations and station_ids[
-                                    index2] in station1_connected_stations):
+                                        station_ids[index1] in station1_connected_stations and
+                                        station_ids[index2] in station1_connected_stations):
                             num_hit_p2p_connections += 1
                             covered_stations[pairs] = pairs
                             for line in circuit.members[1:-1]:
@@ -167,6 +167,7 @@ class InferenceValidator:
             else:
                 if len(station_ids) - 1 > 0:
                     not_hit_connection_percentage.append(num_hit_p2p_connections / (len(station_ids) - 1))
+                    # logging.info(InferenceValidator.to_overpass_string(parts))
                 not_hit_connections.append(_id)
 
         if num_eligible_relations:
@@ -204,3 +205,10 @@ class InferenceValidator:
             stations.add(circuit.members[0])
             stations.add(circuit.members[-1])
         return len(stations)
+
+    @staticmethod
+    def to_overpass_string(parts):
+        overpass = ''
+        for part in parts:
+            overpass += 'way(' + str(part) + ');(._;>;);out;'
+        return overpass
