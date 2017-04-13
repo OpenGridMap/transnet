@@ -31,11 +31,9 @@ root.setLevel(logging.DEBUG)
 
 
 class Transnet:
-    covered_nodes = None
-    geod = pyproj.Geod(ellps='WGS84')
-
     def __init__(self, _database, _user, _host, _port, _password, _ssid, _poly, _bpoly, _verbose, _validate,
-                 _topology, _voltage_levels, _load_estimation, _destdir, _continent, _whole_planet, _find_missing_data):
+                 _topology, _voltage_levels, _load_estimation, _destdir, _continent, _whole_planet, _find_missing_data,
+                 _close_nodes, _overpass):
         self.length_all = 0
         self.all_lines = dict()
         self.all_stations = dict()
@@ -54,13 +52,18 @@ class Transnet:
         self.chose_continent = _continent
         self.whole_planet = _whole_planet
         self.find_missing_data = _find_missing_data
+        self.close_nodes = _close_nodes
+        self.overpass = _overpass
 
         self.connection = {'database': _database, 'user': _user, 'host': _host, 'port': _port}
         self.conn = psycopg2.connect(password=_password, **self.connection)
         self.cur = self.conn.cursor()
 
-    @staticmethod
-    def prepare_poly_country(continent_name, country):
+        self.covered_nodes = None
+        self.geod = pyproj.Geod(ellps='WGS84')
+
+    # noinspection PyMethodMayBeStatic
+    def prepare_poly_country(self, continent_name, country):
         if not exists('../data/{0}/{1}/'.format(continent_name, country)):
             makedirs('../data/{0}/{1}/'.format(continent_name, country))
         root.info('Downloading poly for {0}'.format(country))
@@ -74,8 +77,8 @@ class Transnet:
             download_string = 'http://download.geofabrik.de/{0}/{1}.poly'.format(continent_name, country)
         urllib.URLopener().retrieve(download_string, '../data/{0}/{1}/pfile.poly'.format(continent_name, country))
 
-    @staticmethod
-    def prepare_poly_continent(continent_name):
+    # noinspection PyMethodMayBeStatic
+    def prepare_poly_continent(self, continent_name):
         if not exists('../data/planet/{0}/'.format(continent_name)):
             makedirs('../data/planet/{0}/'.format(continent_name))
         root.info('Downloading poly for {0}'.format(continent_name))
@@ -88,20 +91,18 @@ class Transnet:
             download_string = 'http://download.geofabrik.de/{0}.poly'.format(continent_name)
         urllib.URLopener().retrieve(download_string, '../data/planet/{0}/pfile.poly'.format(continent_name))
 
-    @staticmethod
-    def reset_params():
-        Transnet.covered_nodes = None
+    def reset_params(self):
+        self.covered_nodes = None
 
-    @staticmethod
-    def create_relations(stations, lines, _ssid, voltage):
+    def create_relations(self, stations, lines, _ssid, voltage):
         # root.info('\nStart inference for Substation %s', str(ssid))
         relations = []
-        relations.extend(Transnet.infer_relations(stations, lines, stations[_ssid]))
+        relations.extend(self.infer_relations(stations, lines, stations[_ssid]))
 
         circuits = []
         for relation in relations:
             # at least two end points + one line
-            if Transnet.num_subs_in_relation(relation) == 2 and len(relation) >= 3:
+            if self.num_subs_in_relation(relation) == 2 and len(relation) >= 3:
                 first_line = relation[1]
                 station1 = relation[0]
                 station2 = relation[-1]
@@ -116,8 +117,7 @@ class Transnet:
     # station - represents the station to infer circuits for
     # stations - dict of all possibly connected stations
     # lines - list of all lines that could connect stations
-    @staticmethod
-    def infer_relations(stations, lines, station):
+    def infer_relations(self, stations, lines, station):
         # find lines that cross the station's area - note that
         #  the end point of the line has to be within the substation for valid crossing
         relations = []
@@ -125,18 +125,20 @@ class Transnet:
             node_to_continue_id = None
             # here it checks to find the intersecting lines and station, if no intersecting found then looks for line
             # nodes with distance less than 50 meters
-            if Transnet.node_intersect_with_any_station(line.end_point_dict[line.first_node()], [station]):
+            if self.node_intersect_with_any_station(line.end_point_dict[line.first_node()], [station]):
                 node_to_continue_id = line.last_node()
-            elif Transnet.node_intersect_with_any_station(line.end_point_dict[line.last_node()], [station]):
+            elif self.node_intersect_with_any_station(line.end_point_dict[line.last_node()], [station]):
                 node_to_continue_id = line.first_node()
-            if Transnet.node_within_distance_any_station(line.end_point_dict[line.first_node()], [station]):
+            if self.close_nodes and self.node_within_distance_any_station(line.end_point_dict[line.first_node()],
+                                                                          [station]):
                 node_to_continue_id = line.last_node()
-            elif Transnet.node_within_distance_any_station(line.end_point_dict[line.last_node()], [station]):
+            elif self.close_nodes and self.node_within_distance_any_station(line.end_point_dict[line.last_node()],
+                                                                            [station]):
                 node_to_continue_id = line.first_node()
 
             if node_to_continue_id:
-                Transnet.covered_nodes = set(line.nodes)
-                Transnet.covered_nodes.remove(node_to_continue_id)
+                self.covered_nodes = set(line.nodes)
+                self.covered_nodes.remove(node_to_continue_id)
                 if line.id in station.covered_line_ids:
                     root.debug('Relation with %s at %s already covered', str(line), str(station))
                     continue
@@ -147,25 +149,24 @@ class Transnet:
                 # here we have the beginning of the relation which is one station with one line connected to it
                 relation = [station, line]
                 relations.extend(
-                    Transnet.infer_relation(stations, lines, relation, node_to_continue_id, line))
+                    self.infer_relation(stations, lines, relation, node_to_continue_id, line))
         return relations
 
     # recursive function that infers electricity circuits
     # circuit - sorted member array
     # line - line of circuit
     # stations - all known stations
-    @staticmethod
-    def infer_relation(stations, lines, relation, node_to_continue_id, from_line):
+    def infer_relation(self, stations, lines, relation, node_to_continue_id, from_line):
         relation = list(relation)  # make a copy
         start_station = relation[0]
         # here also check for intersection
-        station_id = Transnet.node_intersect_with_any_station(
+        station_id = self.node_intersect_with_any_station(
             from_line.end_point_dict[node_to_continue_id], stations.values())
-        if not station_id:
-            Transnet.node_within_distance_any_station(
+        if not station_id and self.close_nodes:
+            self.node_within_distance_any_station(
                 from_line.end_point_dict[node_to_continue_id], stations.values())
         if station_id and station_id == start_station.id:  # if node to continue is at the starting station --> LOOP
-            root.debug('Encountered loop: %s', Transnet.to_overpass_string(relation))
+            root.debug('Encountered loop: %s', self.to_overpass_string(relation))
             return []
         elif station_id and station_id != start_station.id:
             # if a node is within another station --> FOUND THE 2nd ENDPOINT
@@ -191,74 +192,72 @@ class Transnet:
                     new_node_to_continue_id = line.last_node()
                 else:
                     new_node_to_continue_id = line.first_node()
-                if new_node_to_continue_id in Transnet.covered_nodes:
+                if new_node_to_continue_id in self.covered_nodes:
                     relation.append(line)
                     root.debug('Encountered loop - stopping inference at line (%s): %s', str(line.id),
-                               Transnet.to_overpass_string(relation))
+                               self.to_overpass_string(relation))
                     relation.remove(line)
-                    Transnet.covered_nodes.update(line.nodes)
+                    self.covered_nodes.update(line.nodes)
                     continue
                 relation_copy = list(relation)
                 relation_copy.append(line)
-                Transnet.covered_nodes.update(line.nodes)
-                Transnet.covered_nodes.remove(new_node_to_continue_id)
-                relations.extend(Transnet.infer_relation(stations, lines, relation_copy, new_node_to_continue_id, line))
+                self.covered_nodes.update(line.nodes)
+                self.covered_nodes.remove(new_node_to_continue_id)
+                relations.extend(self.infer_relation(stations, lines, relation_copy, new_node_to_continue_id, line))
 
         # if not relations:
         #     root.debug('Could not obtain circuit')
         return relations
 
-    @staticmethod
-    def to_overpass_string(relation):
+    # noinspection PyMethodMayBeStatic
+    def to_overpass_string(self, relation):
         overpass = ''
         for member in relation:
             overpass += 'way(' + str(member.id) + ');(._;>;);out;'
         return overpass
 
-    @staticmethod
-    def circuit_to_overpass_string(circuit):
+    # noinspection PyMethodMayBeStatic
+    def circuit_to_overpass_string(self, circuit):
         overpass = ''
         for member in circuit.members:
             overpass += 'way(' + str(member.id) + ');(._;>;);out;'
         return overpass
 
     # returns if node is in station
-    @staticmethod
-    def node_intersect_with_any_station(node, stations):
+    # noinspection PyMethodMayBeStatic
+    def node_intersect_with_any_station(self, node, stations):
         for station in stations:
             if node.intersects(station.geom):
                 return station.id
         return None
 
     # returns if node is within curtain distance
-    @staticmethod
-    def node_within_distance_any_station(node, stations):
+    def node_within_distance_any_station(self, node, stations):
         for station in stations:
-            distance = Transnet.get_node_station_ditance(node, station)
+            distance = self.get_node_station_ditance(node, station)
             if distance and distance < 50:
                 return station.id
         return None
 
-    @staticmethod
-    def get_node_station_ditance(node, station):
+    def get_node_station_ditance(self, node, station):
         pol_ext = LinearRing(station.geom.exterior.coords)
         touch_node = pol_ext.interpolate(pol_ext.project(node))
-        angle1, angle2, distance = Transnet.geod.inv(touch_node.coords.xy[0], touch_node.coords.xy[1],
-                                                     node.coords.xy[0], node.coords.xy[1])
+        angle1, angle2, distance = self.geod.inv(touch_node.coords.xy[0], touch_node.coords.xy[1],
+                                                 node.coords.xy[0], node.coords.xy[1])
         if distance and len(distance):
             return distance[0]
         return None
 
-    @staticmethod
-    def num_subs_in_relation(relation):
+    # noinspection PyMethodMayBeStatic
+    def num_subs_in_relation(self, relation):
         num_stations = 0
         for way in relation:
             if isinstance(way, Station):
                 num_stations += 1
         return num_stations
 
-    @staticmethod
-    def get_close_components(components, center_component):
+    # noinspection PyMethodMayBeStatic
+    def get_close_components(self, components, center_component):
         close_components = dict()
         for component in components:
             distance = center_component.geom.centroid.distance(component.geom.centroid)
@@ -266,8 +265,8 @@ class Transnet:
                 close_components[component.id] = component
         return close_components
 
-    @staticmethod
-    def parse_power(power_string):
+    # noinspection PyMethodMayBeStatic
+    def parse_power(self, power_string):
         if not power_string:
             return None
         power_string = power_string.replace(',', '.').replace('W', '')
@@ -296,19 +295,18 @@ class Transnet:
             root.debug('Could not extract power from string %s', power_string)
             return None
 
-    @staticmethod
-    def create_relations_of_region(substations, generators, lines, voltage):
+    def create_relations_of_region(self, substations, generators, lines, voltage):
         stations = substations.copy()
         stations.update(generators)
         circuits = []
         for substation_id in substations.keys():
-            close_stations_dict = Transnet.get_close_components(stations.values(), stations[substation_id])
-            close_lines_dict = Transnet.get_close_components(lines.values(), stations[substation_id])
-            circuits.extend(Transnet.create_relations(close_stations_dict, close_lines_dict, substation_id, voltage))
+            close_stations_dict = self.get_close_components(stations.values(), stations[substation_id])
+            close_lines_dict = self.get_close_components(lines.values(), stations[substation_id])
+            circuits.extend(self.create_relations(close_stations_dict, close_lines_dict, substation_id, voltage))
         return circuits
 
-    @staticmethod
-    def remove_duplicates(circuits):
+    # noinspection PyMethodMayBeStatic
+    def remove_duplicates(self, circuits):
         root.info('Remove duplicates from %s circuits', str(len(circuits)))
         covered_connections = []
         filtered_circuits = []
@@ -362,22 +360,22 @@ class Transnet:
             except Exception as ex:
                 root_log.error(ex.message)
 
-    @staticmethod
-    def try_parse_int(string):
+    # noinspection PyMethodMayBeStatic
+    def try_parse_int(self, string):
         try:
             return int(string)
         except ValueError:
             return 0
 
-    @staticmethod
-    def convert_size_mega_byte(size):
+    # noinspection PyMethodMayBeStatic
+    def convert_size_mega_byte(self, size):
         return size / 1048576.0
 
     def prepare_continent_json(self, continent_name):
         with open('meta/{0}.json'.format(continent_name), 'r+') as continent_file:
             continent_json = json.load(continent_file)
             for country in continent_json:
-                Transnet.prepare_poly_country(continent_name, country)
+                self.prepare_poly_country(continent_name, country)
                 boundary = PolyParser.poly_to_polygon('../data/{0}/{1}/pfile.poly'.format(continent_name, country))
                 where_clause = "st_intersects(l.way, st_transform(st_geomfromtext('" + boundary.wkt + "',4269),3857))"
                 query = '''SELECT DISTINCT(voltage) AS voltage, count(*)
@@ -391,7 +389,7 @@ class Transnet:
     def prepare_planet_json(self, continent_name):
         with open('meta/planet.json'.format(continent_name), 'r+') as continent_file:
             continent_json = json.load(continent_file)
-            Transnet.prepare_poly_continent(continent_name)
+            self.prepare_poly_continent(continent_name)
             query = '''SELECT DISTINCT(voltage) AS voltage, count(*) AS num
                         FROM planet_osm_line  l
                         GROUP BY voltage ORDER BY num DESC'''
@@ -408,7 +406,7 @@ class Transnet:
         result = self.cur.fetchall()
         for (voltage, num) in result:
             if num > 30 and voltage:
-                raw_voltages = [Transnet.try_parse_int(x) for x in str(voltage).strip().split(';')]
+                raw_voltages = [self.try_parse_int(x) for x in str(voltage).strip().split(';')]
                 voltages = voltages.union(set(raw_voltages))
         for voltage in sorted(voltages):
             if voltage > 99999:
@@ -423,7 +421,7 @@ class Transnet:
         try:
             with open('{0}/relations.json'.format(self.destdir), 'w') as outfile:
                 json.dump([c.serialize() for c in all_circuits], outfile, indent=4)
-            file_size = Transnet.convert_size_mega_byte(getsize('{0}/relations.json'.format(self.destdir)))
+            file_size = self.convert_size_mega_byte(getsize('{0}/relations.json'.format(self.destdir)))
 
             if file_size >= 100:
                 command = 'split --bytes=50M {0}/relations.json {0}/_relations'.format(self.destdir)
@@ -499,10 +497,14 @@ class Transnet:
                   WHERE l.osm_id >= 0 
                   AND p.osm_id >= 0
                   AND p.power ~ 'substation|station|sub_station' 
-                  AND (p.voltage ~ '%s' OR (p.voltage = '') IS NOT FALSE) 
-                  AND (st_intersects(l.way, p.way) OR st_distance(l.way, p.way) < 100)
+                  AND (p.voltage ~ '%s' OR (p.voltage = '') IS NOT FALSE)                   
                   AND l.power ~ 'line|cable|minor_line' 
                   AND l.voltage ~ '%s' AND %s''' % (self.voltage_levels, voltage_level, where_clause)
+
+        if self.close_nodes:
+            sql += ''' AND (st_intersects(l.way, p.way) OR st_distance(l.way, p.way) < 100)'''
+        else:
+            sql += ''' AND st_intersects(l.way, p.way)'''
 
         self.cur.execute(sql)
         result = self.cur.fetchall()
@@ -535,10 +537,14 @@ class Transnet:
                 FROM planet_osm_line l, planet_osm_polygon p
                 WHERE l.osm_id >= 0 
                 AND p.osm_id >= 0 
-                AND p.power ~ 'plant|generator'
-                AND (st_intersects(l.way, p.way) OR st_distance(l.way, p.way) < 100)
+                AND p.power ~ 'plant|generator'               
                 AND l.power ~ 'line|cable|minor_line'
                 AND l.voltage ~ '%s' AND %s''' % (voltage_level, where_clause)
+
+        if self.close_nodes:
+            sql += ''' AND (st_intersects(l.way, p.way) OR st_distance(l.way, p.way) < 100)'''
+        else:
+            sql += ''' AND st_intersects(l.way, p.way)'''
 
         self.cur.execute(sql)
         result = self.cur.fetchall()
@@ -550,19 +556,19 @@ class Transnet:
                 generators[id] = Station(id, polygon, type, name, ref,
                                          voltage.replace(',', ';').replace('/', ';') if voltage else None,
                                          None, tags, lat, lon, raw_geom)
-                generators[id].nominal_power = Transnet.parse_power(
-                    output1) if output1 is not None else Transnet.parse_power(output2)
+                generators[id].nominal_power = self.parse_power(
+                    output1) if output1 is not None else self.parse_power(output2)
                 equipment_points.append((lat, lon))
             else:
                 generators[id] = all_generators[id]
         root.info('Found %s generators', str(len(generators)))
 
         if boundary:
-            circuits = Transnet.create_relations_of_region(substations, generators, lines, voltage_level)
+            circuits = self.create_relations_of_region(substations, generators, lines, voltage_level)
         else:
             stations = substations.copy()
             stations.update(generators)
-            circuits = Transnet.create_relations(stations, lines, self.ssid, voltage_level)
+            circuits = self.create_relations(stations, lines, self.ssid, voltage_level)
 
         return length_found_lines, equipment_points, generators, substations, circuits
 
@@ -598,7 +604,7 @@ class Transnet:
         result_voltages = self.cur.fetchall()
         for (voltage, power_type, num) in result_voltages:
             if num > 30 and voltage:
-                raw_voltages = [Transnet.try_parse_int(x) for x in str(voltage).strip().split(';')]
+                raw_voltages = [self.try_parse_int(x) for x in str(voltage).strip().split(';')]
                 if power_type == 'line':
                     voltages_line = voltages_line.union(set(raw_voltages))
                 elif power_type == 'cable':
@@ -616,7 +622,7 @@ class Transnet:
         result_cables = self.cur.fetchall()
         for (cables, power_type, num) in result_cables:
             if num > 30 and cables:
-                raw_cables = [Transnet.try_parse_int(x) for x in str(cables).strip().split(';')]
+                raw_cables = [self.try_parse_int(x) for x in str(cables).strip().split(';')]
                 if power_type == 'line':
                     cables_line = cables_line.union(set(raw_cables))
                 elif power_type == 'cable':
@@ -676,7 +682,7 @@ class Transnet:
         with open('{0}/lines_missing_data.json'.format(self.destdir), 'w') as outfile:
             json.dump([l.serialize() for osm_id, l in lines.iteritems()], outfile, indent=4)
 
-        file_size = Transnet.convert_size_mega_byte(getsize('{0}/lines_missing_data.json'.format(self.destdir)))
+        file_size = self.convert_size_mega_byte(getsize('{0}/lines_missing_data.json'.format(self.destdir)))
 
         if file_size >= 100:
             command = 'split --bytes=50M {0}/lines_missing_data.json {0}/_lines_missing_data'.format(self.destdir)
@@ -745,7 +751,7 @@ class Transnet:
         result_station_voltages = self.cur.fetchall()
         for (voltage, power_type, num) in result_station_voltages:
             if num > 30 and voltage:
-                raw_voltages = [Transnet.try_parse_int(x) for x in str(voltage).strip().split(';')]
+                raw_voltages = [self.try_parse_int(x) for x in str(voltage).strip().split(';')]
                 if power_type in ['substation', 'sub_station']:
                     voltages_substations = voltages_substations.union(set(raw_voltages))
                 elif power_type == 'station':
@@ -801,7 +807,7 @@ class Transnet:
         with open('{0}/stations_missing_data.json'.format(self.destdir), 'w') as outfile:
             json.dump([s.serialize() for osm_id, s in stations_missing_data.iteritems()], outfile, indent=4)
 
-        file_size = Transnet.convert_size_mega_byte(getsize('{0}/stations_missing_data.json'.format(self.destdir)))
+        file_size = self.convert_size_mega_byte(getsize('{0}/stations_missing_data.json'.format(self.destdir)))
 
         if file_size >= 100:
             command = 'split --bytes=50M {0}/stations_missing_data.json {0}/_stations_missing_data'.format(self.destdir)
@@ -818,7 +824,7 @@ class Transnet:
                     self.poly = '../data/planet/{0}/pfile.poly'.format(continent)
                     self.destdir = '../../transnet-models/planet/{0}/'.format(continent)
                     if self.voltage_levels:
-                        Transnet.reset_params()
+                        self.reset_params()
                         self.modeling(continent)
                     if self.find_missing_data:
                         self.find_missing_data_for_country()
@@ -833,7 +839,7 @@ class Transnet:
                         self.poly = '../data/{0}/{1}/pfile.poly'.format(continent, country)
                         self.destdir = '../../transnet-models/{0}/{1}/'.format(continent, country)
                         if self.voltage_levels:
-                            Transnet.reset_params()
+                            self.reset_params()
                             self.modeling(country)
                         if self.find_missing_data:
                             self.find_missing_data_for_country()
@@ -884,7 +890,7 @@ class Transnet:
         equipments_multipoint = MultiPoint(equipment_points)
         map_centroid = equipments_multipoint.centroid
         logging.debug('Centroid lat:%lf, lon:%lf', map_centroid.x, map_centroid.y)
-        all_circuits = Transnet.remove_duplicates(all_circuits)
+        all_circuits = self.remove_duplicates(all_circuits)
         root.info('Inference took %s millies', str(datetime.now() - time))
 
         transnet_instance.export_to_json(all_circuits)
@@ -917,9 +923,9 @@ class Transnet:
             root.error(ex.message)
 
         ###########################################################
-
-        # for circuit in all_circuits:
-        #     root.info(Transnet.circuit_to_overpass_string(circuit))
+        if self.overpass:
+            for circuit in all_circuits:
+                root.info(self.circuit_to_overpass_string(circuit))
 
         for circuit in all_circuits:
             for line in circuit.members[1:-1]:
@@ -945,14 +951,6 @@ class Transnet:
                     self.all_stations[st.id] += 1
 
         root.info('All Stations count %d', len(self.all_stations))
-
-        # for circuit in all_circuits:
-        #     for gen in [circuit.members[0], circuit.members[-1]]:
-        #         tags_list = [x.replace('"', "").replace('\\', "").strip() for x in
-        #                      str(gen.tags).replace(',', '=>').split('=>')]
-        #         if gen.type in ['plant', 'generator'] and not any([x.startswith('solar') for x in tags_list]):
-        #             if gen.id not in self.all_power_planet:
-        #                 self.all_power_planet[gen.id] = '%s_%s' % (gen.lat, gen.lon)
 
         for circuit in all_circuits:
             for gen in [circuit.members[0], circuit.members[-1]]:
@@ -1019,6 +1017,10 @@ if __name__ == '__main__':
                       help="run global commmands")
     parser.add_option("-f", "--findmissing", action="store_true", dest="find_missing",
                       help="find missing data from OSM")
+    parser.add_option("-n", "--closenodes", action="store_true", dest="close_nodes",
+                      help="Include nodes close to station")
+    parser.add_option("-o", "--overpass", action="store_true", dest="overpass",
+                      help="Print overpass string")
 
     (options, args) = parser.parse_args()
     # get connection data via command line or set to default values
@@ -1063,7 +1065,8 @@ if __name__ == '__main__':
                                      _poly=poly, _bpoly=bpoly, _verbose=verbose,
                                      _validate=validate, _topology=topology, _voltage_levels=voltage_levels,
                                      _load_estimation=load_estimation, _destdir=destdir, _continent=continent,
-                                     _whole_planet=options.whole_planet, _find_missing_data=options.find_missing)
+                                     _whole_planet=options.whole_planet, _find_missing_data=options.find_missing,
+                                     _close_nodes=options.close_nodes, _overpass=options.overpass)
         if options.prepare_json and continent:
             transnet_instance.prepare_continent_json(continent)
             if options.whole_planet:
