@@ -167,6 +167,7 @@ class InferenceValidator:
             else:
                 if len(station_ids) - 1 > 0:
                     not_hit_connection_percentage.append(num_hit_p2p_connections / (len(station_ids) - 1))
+                    # logging.info(InferenceValidator.to_overpass_string(parts))
                 not_hit_connections.append(_id)
 
         if num_eligible_relations:
@@ -204,3 +205,10 @@ class InferenceValidator:
             stations.add(circuit.members[0])
             stations.add(circuit.members[-1])
         return len(stations)
+
+    @staticmethod
+    def to_overpass_string(parts):
+        overpass = ''
+        for part in parts:
+            overpass += 'way(' + str(part) + ');(._;>;);out;'
+        return overpass

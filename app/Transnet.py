@@ -12,8 +12,9 @@ from os.path import join
 from subprocess import call
 
 import psycopg2
+import pyproj
 from shapely import wkb, wkt
-from shapely.geometry import MultiPoint
+from shapely.geometry import MultiPoint, LinearRing
 
 from CSVWriter import CSVWriter
 from CimWriter import CimWriter
@@ -31,6 +32,7 @@ root.setLevel(logging.DEBUG)
 
 class Transnet:
     covered_nodes = None
+    geod = pyproj.Geod(ellps='WGS84')
 
     def __init__(self, _database, _user, _host, _port, _password, _ssid, _poly, _bpoly, _verbose, _validate,
                  _topology, _voltage_levels, _load_estimation, _destdir, _continent, _whole_planet, _find_missing_data):
@@ -121,10 +123,17 @@ class Transnet:
         relations = []
         for line in lines.values():
             node_to_continue_id = None
-            if Transnet.node_in_any_station(line.end_point_dict[line.first_node()], [station]):
+            # here it checks to find the intersecting lines and station, if no intersecting found then looks for line
+            # nodes with distance less than 50 meters
+            if Transnet.node_intersect_with_any_station(line.end_point_dict[line.first_node()], [station]):
                 node_to_continue_id = line.last_node()
-            elif Transnet.node_in_any_station(line.end_point_dict[line.last_node()], [station]):
+            elif Transnet.node_intersect_with_any_station(line.end_point_dict[line.last_node()], [station]):
                 node_to_continue_id = line.first_node()
+            if Transnet.node_within_distance_any_station(line.end_point_dict[line.first_node()], [station]):
+                node_to_continue_id = line.last_node()
+            elif Transnet.node_within_distance_any_station(line.end_point_dict[line.last_node()], [station]):
+                node_to_continue_id = line.first_node()
+
             if node_to_continue_id:
                 Transnet.covered_nodes = set(line.nodes)
                 Transnet.covered_nodes.remove(node_to_continue_id)
@@ -135,6 +144,7 @@ class Transnet:
                 root.debug('%s', str(line))
                 station.covered_line_ids.append(line.id)
                 # init new circuit
+                # here we have the beginning of the relation which is one station with one line connected to it
                 relation = [station, line]
                 relations.extend(
                     Transnet.infer_relation(stations, lines, relation, node_to_continue_id, line))
@@ -148,7 +158,12 @@ class Transnet:
     def infer_relation(stations, lines, relation, node_to_continue_id, from_line):
         relation = list(relation)  # make a copy
         start_station = relation[0]
-        station_id = Transnet.node_in_any_station(from_line.end_point_dict[node_to_continue_id], stations.values())
+        # here also check for intersection
+        station_id = Transnet.node_intersect_with_any_station(
+            from_line.end_point_dict[node_to_continue_id], stations.values())
+        if not station_id:
+            Transnet.node_within_distance_any_station(
+                from_line.end_point_dict[node_to_continue_id], stations.values())
         if station_id and station_id == start_station.id:  # if node to continue is at the starting station --> LOOP
             root.debug('Encountered loop: %s', Transnet.to_overpass_string(relation))
             return []
@@ -197,15 +212,41 @@ class Transnet:
     def to_overpass_string(relation):
         overpass = ''
         for member in relation:
-            overpass += 'way(' + str(member.id) + ');'
+            overpass += 'way(' + str(member.id) + ');(._;>;);out;'
+        return overpass
+
+    @staticmethod
+    def circuit_to_overpass_string(circuit):
+        overpass = ''
+        for member in circuit.members:
+            overpass += 'way(' + str(member.id) + ');(._;>;);out;'
         return overpass
 
     # returns if node is in station
     @staticmethod
-    def node_in_any_station(node, stations):
+    def node_intersect_with_any_station(node, stations):
         for station in stations:
             if node.intersects(station.geom):
                 return station.id
+        return None
+
+    # returns if node is within curtain distance
+    @staticmethod
+    def node_within_distance_any_station(node, stations):
+        for station in stations:
+            distance = Transnet.get_node_station_ditance(node, station)
+            if distance and distance < 50:
+                return station.id
+        return None
+
+    @staticmethod
+    def get_node_station_ditance(node, station):
+        pol_ext = LinearRing(station.geom.exterior.coords)
+        touch_node = pol_ext.interpolate(pol_ext.project(node))
+        angle1, angle2, distance = Transnet.geod.inv(touch_node.coords.xy[0], touch_node.coords.xy[1],
+                                                     node.coords.xy[0], node.coords.xy[1])
+        if distance and len(distance):
+            return distance[0]
         return None
 
     @staticmethod
@@ -339,12 +380,6 @@ class Transnet:
                 Transnet.prepare_poly_country(continent_name, country)
                 boundary = PolyParser.poly_to_polygon('../data/{0}/{1}/pfile.poly'.format(continent_name, country))
                 where_clause = "st_intersects(l.way, st_transform(st_geomfromtext('" + boundary.wkt + "',4269),3857))"
-
-                # where_clause = "ST_Intersects(ST_GeographyFromText(s.geom_str),
-                #  st_transform(st_geomfromtext('" + boundary.wkt + "',4269),4326))"
-                # with open('../data/{0}/{1}/where_clause'.format(continent_name, country), 'w') as wfile:
-                #     wfile.write(where_clause)
-
                 query = '''SELECT DISTINCT(voltage) AS voltage, count(*)
                             AS num FROM planet_osm_line  l WHERE %s
                             GROUP BY voltage ORDER BY num DESC''' % where_clause
@@ -409,16 +444,24 @@ class Transnet:
         # create lines dictionary
         sql = '''SELECT l.osm_id AS id,
                 st_transform(create_line(l.osm_id), 4326) AS geom,
-                l.way AS srs_geom, l.power AS type,
-                l.name, l.ref, l.voltage, l.cables, w.nodes, w.tags,
+                l.way AS srs_geom, 
+                l.power AS type,
+                l.name,
+                l.ref, 
+                l.voltage, 
+                l.cables, 
+                w.nodes, 
+                w.tags,
                 st_transform(create_point(w.nodes[1]), 4326) AS first_node_geom,
                 st_transform(create_point(w.nodes[array_length(w.nodes, 1)]), 4326) AS last_node_geom,
                 ST_Y(ST_Transform(ST_Centroid(l.way),4326)) AS lat,
                 ST_X(ST_Transform(ST_Centroid(l.way),4326)) AS lon,
                 st_length(st_transform(l.way, 4326), TRUE) AS spheric_length
                 FROM planet_osm_line l, planet_osm_ways w
-                WHERE l.osm_id >= 0 AND l.power ~ 'line|cable|minor_line'
-                AND l.voltage ~ '%s' AND l.osm_id = w.id AND %s''' % (voltage_level, where_clause)
+                WHERE l.osm_id >= 0 
+                AND l.power ~ 'line|cable|minor_line'
+                AND l.voltage ~ '%s' 
+                AND l.osm_id = w.id AND %s''' % (voltage_level, where_clause)
 
         self.cur.execute(sql)
         result = self.cur.fetchall()
@@ -443,18 +486,23 @@ class Transnet:
         root.info('Found %s lines', str(len(result)))
 
         # create station dictionary by quering only ways
-        # (there are almost no node substations for voltage level 110kV and higher)
         sql = '''SELECT DISTINCT(p.osm_id) AS id,
                   st_transform(p.way, 4326) AS geom,
-                  p.power AS type, p.name, p.ref, p.voltage, p.tags,
+                  p.power AS type, 
+                  p.name, 
+                  p.ref, 
+                  p.voltage, 
+                  p.tags,
                   ST_Y(ST_Transform(ST_Centroid(p.way),4326)) AS lat,
                   ST_X(ST_Transform(ST_Centroid(p.way),4326)) AS lon
                   FROM planet_osm_line l, planet_osm_polygon p
-                  WHERE l.osm_id >= 0 AND p.osm_id >= 0
-                  AND p.power ~ 'substation|station|sub_station' AND (p.voltage ~ '%s'
-                  OR (p.voltage = '') IS NOT FALSE) AND st_intersects(l.way, p.way)
-                  AND l.power ~ 'line|cable|minor_line' AND l.voltage ~ '%s' AND %s''' \
-              % (self.voltage_levels, voltage_level, where_clause)
+                  WHERE l.osm_id >= 0 
+                  AND p.osm_id >= 0
+                  AND p.power ~ 'substation|station|sub_station' 
+                  AND (p.voltage ~ '%s' OR (p.voltage = '') IS NOT FALSE) 
+                  AND (st_intersects(l.way, p.way) OR st_distance(l.way, p.way) < 100)
+                  AND l.power ~ 'line|cable|minor_line' 
+                  AND l.voltage ~ '%s' AND %s''' % (self.voltage_levels, voltage_level, where_clause)
 
         self.cur.execute(sql)
         result = self.cur.fetchall()
@@ -476,13 +524,20 @@ class Transnet:
         sql = '''SELECT DISTINCT(p.osm_id) AS id,
                 st_transform(p.way, 4326) AS geom,
                 p.power AS type,
-                p.name, p.ref, p.voltage, p.\"plant:output:electricity\" AS output1,
+                p.name, 
+                p.ref, 
+                p.voltage, 
+                p.\"plant:output:electricity\" AS output1,
                 p.\"generator:output:electricity\" AS output2,
-                p.tags, ST_Y(ST_Transform(ST_Centroid(p.way),4326)) AS lat,
+                p.tags, 
+                ST_Y(ST_Transform(ST_Centroid(p.way),4326)) AS lat,
                 ST_X(ST_Transform(ST_Centroid(p.way),4326)) AS lon
                 FROM planet_osm_line l, planet_osm_polygon p
-                WHERE l.osm_id >= 0 AND p.osm_id >= 0 AND p.power ~ 'plant|generator'
-                AND st_intersects(l.way, p.way) AND l.power ~ 'line|cable|minor_line'
+                WHERE l.osm_id >= 0 
+                AND p.osm_id >= 0 
+                AND p.power ~ 'plant|generator'
+                AND (st_intersects(l.way, p.way) OR st_distance(l.way, p.way) < 100)
+                AND l.power ~ 'line|cable|minor_line'
                 AND l.voltage ~ '%s' AND %s''' % (voltage_level, where_clause)
 
         self.cur.execute(sql)
@@ -790,7 +845,6 @@ class Transnet:
                 self.find_missing_data_for_country()
 
     def modeling(self, country_name):
-
         # create dest dir
         if not exists(self.destdir):
             makedirs(self.destdir)
@@ -863,6 +917,10 @@ class Transnet:
             root.error(ex.message)
 
         ###########################################################
+
+        # for circuit in all_circuits:
+        #     root.info(Transnet.circuit_to_overpass_string(circuit))
+
         for circuit in all_circuits:
             for line in circuit.members[1:-1]:
                 if line.id not in self.all_lines:
