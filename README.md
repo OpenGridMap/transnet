@@ -8,7 +8,7 @@ Information about Transnet can be found in the Master [thesis](https://github.co
 ## Setup Transnet Project (Ubuntu 16.04):
 Checkout the Transnet project:
 ```
-git clone https://github.com/OpenGridMap/transnet transnet
+git clone --depth=1 https://github.com/OpenGridMap/transnet transnet
 ```
 ## Setup Python With Conda
 Download and install miniconda for Python-2.7 (http://conda.pydata.org/miniconda.html)
