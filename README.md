@@ -11,7 +11,7 @@ Checkout the Transnet project:
 git clone --depth=1 https://github.com/OpenGridMap/transnet transnet
 ```
 ## Setup Python With Conda
-Download and install miniconda for Python-2.7 (http://conda.pydata.org/miniconda.html)
+Download and install miniconda for Python-2.7 (https://www.anaconda.com/download/#linux)
 ```
 # dismiss yes/no installation dialogs
 conda config --set always_yes true
