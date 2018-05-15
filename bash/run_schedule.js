@@ -6,7 +6,7 @@ const interval = setInterval(checkDate, 60000);
 
 function checkDate() {
     const currentDate = new Date();
-    if (currentDate.getDay() === 2 && currentDate.getHours() === 13 && currentDate.getMinutes() === 30) {
+    if (currentDate.getDay() === 2 && currentDate.getHours() === 13 && currentDate.getMinutes() === 43) {
         console.log('Started Running the Script!');
         console.log(currentDate);
         runScript();
