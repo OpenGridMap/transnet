@@ -1,6 +1,6 @@
-"use strict";
+'use strict';
 
-const exec = require('child_process').exec;
+const spawn = require('child_process').spawn;
 
 const interval = setInterval(checkDate, 60000);
 
@@ -14,12 +14,11 @@ function checkDate() {
 }
 
 function runScript() {
-    let script = exec('./run_planet.sh',
-        (error, stdout, stderr) => {
-            console.log(`${stdout}`);
-            console.log(`${stderr}`);
-            if (error !== null) {
-                console.log(`exec error: ${error}`);
-            }
-        });
+    const script = spawn('bash', [__dirname + '/run_planet.sh']);
+    script.on('exit', () => {
+        console.log('process exit');
+    });
+    script.stdout.pipe(process.stdout);:
+    script.stderr.pipe(process.stderr);
 }
+runScript();
