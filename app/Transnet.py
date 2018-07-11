@@ -917,7 +917,8 @@ class Transnet:
             root.error(ex.message)
         try:
             root.info('CIM model generation started ...')
-            cim_writer = CimWriter(all_circuits, map_centroid, population_by_station_dict, self.voltage_levels)
+            cim_writer = CimWriter(all_circuits, map_centroid, population_by_station_dict, self.voltage_levels,
+                                   country_name, len(all_substations))
             cim_writer.publish(self.destdir + '/cim')
         except Exception as ex:
             root.error(ex.message)

@@ -9,6 +9,8 @@ from shapely.geometry import Polygon, Point
 from City import City
 from Plotter import Plotter
 
+from CimParams import CimParams
+
 
 class LoadEstimator:
     stations = None
@@ -165,6 +167,14 @@ class LoadEstimator:
         per_head_power_consumption = 7.381
         load_per_head = (per_head_power_consumption * 1000) / (365 * 24)
         total_load = population * load_per_head
+        return total_load
+
+    @staticmethod
+    def estimate_load_country(country_name, count_substations):
+        count_substations = count_substations if count_substations > 0 else 1
+        per_head_power_consumption = CimParams.get_energy_consumption_per_capta(country_name)
+        load_per_head = (per_head_power_consumption * 1000) / (365 * 24)
+        total_load = (CimParams.get_country_population(country_name) / count_substations) * load_per_head
         return total_load
 
 

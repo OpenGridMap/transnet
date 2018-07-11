@@ -57,7 +57,7 @@ sudo apt-get install osmosis
 ```
 Now you are ready to go to use the _prepare_db.sh_ shell script that sets up the database for a specific region for you.
 The script requires the path to a config file as input parameter. For several countries such config files already exist in the _configs_ subdirectory.
-For example, let's have a look at the config file for Austria (_configs/austria.conf_):
+For example, let's have a look at the config file for Austria (_configs/countries/austria.conf_):
 ```
 ### Database
 dname='austria'
@@ -92,7 +92,7 @@ Note: You should specify a .passfile in your home directory according to https:/
 
 ```
 cd transnet/bash
-./prepare_db.sh ../configs/austria.conf
+./prepare_db.sh ../configs/countries/austria.conf
 ```
 
 ### MySQL Database

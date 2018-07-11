@@ -41,7 +41,7 @@ class CimWriter:
     # cim uuid -> cim connectivity node object
     connectivity_by_uuid_dict = dict()
 
-    def __init__(self, circuits, centroid, population_by_station_dict, voltage_levels):
+    def __init__(self, circuits, centroid, population_by_station_dict, voltage_levels, country_name, count_substations):
         self.circuits = circuits
         self.centroid = centroid
         self.population_by_station_dict = population_by_station_dict
@@ -50,6 +50,8 @@ class CimWriter:
         self.uuid_by_osmid_dict = dict()
         self.cimobject_by_uuid_dict = OrderedDict()
         self.connectivity_by_uuid_dict = dict()
+        self.country_name = country_name
+        self.count_substations = count_substations
         self.root = logging.getLogger()
 
     def publish(self, file_name):
@@ -253,7 +255,8 @@ class CimWriter:
             transformer_winding = self.add_transformer_winding(osm_substation_id, winding_voltage, transformer)
         connectivity_node = self.connectivity_by_uuid_dict[transformer_winding.UUID]
         estimated_load = LoadEstimator.estimate_load(self.population_by_station_dict[str(
-            osm_substation_id)]) if self.population_by_station_dict is not None else 100000
+            osm_substation_id)]) if self.population_by_station_dict is not None else LoadEstimator.estimate_load_country(
+            self.country_name, self.count_substations)
         load_response_characteristic = LoadResponseCharacteristic(exponentModel=False, pConstantPower=estimated_load)
         load_response_characteristic.UUID = str(CimWriter.uuid())
         energy_consumer = EnergyConsumer(name='L_' + osm_substation_id, LoadResponse=load_response_characteristic,
