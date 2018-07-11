@@ -16,10 +16,11 @@ Download and install miniconda for Python-2.7 (https://www.anaconda.com/download
 # dismiss yes/no installation dialogs
 conda config --set always_yes true
 # create transnet environment and install shapely package
-conda create --name transnet shapely
+conda create --name transnet python=2.7
 # change to transnet environment
 source activate transnet
 # install required python packages
+conda install shapely
 conda install --channel https://conda.anaconda.org/IOOS cartopy
 conda install psycopg2
 conda install -c auto PyCIM
