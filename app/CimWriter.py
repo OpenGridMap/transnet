@@ -201,8 +201,11 @@ class CimWriter:
 
         r = 0.3257
         x = 0.3153
-        r0 = 0.5336
-        x0 = 0.88025
+        # r0 = 0.5336
+        # x0 = 0.88025
+
+        r0 = 0
+        x0 = 0
 
         coeffs_of_voltage = {
             220000: dict(wires_typical=2.0, r=0.08, x=0.32, c=11.5, i=1.3),
