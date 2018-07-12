@@ -5,6 +5,7 @@ import uuid
 from collections import OrderedDict
 from string import maketrans
 from xml.dom.minidom import parse
+import ast
 
 import ogr
 import osr
@@ -20,6 +21,7 @@ from PyCIM import cimwrite
 from shapely.ops import linemerge
 
 from LoadEstimator import LoadEstimator
+from CSVWriter import CSVWriter
 
 
 class CimWriter:
@@ -61,9 +63,32 @@ class CimWriter:
         self.add_location(self.centroid.x, self.centroid.y, is_center=True)
 
         total_line_length = 0
+        voltages = set()
+        cables = set()
+        wires = set()
+        types = set()
+        line_length = 0
+
         for circuit in self.circuits:
             station1 = circuit.members[0]
             station2 = circuit.members[-1]
+
+            try:
+                for line_part in circuit.members[1:-1]:
+                    tags_list = ast.literal_eval(str(line_part.tags))
+                    line_tags = dict(zip(tags_list[::2], tags_list[1::2]))
+                    line_tags_keys = line_tags.keys()
+                    voltages.update([CSVWriter.try_parse_int(v) for v in line_part.voltage.split(';')])
+                    if 'cables' in line_tags_keys:
+                        cables.update([CSVWriter.try_parse_int(line_tags['cables'])])
+                    if 'wires' in line_tags_keys:
+                        wires.update(
+                            CSVWriter.convert_wire_names_to_numbers(CSVWriter.sanitize_csv(line_tags['wires'])))
+                    types.update([line_part.type])
+
+                    line_length += line_part.length
+            except Exception as ex:
+                print('Error line_to_cim_param_extraction')
 
             if 'station' in station1.type:
                 connectivity_node1 = self.substation_to_cim(station1, circuit.voltage)
@@ -94,7 +119,7 @@ class CimWriter:
                             station1.geom.centroid.x, station2.geom.centroid.y, station2.geom.centroid.x,
                             str(line_length))
             self.line_to_cim(connectivity_node1, connectivity_node2, line_length, circuit.name, circuit.voltage,
-                             line_wsg84.centroid.y, line_wsg84.centroid.x)
+                             line_wsg84.centroid.y, line_wsg84.centroid.x, line_length, cables, voltages, wires)
 
             # self.root.info('The inferred net\'s length is %s meters', str(total_line_length))
 
@@ -171,11 +196,46 @@ class CimWriter:
             self.connectivity_by_uuid_dict[generating_unit.UUID] = connectivity_node
         return self.connectivity_by_uuid_dict[generating_unit.UUID]
 
-    def line_to_cim(self, connectivity_node1, connectivity_node2, length, name, circuit_voltage, lat, lon):
+    def line_to_cim(self, connectivity_node1, connectivity_node2, length, name, circuit_voltage, lat, lon, line_length
+                    , cables, voltages, wires):
+
+        r = 0.3257
+        x = 0.3153
+        r0 = 0.5336
+        x0 = 0.88025
+
+        coeffs_of_voltage = {
+            220000: dict(wires_typical=2.0, r=0.08, x=0.32, c=11.5, i=1.3),
+            380000: dict(wires_typical=4.0, r=0.025, x=0.25, c=13.7, i=2.6)
+        }
+
+        length_selected = round(line_length)
+        cables_selected = CSVWriter.convert_max_set_to_string(cables)
+        voltage_selected = CSVWriter.convert_max_set_to_string(voltages)
+        wires_selected = CSVWriter.convert_max_set_to_string(wires)
+
+        voltage_selected_round = 0
+        if 360000 <= int(voltage_selected) <= 400000:
+            voltage_selected_round = 380000
+        elif 180000 <= int(voltage_selected) <= 260000:
+            voltage_selected_round = 220000
+        try:
+            if length_selected and cables_selected and int(
+                    voltage_selected_round) in coeffs_of_voltage and wires_selected:
+                coeffs = coeffs_of_voltage[int(voltage_selected_round)]
+                # Specific resistance of the transmission lines.
+                if coeffs['wires_typical']:
+                    r = coeffs['r'] / (int(wires_selected) / coeffs['wires_typical']) / (
+                            int(cables_selected) / 3.0)
+                    # Specific reactance of the transmission lines.
+                    x = coeffs['x'] / (int(wires_selected) / coeffs['wires_typical']) / (
+                            int(cables_selected) / 3.0)
+        except Exception as ex:
+            print('Error line_to_cim')
+
         line = ACLineSegment(
             name=CimWriter.escape_string(name) + '_' + connectivity_node1.name + '_' + connectivity_node2.name, bch=0,
-            r=0.3257, x=0.3153, r0=0.5336,
-            x0=0.88025, length=length, BaseVoltage=self.base_voltage(int(circuit_voltage)),
+            r=r, x=x, r0=r0, x0=x0, length=length, BaseVoltage=self.base_voltage(int(circuit_voltage)),
             Location=self.add_location(lat, lon))
         line.UUID = str(CimWriter.uuid())
         self.cimobject_by_uuid_dict[line.UUID] = line
