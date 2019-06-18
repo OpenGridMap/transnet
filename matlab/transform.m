@@ -3,10 +3,14 @@ function transform(destdir)
     try
         slCharacterEncoding('UTF-8')
         disp(destdir)
+        
+        slFileName = destdir;
+        
         destdir = ['../models/',destdir];
         fprintf('Parsing cim model ...')
+        
         % simplify cim model to be better readable by MATLAB
-        system(['sh preparsescript.sh ',destdir,'/cim_pretty.xml ',destdir,'/matcim.xml'])
+        preparsescript([destdir,'/cim_pretty.xml'] ,[destdir,'/matcim.xml']);
 
         % reed cim objects
         [tree, ~] = xml_read ([destdir,'/matcim.xml']);
@@ -26,17 +30,18 @@ function transform(destdir)
         positionPoints = tree(1).PositionPoint;
 
 
-        mdl = 'model';
-        close_system('model', 0);
-        open(mdl);
+        mdl = ['model_' slFileName];
+        close_system(mdl, 0);
+        new_system(mdl);
+        load_system(mdl);
 
         centroidPositionPoint = findCentroidPositionPoint(positionPoints);
         fprintf('Center position is \tlat=%f and lon=%f\n', centroidPositionPoint.PositionPoint_yPosition, centroidPositionPoint.PositionPoint_xPosition);
 
         blocks = {};
         for i = 1:length(transformers)
-           numWindings = numWindings(transformerWindings, transformers(i));
-           if numWindings > 2
+           numWind = numWindings(transformerWindings, transformers(i));
+           if numWind > 2
                block = add_block('block_templates/transformer3',[mdl,'/',transformers(i).IdentifiedObject_name]);
            else
                block = add_block('block_templates/transformer',[mdl,'/',transformers(i).IdentifiedObject_name]);
@@ -69,7 +74,6 @@ function transform(destdir)
            voltage = getBaseVoltage(baseVoltages, generators(i).ConductingEquipment_BaseVoltage.ATTRIBUTE(1).rdf_resource);
            set_param(block, 'Voltage', voltage);
            set_param(block, 'BaseVoltage', voltage);
-           generator = generators(i);
            if isfield(generators(i), 'SynchronousMachine_ratedS')  
                nominalPower = generators(i).SynchronousMachine_ratedS;
                if ~isempty(nominalPower) && isnumeric(nominalPower)
@@ -145,10 +149,11 @@ function transform(destdir)
             set_param(block, 'BackgroundColor', color)
             set_param(block, 'ForegroundColor', 'black')
         end
-
-        new_mdl = 'model';
-        save_system(mdl,[destdir,'/',new_mdl]);
-        Simulink.exportToVersion(mdl,[destdir,'/',new_mdl,'_compatible.mdl'],'R2010A');
+        
+        save_system(mdl,[destdir,'/',mdl]);
+        Simulink.exportToVersion(mdl,[destdir,'/',mdl,'_compatible.mdl'],'R2010A');
+        
+        close_system(mdl);
     catch e
         disp(e.message);        
     end 
